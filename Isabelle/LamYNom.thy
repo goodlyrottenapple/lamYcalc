@@ -12,7 +12,7 @@ nominal_datatype type = Typ TV | Arr type type ("_ \<rightarrow> _")
 nominal_datatype lam =
   Var "name"
 | App "lam" "lam"
-| Lam x::name l::lam  binds x in l ("Lam [_]. _" [100, 100] 100)
+| Lam x::name t::type l::lam  binds x in l ("Lam [_:_]. _" [100, 100] 100)
 | Y type
 
 nominal_function
@@ -20,7 +20,7 @@ nominal_function
 where
   "(Var x)[y ::= s] = (if x = y then s else (Var x))"
 | "(App t1 t2)[y ::= s] = App (t1[y ::= s]) (t2[y ::= s])"
-| "atom x \<sharp> (y, s) \<Longrightarrow> (Lam [x]. t)[y ::= s] = Lam [x].(t[y ::= s])"
+| "atom x \<sharp> (y, s) \<Longrightarrow> (Lam [x:a]. t)[y ::= s] = Lam [x:a].(t[y ::= s])"
 | "(Y t)[y ::= s] = Y t"
   apply(simp add: eqvt_def subst_graph_aux_def)
   apply(rule TrueI)
@@ -75,13 +75,189 @@ by (nominal_induct t avoiding: x y s u rule: lam.strong_induct)
 
 subsection {* well typed terms *}
 
+inductive wf_ctxt :: "(name \<times> type) list \<Rightarrow> bool"
+where
+    nil:  "wf_ctxt []"
+  | cons:  "\<lbrakk> wf_ctxt \<Gamma> ; atom x \<sharp> \<Gamma> \<rbrakk> \<Longrightarrow> wf_ctxt ((x,\<sigma>) # \<Gamma>)"
+equivariance wf_ctxt
+
+
+(*nominal_function 
+  wf :: "(name \<times> type) list \<Rightarrow> bool"
+where
+  "wf [] = True"
+| "wf (x#xs) = (atom(fst x) \<sharp> xs \<and> wf xs)"
+apply (simp add: eqvt_def wf_graph_aux_def)
+apply (rule TrueI)
+apply (rule_tac y="x" in list.exhaust)
+by auto*)
+
+inductive
+  wt_terms :: "(name \<times> type) list \<Rightarrow> lam \<Rightarrow> type \<Rightarrow> bool" ("_ \<turnstile> _ : _")
+where
+  var: "\<lbrakk> (x,\<sigma>) \<in> set \<Gamma> ; wf_ctxt \<Gamma> \<rbrakk> \<Longrightarrow> \<Gamma> \<turnstile> Var x : \<sigma>"
+| app: "\<lbrakk> \<Gamma> \<turnstile> M : \<sigma> \<rightarrow> \<tau> ; \<Gamma> \<turnstile> N : \<sigma> \<rbrakk> \<Longrightarrow> \<Gamma> \<turnstile> App M N : \<tau>"
+| abs: "\<lbrakk> atom x \<sharp> \<Gamma>; (x,\<sigma>)#\<Gamma> \<turnstile> M : \<tau> \<rbrakk> \<Longrightarrow> \<Gamma> \<turnstile> Lam [x:\<sigma>]. M : \<sigma> \<rightarrow> \<tau>"
+| Y: "\<lbrakk> wf_ctxt \<Gamma> \<rbrakk> \<Longrightarrow> \<Gamma> \<turnstile> Y \<sigma> : (\<sigma> \<rightarrow> \<sigma>) \<rightarrow> \<sigma>"
+
+equivariance wt_terms
+nominal_inductive wt_terms 
+  avoids abs: "x"
+  apply (simp_all add: fresh_star_def fresh_Pair fresh_fact fresh_type)
+done
+
+
+lemma weakening:
+  fixes \<Gamma> \<Gamma>' M \<sigma>
+  assumes "\<Gamma> \<turnstile> M : \<sigma>" and "set \<Gamma> \<subseteq> set \<Gamma>'"
+  and "wf_ctxt \<Gamma>'"
+  shows "\<Gamma>' \<turnstile> M : \<sigma>"
+using assms proof (nominal_induct \<Gamma> M \<sigma> avoiding: \<Gamma>' rule:wt_terms.strong_induct)
+case var 
+  show ?case 
+  apply (rule wt_terms.var) 
+  using var by auto
+next
+case app
+  show ?case
+  apply (rule wt_terms.app)
+  using app by auto
+next
+case (abs x \<Gamma> \<sigma> M \<tau>)
+  have 1: "wf_ctxt ((x, \<sigma>) # \<Gamma>')" 
+  apply (rule cons)
+  using abs by simp+
+
+  show ?case
+  apply (rule wt_terms.abs)
+  using "1" wf_ctxt.cases apply auto[1]
+  apply (rule abs(4))
+  using abs apply auto[1]
+  using 1 by simp
+next
+case Y thus ?case using wt_terms.Y by simp
+qed
+
+lemma wt_imp_wf_ctxt: "\<Gamma> \<turnstile> M : \<sigma> \<Longrightarrow> wf_ctxt \<Gamma>"
+apply (nominal_induct \<Gamma> M \<sigma> rule:wt_terms.strong_induct)
+using wf_ctxt.cases by auto
+
+
+definition
+  list_perm_eq :: "'a list \<Rightarrow> 'a list \<Rightarrow> bool" (infix "\<approx>" 50)
+where
+  [simp]: "xs \<approx> ys \<longleftrightarrow> mset xs = mset ys"
+
+lemma split: "(a # \<Gamma>) \<approx> (\<Gamma>':: 'a list) \<Longrightarrow> \<exists>\<Sigma> \<Delta>. \<Gamma>' = \<Sigma> @ [a] @ \<Delta>" 
+unfolding list_perm_eq_def using split_list
+by (metis append_Cons append_Nil list.set_intros(1) mset_eq_setD)
+
+lemma split_eq: 
+  assumes "a # \<Gamma> \<approx> \<Sigma> @ [a] @ \<Delta>"
+  shows "\<Gamma> \<approx> \<Sigma> @ \<Delta>"
+unfolding list_perm_eq_def
+proof -
+  have "mset \<Gamma> + mset [a] = mset [a] + (mset \<Sigma> + mset \<Delta>)"
+    by (metis (no_types) add.left_commute assms(1) list_perm_eq_def mset_append mset_rev rev.simps(2))
+  then show "mset \<Gamma> = mset (\<Sigma> @ \<Delta>)"
+    by (metis (no_types) add.commute add_right_imp_eq mset_append mset_rev rev.simps(2))
+qed
+
+lemma fresh_in_list_perm: 
+  assumes "atom x \<sharp> \<Gamma>" and "\<Gamma> \<approx> \<Gamma>'"
+  shows "atom x \<sharp> \<Gamma>'"
+using assms proof (induct \<Gamma> arbitrary: \<Gamma>')
+case Nil thus ?case by simp
+next
+case (Cons a \<Gamma>)
+  from Cons(3) obtain \<Sigma> \<Delta> where 1: "\<Gamma>' = \<Sigma> @ [a] @ \<Delta>" using split by metis
+  with Cons have 2: "\<Gamma> \<approx> \<Sigma> @ \<Delta>" using split_eq by simp
+  from Cons(2) have 3: "atom x \<sharp> \<Gamma>" "atom x \<sharp> a" using fresh_Cons by blast+
+  with 2 3 Cons(1) have "atom x \<sharp> \<Sigma> @ \<Delta>" by simp
+  then have ih: "atom x \<sharp> \<Sigma>" "atom x \<sharp> \<Delta>" using fresh_append by auto
+  show ?case unfolding 1
+  apply (subst fresh_append)
+  apply rule
+  using ih apply simp
+  apply auto
+  apply (subst fresh_Cons)
+  apply rule
+  using 3(2) ih by simp+
+qed
+
+lemma wf_list_perm:
+  assumes "wf_ctxt \<Gamma>" and "\<Gamma> \<approx> \<Gamma>'"
+  shows "wf_ctxt \<Gamma>'"
+using assms proof (induct \<Gamma> arbitrary:\<Gamma>' rule:wf_ctxt.induct)
+case nil 
+  then have 1: "\<Gamma>' = []" by simp
+  show ?case
+  apply (subst 1)
+  by (rule wf_ctxt.nil)
+next
+case (cons \<Gamma> x \<sigma>)
+  from cons(4) obtain \<Sigma> \<Delta> where 1: "\<Gamma>' = \<Sigma> @ [(x, \<sigma>)] @ \<Delta>" using split by metis 
+  with cons have 2:"\<Gamma> \<approx> \<Sigma> @ \<Delta>" using split_eq wf_ctxt.cons by metis
+  
+  with cons have ih: "wf_ctxt (\<Sigma> @ \<Delta>)" by simp
+  from 2 have 3: "atom x \<sharp> \<Sigma> @ \<Delta>" using fresh_in_list_perm cons by blast
+  show ?case unfolding 1 sorry
+qed
+
+
+lemma wt_list_perm:
+  assumes "\<Gamma> \<approx> \<Gamma>'"
+  and "\<Gamma> \<turnstile> M : \<sigma>"
+  shows "\<Gamma>' \<turnstile> M : \<sigma>"
+apply (rule_tac \<Gamma>=\<Gamma> in weakening)
+using assms apply simp
+using assms using list_perm_eq_def mset_eq_setD order_refl apply auto[1]
+oops
+
+
+subsection {* single-step beta-reduction *}
+
+inductive 
+  beta :: "(name \<times> type) list \<Rightarrow> lam \<Rightarrow> lam \<Rightarrow> type \<Rightarrow> bool" ("_ \<turnstile> _ \<Rightarrow> _ : _" [80,80] 80)
+where
+  red_L[intro]: "\<lbrakk> \<Gamma> \<turnstile> M \<Rightarrow> M' : \<sigma> \<rightarrow> \<tau> ; \<Gamma> \<turnstile> N : \<sigma> \<rbrakk> \<Longrightarrow> \<Gamma> \<turnstile> App M N \<Rightarrow> App M' N : \<tau>"
+| red_R[intro]: "\<lbrakk> \<Gamma> \<turnstile> M : \<sigma> \<rightarrow> \<tau> ; \<Gamma> \<turnstile> N \<Rightarrow> N' : \<tau> \<rbrakk> \<Longrightarrow> \<Gamma> \<turnstile> App M N \<Rightarrow> App M N' : \<tau>"
+| abs[intro]: "\<lbrakk> atom x \<sharp> \<Gamma> ; ((x,\<sigma>)#\<Gamma>) \<turnstile> M \<Rightarrow> M' : \<tau> \<rbrakk> \<Longrightarrow> \<Gamma> \<turnstile> Lam [x:\<sigma>]. M \<Rightarrow> Lam [x:\<sigma>]. M' : \<sigma> \<rightarrow> \<tau>"
+| beta[intro]: "\<lbrakk> atom x \<sharp> N ; atom x \<sharp> \<Gamma> ; (x,\<sigma>)#\<Gamma> \<turnstile> M : \<tau> ; \<Gamma> \<turnstile> N : \<sigma> \<rbrakk> \<Longrightarrow> \<Gamma> \<turnstile> App (Lam [x:\<sigma>]. M) N \<Rightarrow> M[x ::= N] : \<tau>"
+
+equivariance beta
+
+nominal_inductive beta
+  avoids beta: "x"
+  apply (simp_all add: fresh_star_def fresh_Pair fresh_fact fresh_type)
+done
+
+
+inductive 
+  beta_eta_Y :: "(name \<times> type) list \<Rightarrow> lam \<Rightarrow> lam \<Rightarrow> type \<Rightarrow> bool" ("_ \<turnstile> _ \<Rightarrow>Y _ : _" [80,80] 80)
+where
+  red_L[intro]: "\<lbrakk> \<Gamma> \<turnstile> M \<Rightarrow>Y M' : \<sigma> \<rightarrow> \<tau> ; \<Gamma> \<turnstile> N : \<sigma> \<rbrakk> \<Longrightarrow> \<Gamma> \<turnstile> App M N \<Rightarrow>Y App M' N : \<tau>"
+| red_R[intro]: "\<lbrakk> \<Gamma> \<turnstile> M : \<sigma> \<rightarrow> \<tau> ; \<Gamma> \<turnstile> N \<Rightarrow>Y N' : \<tau> \<rbrakk> \<Longrightarrow> \<Gamma> \<turnstile> App M N \<Rightarrow>Y App M N' : \<tau>"
+| abs[intro]: "\<lbrakk> atom x \<sharp> \<Gamma> ; ((x,\<sigma>)#\<Gamma>) \<turnstile> M \<Rightarrow>Y M' : \<tau> \<rbrakk> \<Longrightarrow> \<Gamma> \<turnstile> Lam [x:\<sigma>]. M \<Rightarrow>Y Lam [x:\<sigma>]. M' : \<sigma> \<rightarrow> \<tau>"
+| beta[intro]: "\<lbrakk> atom x \<sharp> N ; atom x \<sharp> \<Gamma> ; ((x,\<sigma>)#\<Gamma>) \<turnstile> M : \<tau> ; \<Gamma> \<turnstile> N : \<sigma> \<rbrakk> \<Longrightarrow> \<Gamma> \<turnstile> App (Lam [x:\<sigma>]. M) N \<Rightarrow>Y M[x ::= N] : \<tau>"
+| eta[intro]: "\<lbrakk> atom x \<sharp> M \<rbrakk> \<Longrightarrow> \<Gamma> \<turnstile> App (Lam [x:\<sigma>]. M) (Var x) \<Rightarrow>Y M : \<sigma> \<rightarrow> \<tau>"
+| Y[intro]: "\<lbrakk> \<Gamma> \<turnstile> M : \<sigma> \<rightarrow> \<sigma> \<rbrakk> \<Longrightarrow> \<Gamma> \<turnstile> App (Y \<sigma>) M \<Rightarrow>Y App M (App (Y \<sigma>) M) : \<sigma>"
+
+equivariance beta_eta_Y
+
+nominal_inductive beta_eta_Y
+  avoids beta: "x"
+  apply (simp_all add: fresh_star_def fresh_Pair fresh_fact fresh_type)
+done
+
+(*
 inductive
   wt_terms :: "(name \<times> type) set \<Rightarrow> lam \<Rightarrow> type \<Rightarrow> bool" ("_ \<turnstile> _ : _")
 where
   var: "(x,\<sigma>) \<in> \<Gamma> \<Longrightarrow> \<Gamma> \<turnstile> Var x : \<sigma>"
 | app: "\<lbrakk> \<Gamma> \<turnstile> M : \<sigma> \<rightarrow> \<tau> ; \<Gamma> \<turnstile> N : \<sigma> \<rbrakk> \<Longrightarrow> \<Gamma> \<turnstile> App M N : \<tau>"
 (* condition "atom x \<sharp> \<Gamma>" in abst should ensure that (x,\<sigma>) is consistent with \<Gamma> *)
-| abs: "\<lbrakk> atom x \<sharp> \<Gamma> ; \<Gamma> \<union> {(x,\<sigma>)} \<turnstile> M : \<tau> \<rbrakk> \<Longrightarrow> \<Gamma> \<turnstile> Lam [x]. M : \<sigma> \<rightarrow> \<tau>"
+| abs: "\<lbrakk> atom x \<sharp> \<Gamma> ; \<Gamma> \<union> {(x,\<sigma>)} \<turnstile> M : \<tau> \<rbrakk> \<Longrightarrow> \<Gamma> \<turnstile> Lam [x:\<sigma>]. M : \<sigma> \<rightarrow> \<tau>"
 | Y: "\<Gamma> \<turnstile> Y \<sigma> : (\<sigma> \<rightarrow> \<sigma>) \<rightarrow> \<sigma>"
 
 equivariance wt_terms
@@ -90,20 +266,18 @@ nominal_inductive wt_terms
   apply (simp_all add: fresh_star_def fresh_Pair fresh_fact fresh_type)*)
 done
 
-subsection {* single-step beta-reduction *}
-
 inductive 
   beta :: "lam \<Rightarrow> lam \<Rightarrow> bool" (" _ \<Rightarrow> _" [80,80] 80)
 where
   red_L[intro]: "\<lbrakk> M \<Rightarrow> M' \<rbrakk> \<Longrightarrow> App M N \<Rightarrow> App M' N"
 | red_R[intro]: "\<lbrakk> N \<Rightarrow> N' \<rbrakk> \<Longrightarrow> App M N \<Rightarrow> App M N'"
-| abs[intro]: "\<lbrakk> M \<Rightarrow> M' \<rbrakk> \<Longrightarrow> Lam [x]. M \<Rightarrow> Lam [x]. M'"
-| beta[intro]: "\<lbrakk> atom x \<sharp> N \<rbrakk> \<Longrightarrow> App (Lam [x]. M) N \<Rightarrow> M[x ::= N]"
+| abs[intro]: "\<lbrakk> M \<Rightarrow> M' \<rbrakk> \<Longrightarrow> Lam [x:\<sigma>]. M \<Rightarrow> Lam [x:\<sigma>]. M'"
+| beta[intro]: "\<lbrakk> atom x \<sharp> N \<rbrakk> \<Longrightarrow> App (Lam [x:\<sigma>]. M) N \<Rightarrow> M[x ::= N]"
 
 equivariance beta
 nominal_inductive beta
   avoids beta: "x"
-  by (simp_all add: fresh_star_def fresh_Pair fresh_fact)
+  by (simp_all add: fresh_star_def fresh_Pair fresh_fact fresh_type)
 
 
 lemma beta_Ytyp:
@@ -129,7 +303,8 @@ case (red_R N N' M)
   using 1 2 by simp+
 next
 case (abs M M' x)
-  from abs(3) obtain \<pi> \<tau> where 1: "\<sigma> = \<pi> \<rightarrow> \<tau>" "\<Gamma> \<turnstile> Lam [x]. M : \<pi> \<rightarrow> \<tau>" by (metis lam.distinct(3) lam.distinct(7) wt_terms.simps)
+  from abs(3) obtain \<pi> \<tau> where 1: "\<sigma> = \<pi> \<rightarrow> \<tau>" "\<Gamma> \<turnstile> Lam [x:\<pi>]. M : \<pi> \<rightarrow> \<tau>"
+    by (metis lam.distinct(11) lam.distinct(3) lam.distinct(7) lam.eq_iff(3) wt_terms.simps)
   then have 2: "atom x \<sharp> \<Gamma>" "\<Gamma> \<union> {(x,\<pi>)} \<turnstile> M : \<tau>" using wt_terms.cases sorry (* need a different cases rule *)
   with abs(2) have 3: "\<Gamma> \<union> {(x,\<pi>)} \<turnstile> M' : \<tau>" by simp
   
@@ -138,8 +313,8 @@ case (abs M M' x)
   apply (rule wt_terms.abs)
   using 2 3 by simp+
 next
-case (beta x N M) 
-  from beta(2) obtain \<tau> where 1: "\<Gamma> \<turnstile> (Lam [x]. M) : \<tau> \<rightarrow> \<sigma>" "\<Gamma> \<turnstile> N : \<tau>" 
+case (beta x N \<sigma>' M) 
+  from beta(2) obtain \<tau> where 1: "\<Gamma> \<turnstile> Lam [x:\<sigma>']. M : \<tau> \<rightarrow> \<sigma>" "\<Gamma> \<turnstile> N : \<tau>" 
     by (metis lam.distinct(1) lam.distinct(7) lam.distinct(9) lam.eq_iff(2) wt_terms.simps)
   then have 2: "atom x \<sharp> \<Gamma>" "\<Gamma> \<union> {(x,\<tau>)} \<turnstile> M : \<sigma>" using wt_terms.cases sorry (* need a different cases rule *)
   show ?case sorry
@@ -150,15 +325,15 @@ inductive
 where
   red_L[intro]: "\<lbrakk> M \<Rightarrow>Y M' \<rbrakk> \<Longrightarrow> App M N \<Rightarrow>Y App M' N"
 | red_R[intro]: "\<lbrakk> N \<Rightarrow>Y N' \<rbrakk> \<Longrightarrow> App M N \<Rightarrow>Y App M N'"
-| abs[intro]: "\<lbrakk> M \<Rightarrow>Y M' \<rbrakk> \<Longrightarrow> Lam [x]. M \<Rightarrow>Y Lam [x]. M'"
-| beta[intro]: "\<lbrakk> atom x \<sharp> N \<rbrakk> \<Longrightarrow> App (Lam [x]. M) N \<Rightarrow>Y M[x ::= N]"
-| eta[intro]: "\<lbrakk> atom x \<sharp> M \<rbrakk> \<Longrightarrow> App (Lam [x]. M) (Var x) \<Rightarrow>Y M"
+| abs[intro]: "\<lbrakk> M \<Rightarrow>Y M' \<rbrakk> \<Longrightarrow> Lam [x:\<sigma>]. M \<Rightarrow>Y Lam [x:\<sigma>]. M'"
+| beta[intro]: "\<lbrakk> atom x \<sharp> N \<rbrakk> \<Longrightarrow> App (Lam [x:\<sigma>]. M) N \<Rightarrow>Y M[x ::= N]"
+| eta[intro]: "\<lbrakk> atom x \<sharp> M \<rbrakk> \<Longrightarrow> App (Lam [x:\<sigma>]. M) (Var x) \<Rightarrow>Y M"
 | Y[intro]: "App (Y \<sigma>) M \<Rightarrow>Y App M (App (Y \<sigma>) M)"
 
 equivariance beta_eta_Y
 nominal_inductive beta_eta_Y
   avoids beta: "x"
-  by (simp_all add: fresh_star_def fresh_Pair fresh_fact)
+  by (simp_all add: fresh_star_def fresh_Pair fresh_fact fresh_type)
 
 
 lemma beta_Ytyp:
@@ -167,8 +342,8 @@ lemma beta_Ytyp:
   shows "\<Gamma> \<turnstile> M' : \<sigma>"
 using assms(2,1) 
 proof (nominal_induct  M M' arbitrary: \<Gamma> \<sigma> rule: beta_eta_Y.strong_induct)
-case (eta x M) 
-  from eta(2) obtain \<tau> where 1: "\<Gamma> \<turnstile> (Lam [x]. M) : \<tau> \<rightarrow> \<sigma>" "\<Gamma> \<turnstile> (Var x) : \<tau>" 
+case (eta x M \<sigma>') 
+  from eta(2) obtain \<tau> where 1: "\<Gamma> \<turnstile> (Lam [x:\<sigma>']. M) : \<tau> \<rightarrow> \<sigma>" "\<Gamma> \<turnstile> (Var x) : \<tau>" 
     by (metis lam.distinct(1) lam.distinct(7) lam.distinct(9) lam.eq_iff(2) wt_terms.simps)
   then have 2: "atom x \<sharp> \<Gamma>" "\<Gamma> \<union> {(x,\<tau>)} \<turnstile> M : \<sigma>" using wt_terms.cases sorry (* need a different cases rule *)
   show ?case sorry (*prove that if x \<sharp> M together with \<Gamma> \<union> {(x,\<tau>)} \<turnstile> M : \<sigma> \<Longrightarrow> \<Gamma> \<turnstile> M : \<sigma> *)
@@ -188,26 +363,25 @@ case (Y \<tau> M)
     apply (rule wt_terms.Y)
     using 1(2) 2(1) by simp+
 qed
+*)
 
 
 
-(*
 subsection {* parallel beta reduction *}
 
 inductive 
-  pbeta :: "(name \<times> type) set \<Rightarrow> lam \<Rightarrow> lam \<Rightarrow> type \<Rightarrow> bool" ("_ \<turnstile> _ \<Rightarrow>\<parallel> _ : _" [80,80] 80)
+  pbeta :: "(name \<times> type) list \<Rightarrow> lam \<Rightarrow> lam \<Rightarrow> type \<Rightarrow> bool" ("_ \<turnstile> _ \<Rightarrow>\<parallel> _ : _" [80,80] 80)
 where
-  refl[intro]: "\<lbrakk> (x,\<sigma>) \<in> \<Gamma> \<rbrakk> \<Longrightarrow> \<Gamma> \<turnstile> (Var x) \<Rightarrow>\<parallel> (Var x) : \<sigma>"
+  refl[intro]: "\<lbrakk> (x,\<sigma>) \<in> set \<Gamma> \<rbrakk> \<Longrightarrow> \<Gamma> \<turnstile> (Var x) \<Rightarrow>\<parallel> (Var x) : \<sigma>"
 | app[intro]: "\<lbrakk> \<Gamma> \<turnstile> M \<Rightarrow>\<parallel> M' : \<sigma> \<rightarrow> \<tau> ; \<Gamma> \<turnstile> N \<Rightarrow>\<parallel> N' : \<tau> \<rbrakk> \<Longrightarrow> \<Gamma> \<turnstile> App M N \<Rightarrow>\<parallel> App M' N' : \<tau>"
-| abs[intro]: "\<lbrakk> atom x \<sharp> \<Gamma> ; ({(x,\<sigma>)} \<union> \<Gamma>) \<turnstile> M \<Rightarrow>\<parallel> M' : \<tau> \<rbrakk> \<Longrightarrow> \<Gamma> \<turnstile> Lam [x]. M \<Rightarrow>\<parallel> Lam [x]. M' : \<sigma> \<rightarrow> \<tau>"
-| beta[intro]: "\<lbrakk> atom x \<sharp> N ; atom x \<sharp> N' ; atom x \<sharp> \<Gamma> ; (\<Gamma> \<union> {(x, \<sigma>)}) \<turnstile> M \<Rightarrow>\<parallel> M' : \<tau> ; \<Gamma> \<turnstile> N \<Rightarrow>\<parallel> N' : \<sigma> \<rbrakk> \<Longrightarrow> \<Gamma> \<turnstile> App (Lam [x]. M) N \<Rightarrow>\<parallel> M'[x ::= N'] : \<tau>"
+| abs[intro]: "\<lbrakk> atom x \<sharp> \<Gamma> ; ((x,\<sigma>)#\<Gamma>) \<turnstile> M \<Rightarrow>\<parallel> M' : \<tau> \<rbrakk> \<Longrightarrow> \<Gamma> \<turnstile> Lam [x:\<sigma>]. M \<Rightarrow>\<parallel> Lam [x:\<sigma>]. M' : \<sigma> \<rightarrow> \<tau>"
+| beta[intro]: "\<lbrakk> atom x \<sharp> N ; atom x \<sharp> N' ; atom x \<sharp> \<Gamma> ; ((x,\<sigma>)#\<Gamma>) \<turnstile> M \<Rightarrow>\<parallel> M' : \<tau> ; \<Gamma> \<turnstile> N \<Rightarrow>\<parallel> N' : \<sigma> \<rbrakk> \<Longrightarrow> \<Gamma> \<turnstile> App (Lam [x:\<sigma>]. M) N \<Rightarrow>\<parallel> M'[x ::= N'] : \<tau>"
 
 equivariance pbeta
 
 nominal_inductive pbeta
-(*  avoids beta: "x" (*don't understand what this does exactly or why we need it...*)
+ avoids beta: "x" (*don't understand what this does exactly or why we need it...*)
   apply (simp_all add: fresh_star_def fresh_Pair fresh_fact fresh_type)
-oops*)
 done
 
 
@@ -216,7 +390,7 @@ nominal_function
 where
   "not_abst (Var x) = True"
 | "not_abst (App t1 t2) = True"
-| "not_abst (Lam [x]. t) = False"
+| "not_abst (Lam [x:\<sigma>]. t) = False"
 | "not_abst (Y t) = True"
 apply (simp add: eqvt_def not_abst_graph_aux_def)
 apply (rule TrueI)
@@ -230,56 +404,33 @@ nominal_termination (eqvt) by lexicographic_order
 subsection {* parallel beta reduction *}
 
 inductive 
-  pbeta_max :: "(name \<times> type) set \<Rightarrow> lam \<Rightarrow> lam \<Rightarrow> type \<Rightarrow> bool" ("_ \<turnstile> _ >>> _ : _" [80,80] 80)
+  pbeta_max :: "(name \<times> type) list \<Rightarrow> lam \<Rightarrow> lam \<Rightarrow> type \<Rightarrow> bool" ("_ \<turnstile> _ >>> _ : _" [80,80] 80)
 where
-  refl[intro]: "\<lbrakk> (x,\<sigma>) \<in> \<Gamma> \<rbrakk> \<Longrightarrow> \<Gamma> \<turnstile> (Var x) >>> (Var x) : \<sigma>"
+  refl[intro]: "\<lbrakk> (x,\<sigma>) \<in> set \<Gamma> \<rbrakk> \<Longrightarrow> \<Gamma> \<turnstile> (Var x) >>> (Var x) : \<sigma>"
 | app[intro]: "\<lbrakk> not_abst M ; \<Gamma> \<turnstile> M >>> M' : \<sigma> \<rightarrow> \<tau> ; \<Gamma> \<turnstile> N >>> N' : \<tau> \<rbrakk> \<Longrightarrow> \<Gamma> \<turnstile> App M N >>> App M' N' : \<tau>"
-| abs[intro]: "\<lbrakk> atom x \<sharp> \<Gamma> ; ({(x,\<sigma>)} \<union> \<Gamma>) \<turnstile> M >>> M' : \<tau> \<rbrakk> \<Longrightarrow> \<Gamma> \<turnstile> Lam [x]. M >>> Lam [x]. M' : \<sigma> \<rightarrow> \<tau>"
-| beta[intro]: "\<lbrakk> atom x \<sharp> N ; atom x \<sharp> N' ; atom x \<sharp> \<Gamma> ; (\<Gamma> \<union> {(x, \<sigma>)}) \<turnstile> M >>> M' : \<tau> ; \<Gamma> \<turnstile> N >>> N' : \<sigma> \<rbrakk> \<Longrightarrow> \<Gamma> \<turnstile> App (Lam [x]. M) N >>> M'[x ::= N'] : \<tau>"
-
+| abs[intro]: "\<lbrakk> atom x \<sharp> \<Gamma> ; ((x,\<sigma>)#\<Gamma>) \<turnstile> M >>> M' : \<tau> \<rbrakk> \<Longrightarrow> \<Gamma> \<turnstile> Lam [x:\<sigma>]. M >>> Lam [x:\<sigma>]. M' : \<sigma> \<rightarrow> \<tau>"
+| beta[intro]: "\<lbrakk> atom x \<sharp> N ; atom x \<sharp> N' ; atom x \<sharp> \<Gamma> ; ((x,\<sigma>)#\<Gamma>) \<turnstile> M >>> M' : \<tau> ; \<Gamma> \<turnstile> N >>> N' : \<sigma> \<rbrakk> \<Longrightarrow> \<Gamma> \<turnstile> App (Lam [x:\<sigma>]. M) N >>> M'[x ::= N'] : \<tau>"
 
 equivariance pbeta_max
 
 nominal_inductive pbeta_max
-  (*avoids beta: "x" | abs: "x" (*don't understand what this does exactly or why we need it in the abs case ...*)
-  by (simp_all add: fresh_star_def fresh_Pair fresh_fact)*)
-done
+  avoids beta: "x" | abs: "x" (*don't understand what this does exactly or why we need it in the abs case ...*)
+  by (simp_all add: fresh_star_def fresh_Pair fresh_fact fresh_type)
 
-
-
-lemma Ex1_5: "x \<noteq> y \<Longrightarrow> atom x \<sharp> u \<Longrightarrow> (s[x ::= t])[y ::= u] = s[y ::= u][x ::= t[y ::= u]]"
-proof (nominal_induct s avoiding: x y u t rule:lam.strong_induct)
-case (Var s) thus ?case
-  apply (cases "x = s")
-  apply (cases "y = s")
-  apply simp
-  defer
-  apply simp
-  apply (subst forget) using Var
-  by simp+
-next
-case (App p q)
-  thus ?case by simp
-next
-case (Lam z p)
-  show ?case 
-  apply (subst subst.simps(3), simp add: Lam fresh_fact)+
-  using Lam by simp
-next
-case Y thus ?case by simp
-qed
 
 lemma Lem2_5_1:
-  assumes "L \<turnstile> s \<Rightarrow>\<parallel> s' : a"
+  assumes "((x,b)#L) \<turnstile> s \<Rightarrow>\<parallel> s' : a"
       and "L \<turnstile> t \<Rightarrow>\<parallel> t' : b"
     shows "L \<turnstile> (s[x ::= t]) \<Rightarrow>\<parallel> (s'[x ::= t']) : a"
-using assms proof (nominal_induct L s s' a avoiding: x t t' b  rule:pbeta.strong_induct)
+using assms proof (nominal_induct "(x,b)#L" s s' a avoiding: x t t' b  rule:pbeta.strong_induct)
 case (refl y)
   thus ?case 
   unfolding subst.simps
   apply (cases "y = x")
   defer
   apply auto[1]
+  proof -
+  
   sorry
 
 next
@@ -291,7 +442,7 @@ case app
   by auto
 next
 case (beta x' N N' \<Gamma> \<sigma> M M' \<tau>')
-  have 1: "\<Gamma> \<turnstile> App (Lam [x']. M [x ::= t])
+  have 1: "\<Gamma> \<turnstile> App (Lam [x':\<sigma>]. M [x ::= t])
           (N [x ::= t]) \<Rightarrow>\<parallel> M' [x ::= t'] [x' ::= N' [x ::= t']] : \<tau>'"
   apply (subst subst.simps(3))
   defer
