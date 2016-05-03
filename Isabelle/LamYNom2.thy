@@ -630,18 +630,94 @@ proof -
 qed
 
 
-(*inductive beta_c :: "trm \<Rightarrow> trm \<Rightarrow> bool" ("_ \<longrightarrow>b* _" [80,80] 80)
+
+inductive 
+  beta_c :: "trm \<Rightarrow> trm \<Rightarrow> bool" (" _ \<Rightarrow>* _" [80,80] 80)
 where
-  base[intro]: "a \<longrightarrow>b b \<Longrightarrow> a \<longrightarrow>b* b"
-| refl[intro]: "a \<longrightarrow>b* a"
-| trans[intro]: "\<lbrakk> a \<longrightarrow>b* b ; b \<longrightarrow>b* c \<rbrakk> \<Longrightarrow> a \<longrightarrow>b* c"
+  red_L[intro]: "\<lbrakk> M \<Rightarrow>* M' \<rbrakk> \<Longrightarrow> App M N \<Rightarrow>* App M' N"
+| red_R[intro]: "\<lbrakk> N \<Rightarrow>* N' \<rbrakk> \<Longrightarrow> App M N \<Rightarrow>* App M N'"
+| abs[intro]: "\<lbrakk> M \<Rightarrow>* M' \<rbrakk> \<Longrightarrow> Lam [x]. M \<Rightarrow>* Lam [x]. M'"
+| beta[intro]: "\<lbrakk> atom x \<sharp> N \<rbrakk> \<Longrightarrow> App (Lam [x]. M) N \<Rightarrow>* M[x ::= N]"
+| Y[intro]: "App (Y \<sigma>) M \<Rightarrow>* App M (App (Y \<sigma>) M)"
+| refl[intro]: "M \<Rightarrow>* M"
+| trans[intro]: "\<lbrakk> M \<Rightarrow>* N ; N \<Rightarrow>* P \<rbrakk> \<Longrightarrow> M \<Rightarrow>* P"
+
+equivariance beta_c
+nominal_inductive beta_c
+  avoids beta: "x" | abs: "x"
+  by (simp_all add: fresh_star_def fresh_Pair fresh_fact fresh_type)
 
 
-inductive pbeta_c :: "trm \<Rightarrow> trm \<Rightarrow> bool" ("_ \<rightarrow>\<parallel>b* _" [80,80] 80)
+lemma beta_c_typ:
+  assumes "\<Gamma> \<turnstile> M : \<sigma>"
+  and "M \<Rightarrow>* M'"
+  shows "\<Gamma> \<turnstile> M' : \<sigma>"
+using assms(2,1)
+proof (nominal_induct  M M' avoiding: \<Gamma> arbitrary: \<sigma> rule: beta_c.strong_induct)
+case (red_L M M' N)
+  from red_L(3) obtain \<tau> where 1: "\<Gamma> \<turnstile> M : \<tau> \<rightarrow> \<sigma>" "\<Gamma> \<turnstile> N : \<tau>"
+    apply (cases rule:wt_terms.cases) by simp
+  with red_L(2) have "\<Gamma> \<turnstile> M' : \<tau> \<rightarrow> \<sigma>" by simp
+  thus ?case 
+    apply (rule wt_terms.app)
+    using 1 by simp
+next
+case (red_R N N' M)
+  from red_R(3) obtain \<tau> where 1: "\<Gamma> \<turnstile> M : \<tau> \<rightarrow> \<sigma>" "\<Gamma> \<turnstile> N : \<tau>"
+    apply (cases rule:wt_terms.cases) by simp
+  with red_R(2) have 2: "\<Gamma> \<turnstile> N' : \<tau>" by simp
+  show ?case 
+    apply (rule wt_terms.app)
+    using 1 2 by simp+
+next
+case (abs M M' x)
+  from abs(4) obtain \<pi> \<tau> where 1: "\<sigma> = \<pi> \<rightarrow> \<tau>" "\<Gamma> \<turnstile> Lam [x]. M : \<pi> \<rightarrow> \<tau>"
+    apply (cases rule:wt_terms.cases) using abs.prems by blast
+  from 1(2) abs(1) have 2: "((x,\<pi>)#\<Gamma>) \<turnstile> M : \<tau>" by (rule wt_terms_cases_2, simp)
+  with abs(3) have 3: "((x,\<pi>)#\<Gamma>) \<turnstile> M' : \<tau>" by simp
+  
+  show ?case
+    apply (subst 1(1))
+    apply (rule wt_terms.abs)
+    using abs 2 3 by simp+
+next
+case (beta x N M) 
+  from beta(3) obtain \<tau> where 1: "\<Gamma> \<turnstile> Lam [x]. M : \<tau> \<rightarrow> \<sigma>" "\<Gamma> \<turnstile> N : \<tau>" 
+    apply (cases rule:wt_terms.cases) by simp
+  from 1(1) beta(1) have 2: "((x,\<tau>)#\<Gamma>) \<turnstile> M : \<sigma>" by (rule wt_terms_cases_2, simp)
+  show ?case
+    apply (rule subst_typ)
+    using 2 1(2) by simp+
+next
+case (Y \<tau> M)
+  from Y obtain \<pi> where 1: "\<Gamma> \<turnstile> (Y \<tau>) : \<pi> \<rightarrow> \<sigma>" "\<Gamma> \<turnstile> M : \<pi>" 
+    apply (cases rule:wt_terms.cases) by simp
+  have "\<Gamma> \<turnstile> (Y \<tau>) : (\<tau> \<rightarrow> \<tau>) \<rightarrow> \<tau>" apply (rule wt_terms.Y)
+    using wt_terms_impl_wf_ctxt Y by simp
+  with 1(1) have "\<pi> \<rightarrow> \<sigma> = (\<tau> \<rightarrow> \<tau>) \<rightarrow> \<tau>" apply (cases rule:wt_terms.cases) by simp
+  then have 2: "\<pi> = \<tau> \<rightarrow> \<tau>" "\<sigma> = \<tau>" by simp+
+  show ?case
+    apply (subst 2)
+    apply (rule wt_terms.app)
+    defer
+    apply (rule wt_terms.app)
+    apply (rule wt_terms.Y)
+    using wt_terms_impl_wf_ctxt Y apply simp
+    using 1(2) 2(1) by simp+
+next
+case refl thus ?case by simp
+next
+case trans thus ?case by simp
+qed
+
+
+
+
+inductive pbeta_c :: "trm \<Rightarrow> trm \<Rightarrow> bool" ("_ \<Rightarrow>\<parallel>* _" [80,80] 80)
 where
-  base[intro]: "a \<rightarrow>\<parallel>b b \<Longrightarrow> a \<rightarrow>\<parallel>b* b"
-| refl[intro]: "a \<rightarrow>\<parallel>b* a"
-| trans[intro]: "\<lbrakk> a \<rightarrow>\<parallel>b* b ; b \<rightarrow>\<parallel>b* c \<rbrakk> \<Longrightarrow> a \<rightarrow>\<parallel>b* c"
+  base[intro]: "a \<Rightarrow>\<parallel> b \<Longrightarrow> a \<Rightarrow>\<parallel>* b"
+| refl[intro]: "a \<Rightarrow>\<parallel>* a"
+| trans[intro]: "\<lbrakk> a \<Rightarrow>\<parallel>* b ; b \<Rightarrow>\<parallel>* c \<rbrakk> \<Longrightarrow> a \<Rightarrow>\<parallel>* c"
 
 
 definition DP :: "(trm \<Rightarrow> trm \<Rightarrow> bool) \<Rightarrow> (trm \<Rightarrow> trm \<Rightarrow> bool) \<Rightarrow> bool" where
@@ -673,44 +749,153 @@ case goal1
   by blast
 qed
 
-lemma M1: "m \<longrightarrow>b* m' \<Longrightarrow> m \<rightarrow>\<parallel>b* m'" sorry
-lemma M2: "m \<rightarrow>\<parallel>b* m' \<Longrightarrow> m \<longrightarrow>b* m'"
-proof (nominal_induct m avoiding: m' rule:trm.strong_induct)
-print_cases
-case (Var x) thus ?case 
-  apply (cases rule:pbeta_c.cases)
-  apply (cases "Var x" m' rule:pbeta.cases)
-  apply simp 
-  apply auto
-  proof -
-  case goal1 from goal1(1,2) show ?case sorry
+
+(*inductive pbeta_c' :: "trm \<Rightarrow> trm \<Rightarrow> bool" ("_ \<Rightarrow>\<parallel>** _" [80,80] 80)
+where
+ refl[intro]: "a \<Rightarrow>\<parallel>** a"
+| trans[intro]: "\<lbrakk> a \<Rightarrow>\<parallel>** b ; b \<Rightarrow>\<parallel>** c \<rbrakk> \<Longrightarrow> a \<Rightarrow>\<parallel>** c"
+| app[intro]: "\<lbrakk> M \<Rightarrow>\<parallel>** M' ; N \<Rightarrow>\<parallel>** N' \<rbrakk> \<Longrightarrow> App M N \<Rightarrow>\<parallel>** App M' N'"
+| abs[intro]: "\<lbrakk> M \<Rightarrow>\<parallel>** M' \<rbrakk> \<Longrightarrow> Lam [x]. M \<Rightarrow>\<parallel>** Lam [x]. M'"
+| beta[intro]: "\<lbrakk> atom x \<sharp> N ; atom x \<sharp> N' ; M \<Rightarrow>\<parallel>** M' ; N \<Rightarrow>\<parallel>** N' \<rbrakk> \<Longrightarrow> App (Lam [x]. M) N \<Rightarrow>\<parallel>** M'[x ::= N']"
+| Y[intro]: "\<lbrakk> M \<Rightarrow>\<parallel>** M' \<rbrakk> \<Longrightarrow> App (Y \<sigma>) M \<Rightarrow>\<parallel>** App M' (App (Y \<sigma>) M')"
+
+equivariance pbeta_c'
+
+nominal_inductive pbeta_c'
+ avoids beta: "x" | abs: "x"
+  by (simp_all add: fresh_star_def fresh_Pair fresh_fact fresh_type)
+*)
+
+
+
+lemma pbeta_trans: 
+  assumes "M \<Rightarrow>\<parallel> N" and "N \<Rightarrow>\<parallel> N'"
+  shows "M \<Rightarrow>\<parallel> N'"
+using assms(2,1) proof (induct arbitrary:M rule:pbeta.induct)
+case refl thus ?case by simp
+next
+case reflY thus ?case by simp
+next
+case (app n_M n_M' n_N n_N') 
+  show ?case using app(5) apply (cases rule:pbeta.cases)
+  proof goal_cases
+  case 1 thus ?case by (simp add: app.hyps(2) app.hyps(4) pbeta.app)
+  next
+  case (2 x m_N N' m_M M')
+    (*from 5(2) obtain A B where "M' [x ::= N'] = (App A B) [x ::= N']" by (metis "5"(4) forget fresh_fact)
+    then have "M' [x ::= N'] = App (A[x ::= N']) (B[x ::= N'])" by simp
+    with 5(2) have "App n_M n_N = App (A[x ::= N']) (B[x ::= N'])" by simp
+    then have 1:"n_M = (A[x ::= N'])" "n_N = (B[x ::= N'])" by simp_all
+*)
+    show ?case unfolding 2
+    apply (rule pbeta.app)
+    apply (rule app(2))
+    defer
+    apply (rule app(4))
+    defer
+    using 2 app unfolding 1 sorry
+  next
+  case 3 
+    show ?case unfolding 3
+    apply (rule pbeta.app)
+    apply (rule app(2))
+    defer
+    apply (rule app(4))
+    using 3 app sorry
   qed
 next
-case (App p q) from App(3) show ?case
-  apply (cases rule:pbeta_c.cases)
-defer
-apply auto[1]
-defer
-  apply (cases "App p q" m' rule:pbeta.cases)
-  apply auto[1]
-  apply auto[1]
-  sorry
+case abs show ?case using abs(3) apply (cases rule:pbeta.cases)
+sorry
 next
-case (Lam x p p') thus ?case sorry
+case beta thus ?case sorry
+next
+case Y thus ?case sorry
 qed
 
+
+
+lemma M1: "M \<Rightarrow>* M' \<Longrightarrow> M \<Rightarrow>\<parallel> M'"
+apply (induct M M' rule:beta_c.induct)
+apply auto
+using pbeta_trans by blast
+
+
+
+lemma M2: "M \<Rightarrow>\<parallel>* M' \<Longrightarrow> M \<Rightarrow>* M'"
+proof (induct M M' rule:pbeta_c.induct)
+case refl show ?case by (rule beta_c.refl)
+next
+case trans 
+  show ?case apply (rule beta_c.trans)
+  using trans by simp+
+next
+case base thus ?case
+  proof (induct rule:pbeta.induct)
+  case refl show ?case by (rule beta_c.refl)
+  next
+  case reflY show ?case by (rule beta_c.refl)
+  case (app M M' N N') 
+    show ?case
+    apply (rule_tac N="App M N'" in beta_c.trans)
+    apply (rule beta_c.red_R)
+    using app apply simp
+    apply (rule beta_c.red_L)
+    using app by simp
+  next
+  case (abs M M' x)
+    show ?case
+    apply (rule beta_c.abs)
+    using abs by simp
+  next
+  case (beta x N N' M M')
+    show ?case
+    apply (rule_tac N="App (Lam [x]. M') N'" in beta_c.trans)
+    defer
+    apply (rule beta_c.beta)
+    using beta apply simp
+    apply (rule_tac N="App (Lam [x]. M') N" in beta_c.trans)
+    apply (rule beta_c.red_L)
+    apply (rule beta_c.abs)
+    using beta apply simp
+    apply (rule beta_c.red_R)
+    using beta by simp
+  next
+  case (Y M M' \<sigma>) 
+    show ?case
+    apply (rule_tac N="App M (App (Y \<sigma>) M)" in beta_c.trans)
+    apply (rule beta_c.Y)
+    apply (rule_tac N="App M' (App (Y \<sigma>) M)" in beta_c.trans)
+    apply (rule beta_c.red_L)
+    using Y apply simp
+    apply (rule beta_c.red_R)
+    apply (rule beta_c.red_R)
+    using Y by simp
+  qed
+qed
 
 
 lemma church_rosser:
-  assumes "a \<longrightarrow>b* b"
-      and "a \<longrightarrow>b* c"
-    shows "\<exists>d. b \<longrightarrow>b* d \<and> c \<longrightarrow>b* d"
+  assumes "a \<Rightarrow>* b"
+      and "a \<Rightarrow>* c"
+    shows "\<exists>d. b  \<Rightarrow>* d \<and> c \<Rightarrow>* d"
 proof -
-  from assms have "a \<rightarrow>\<parallel>b* b" "a \<rightarrow>\<parallel>b* c" using M1 by simp+
-  then obtain d where "b \<rightarrow>\<parallel>b* d" "c \<rightarrow>\<parallel>b* d" by (metis DP_R_R_imp_DP_Rc_Rc_pbeta DP_def Lem2_5_2) 
+  from assms have "a \<Rightarrow>\<parallel>* b" "a \<Rightarrow>\<parallel>* c" using M1 base by simp+
+  then obtain d where "b \<Rightarrow>\<parallel>* d" "c \<Rightarrow>\<parallel>* d" by (metis DP_R_R_imp_DP_Rc_Rc_pbeta DP_def Lem2_5_2) 
   thus ?thesis using M2 by blast
 qed
-*)
+
+
+lemma church_rosser_typ:
+  assumes "\<Gamma> \<turnstile> a : \<sigma>"
+      and "a \<Rightarrow>* b"
+      and "a \<Rightarrow>* c"
+    shows "\<exists>d. b  \<Rightarrow>* d \<and> c \<Rightarrow>* d \<and> \<Gamma> \<turnstile> d : \<sigma>"
+proof -
+  from assms(1,2) have 1: "\<Gamma> \<turnstile> b : \<sigma>" using beta_c_typ by simp
+  from assms have "a \<Rightarrow>\<parallel>* b" "a \<Rightarrow>\<parallel>* c" using M1 base by simp+
+  then obtain d where "b \<Rightarrow>\<parallel>* d" "c \<Rightarrow>\<parallel>* d" by (metis DP_R_R_imp_DP_Rc_Rc_pbeta DP_def Lem2_5_2)
+  thus ?thesis using M2 1 beta_c_typ by blast
+qed
 
 end
 
