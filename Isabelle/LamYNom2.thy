@@ -771,7 +771,30 @@ nominal_inductive pbeta_c'
 lemma pbeta_trans: 
   assumes "M \<Rightarrow>\<parallel> N" and "N \<Rightarrow>\<parallel> N'"
   shows "M \<Rightarrow>\<parallel> N'"
-using assms(2,1) proof (induct arbitrary:M rule:pbeta.induct)
+using assms proof (induct M arbitrary:N N' rule:trm.induct)
+case Var 
+  then show ?case
+  apply (cases rule:pbeta.cases) by (simp add:Var)
+next
+case Y 
+  then show ?case apply (cases rule:pbeta.cases) by (simp add:Y)
+next
+case (App lM lN) 
+  from App(3) show ?case 
+  apply cases
+  using App(4) apply cases
+  apply simp_all
+  apply (rule pbeta.app)
+  apply (simp add:App(1))
+  apply (simp add:App(2))
+  proof goal_cases
+  
+  case (2 rM rN rM' rN' \<sigma>)
+    then have 3: "rM = Y \<sigma>" "rM' = rN" by simp+
+    show ?case unfolding 2 3
+ 
+
+(*using assms(2,1) proof (induct arbitrary:M rule:pbeta.induct)
 case refl thus ?case by simp
 next
 case reflY thus ?case by simp
@@ -782,11 +805,11 @@ case (app n_M n_M' n_N n_N')
   case 1 thus ?case by (simp add: app.hyps(2) app.hyps(4) pbeta.app)
   next
   case (2 x m_N N' m_M M')
-    (*from 5(2) obtain A B where "M' [x ::= N'] = (App A B) [x ::= N']" by (metis "5"(4) forget fresh_fact)
+    from 2(2) obtain A B where "M' [x ::= N'] = (App A B) [x ::= N']" by (metis "2"(4) forget fresh_fact)
     then have "M' [x ::= N'] = App (A[x ::= N']) (B[x ::= N'])" by simp
-    with 5(2) have "App n_M n_N = App (A[x ::= N']) (B[x ::= N'])" by simp
+    with 2(2) have "App n_M n_N = App (A[x ::= N']) (B[x ::= N'])" by simp
     then have 1:"n_M = (A[x ::= N'])" "n_N = (B[x ::= N'])" by simp_all
-*)
+
     show ?case unfolding 2
     apply (rule pbeta.app)
     apply (rule app(2))
@@ -810,8 +833,7 @@ next
 case beta thus ?case sorry
 next
 case Y thus ?case sorry
-qed
-
+qed*)
 
 
 lemma M1: "M \<Rightarrow>* M' \<Longrightarrow> M \<Rightarrow>\<parallel> M'"
