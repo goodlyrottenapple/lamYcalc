@@ -50,6 +50,7 @@ by (induct u, auto)
 lemma test: "\<not>(trm (Lam (BVar 2)))"
 apply rule
 apply (drule_tac subst[OF trm.simps])
+apply simp
 proof goal_cases
   case 1
   then have "(\<exists>L. finite L \<and> (\<forall>x. x \<notin> L \<longrightarrow> trm (BVar 2)^FVar x))" by simp
@@ -69,6 +70,7 @@ var: "\<lbrakk> wf_ctxt \<Gamma> ; (x,\<sigma>) \<in> set \<Gamma> \<rbrakk> \<L
 app: "\<lbrakk> \<Gamma> \<turnstile> t1 : \<tau> \<rightarrow> \<sigma> ; \<Gamma> \<turnstile> t2 : \<tau> \<rbrakk> \<Longrightarrow> \<Gamma> \<turnstile> App t1 t2 : \<sigma>" |
 abs: "\<lbrakk> finite L ; (\<And>x. x \<notin> L \<Longrightarrow> ((x,\<sigma>)#\<Gamma>) \<turnstile> (t^(FVar x)) : \<tau>) \<rbrakk> \<Longrightarrow> \<Gamma> \<turnstile> Lam t : \<sigma> \<rightarrow> \<tau>" |
 Y: "\<lbrakk> wf_ctxt \<Gamma> \<rbrakk> \<Longrightarrow>  \<Gamma> \<turnstile> Y \<sigma> : (\<sigma> \<rightarrow> \<sigma>) \<rightarrow> \<sigma>"
+
 
 
 inductive beta_Y :: "ptrm \<Rightarrow> ptrm \<Rightarrow> bool" (infix "\<Rightarrow>" 300)
@@ -135,6 +137,8 @@ lemma subst_open: "trm u \<Longrightarrow> ({n \<rightarrow> w}t)[x ::= u] = {n 
 apply (induct t arbitrary:n)
 by (auto simp add:opn_trm)
 
+lemma subst_open2: "trm u \<Longrightarrow> {n \<rightarrow> w [x ::= u]} (t [x ::= u]) = ({n \<rightarrow> w}t)[x ::= u]"
+by (simp add:subst_open)
 
 lemma fvar_subst_simp: "x \<noteq> y \<Longrightarrow> FVar y = FVar y[x ::= u]" by simp
 lemma fvar_subst_simp2: "u = FVar x[x ::= u]" by simp
@@ -165,6 +169,109 @@ where
 | abs[intro]: "\<lbrakk> finite L ; (\<And>x. x \<notin> L \<Longrightarrow> M^(FVar x) \<Rightarrow>\<parallel> M'^(FVar x)) \<rbrakk> \<Longrightarrow> Lam M \<Rightarrow>\<parallel> Lam M'"
 | beta[intro]: "\<lbrakk> M \<Rightarrow>\<parallel> M' ; N \<Rightarrow>\<parallel> N' \<rbrakk> \<Longrightarrow> App (Lam M) N \<Rightarrow>\<parallel> M'^N'"
 | Y[intro]: "\<lbrakk> M \<Rightarrow>\<parallel> M' \<rbrakk> \<Longrightarrow> App (Y \<sigma>) M \<Rightarrow>\<parallel> App M' (App (Y \<sigma>) M')"
+
+
+primrec 
+  not_abst :: "ptrm \<Rightarrow> bool"
+where
+  "not_abst (FVar x) = True"
+| "not_abst (BVar x) = True"
+| "not_abst (App t1 t2) = True"
+| "not_abst (Lam t) = False"
+| "not_abst (Y t) = True"
+
+
+fun 
+  not_Y :: "ptrm \<Rightarrow> bool"
+where
+  "not_Y (FVar x) = True"
+| "not_Y (BVar x) = True"
+| "not_Y (App t1 t2) = True"
+| "not_Y (Lam t) = True"
+| "not_Y (Y t) = False"
+
+
+inductive 
+  pbeta_max :: "ptrm \<Rightarrow> ptrm \<Rightarrow> bool" ("_ >>> _" [80,80] 80)
+where
+  refl[intro]: "(FVar x) >>> (FVar x)"
+| reflY[intro]: "Y \<sigma> >>> Y \<sigma>"
+| app[intro]: "\<lbrakk> not_abst M ; not_Y M ;  M >>> M' ; N >>> N' \<rbrakk> \<Longrightarrow> App M N >>> App M' N'"
+| abs[intro]: "\<lbrakk> finite L ; (\<And>x. x \<notin> L \<Longrightarrow> M^(FVar x) >>> M'^(FVar x)) \<rbrakk> \<Longrightarrow> Lam M >>>  Lam M'"
+| beta[intro]: "\<lbrakk> M >>> M' ; N >>> N' \<rbrakk> \<Longrightarrow> App (Lam M) N >>> M'^N'"
+| Y[intro]: "\<lbrakk> M >>> M' \<rbrakk> \<Longrightarrow> App (Y \<sigma>) M >>> App M' (App (Y \<sigma>) M')"
+
+lemma Lem2_5_1:
+  assumes "s \<Rightarrow>\<parallel> s'"
+      and "t \<Rightarrow>\<parallel> t'"
+      shows "(s[x ::= t]) \<Rightarrow>\<parallel> (s'[x ::= t'])"
+using assms proof (induct s s' rule:pbeta.induct)
+case (refl s)
+  then show ?case by auto
+next
+case (reflY s)
+  then show ?case by auto
+next
+case app
+  show ?case 
+  unfolding subst.simps
+  apply (rule pbeta.app)
+  using app
+  by simp+
+next
+case (abs L M M') 
+  show ?case 
+  unfolding subst.simps
+  apply (rule_tac L="L \<union> {x}" in pbeta.abs)
+  using abs apply simp 
+unfolding opn'_def
+  apply (subst subst_fresh2[where x=x and u=t])
+  apply auto[1]
+  apply (subst(8) subst_fresh2[where x=x and u=t'])
+  apply auto[1]
+  apply (subst subst_open2)
+  defer
+  apply (subst subst_open2)
+  defer
+  using abs(2,3) apply (simp add: UnI1 abs.prems opn'_def)
+  sorry (*prove M \<Rightarrow>\<parallel> M' \<Longrightarrow> trm M \<and> trm M'" *)
+next
+case (beta M M' N N')
+  show ?case sorry
+next
+case Y thus ?case by auto
+qed
+
+lemma not_Y_ex: "\<not>(not_Y M) \<Longrightarrow> \<exists>\<sigma>. M = Y \<sigma>"
+apply (cases M rule:not_Y.cases)
+by auto
+
+lemma pbeta_max_ex:
+  fixes a
+  assumes "trm a"
+  shows "\<exists>d. a >>> d"
+using assms apply (induct a rule:trm.induct)
+apply auto
+apply (case_tac "not_abst t1")
+apply (case_tac "not_Y t1")
+apply auto[1]
+proof goal_cases
+case (1 trm1 trm2 d da)
+  then obtain \<sigma> where 2: "trm1 = Y \<sigma>" using not_Y_ex by auto
+  have "App (Y \<sigma>) trm2 >>> App da (App (Y \<sigma>) da)"
+  apply (rule_tac pbeta_max.Y)
+  by (rule 1(4))
+  thus ?case unfolding 2 by auto
+next
+case (2 trm1 trm2 d da)
+  from 2(3,3,4) show ?case
+  apply (induct trm1 d rule:pbeta_max.induct)
+  apply auto
+apply fastforce+
+defer
+apply fastforce+
+sorry
+qed
 
 
 end
