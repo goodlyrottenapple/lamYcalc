@@ -108,6 +108,8 @@ primrec subst :: "ptrm \<Rightarrow> atom \<Rightarrow> ptrm \<Rightarrow> ptrm"
 lemma subst_fresh: "x \<notin> FV t \<Longrightarrow> t[x ::= u] = t"
 by (induct t, auto)
 
+lemma subst_fresh2: "x \<notin> FV t \<Longrightarrow> t = t[x ::= u]"
+by (induct t, auto)
 
 lemma opn_trm_core: "i \<noteq> j \<Longrightarrow> {j \<rightarrow> v} e = {i \<rightarrow> u}({j \<rightarrow> v} e) \<Longrightarrow> e = {i \<rightarrow> u} e"
 apply (induct e arbitrary: i j)
@@ -115,86 +117,43 @@ apply auto
 by blast
 
 lemma opn_trm: "trm e \<Longrightarrow> e = {k \<rightarrow> t}e"
-apply (induct arbitrary: k t)
-apply simp
-using bvar_not_trm apply auto[1]
-defer
+apply (induct arbitrary: k t rule:trm.induct)
+apply simp+
 defer
 apply simp
-unfolding opn.simps
-apply (drule subst[OF trm.simps])
-apply simp
-apply simp
-apply (drule subst[OF trm.simps])
-apply simp
 proof goal_cases
-case (1 u k t)
-then obtain L where 2: "finite L" "(\<forall>x. x \<notin> L \<longrightarrow> trm u^FVar x)" by auto
-then obtain y where 3: "y \<notin> (L \<union> FV u)" using FV_finite x_Ex by blast
-with 2 have 4: "trm (u^FVar y)" by simp
-show ?case
-apply (rule_tac j = 0 and v= "FVar y" in opn_trm_core)
-apply simp
-using 1 2 3 4
-
-
-(*lemma subst_open_aux: "trm m \<Longrightarrow> m = m^n"
-unfolding opn'_def
-thm trm.induct
-thm ptrm.induct
-apply (induct m rule:trm.induct)
-apply auto
-
-(*using bvar_not_trm apply auto[1]
-using trm.simps apply blast
-using trm.simps apply blast
-apply (drule_tac subst[OF trm.simps])
-apply simp
-
-unfolding opn'_def
-
-proof goal_cases
-case (1 m) 
-
-thus ?case
-sorry
+case (1 L e k t)
+  then obtain y where 2: "y \<notin> (L \<union> FV e)" using FV_finite x_Ex by (meson finite_UnI)
+  show ?case
+  apply (rule_tac j = 0 and v= "FVar y" in opn_trm_core)
+  using "1"(3) "2" opn'_def by auto
 qed
-*)
 
 
 
-lemma subst_open: "trm u \<Longrightarrow> {n \<rightarrow> w} (t [x ::= u]) = {n \<rightarrow> w [x ::= u]} (t [x ::= u])"
+lemma subst_open: "trm u \<Longrightarrow> ({n \<rightarrow> w}t)[x ::= u] = {n \<rightarrow> w [x ::= u]} (t [x ::= u])"
 apply (induct t arbitrary:n)
-apply simp_all
+by (auto simp add:opn_trm)
 
 
-case FVar 
-  thus ?case
-  unfolding opn.simps
-  apply simp
-  apply rule
-  apply (induct u)
-  apply simp
-  using bvar_not_trm apply auto[1]
-  unfolding opn.simps
-  apply (drule_tac subst[OF trm.simps])
-  apply simp
-  defer
-  defer
-  apply simp(*
-  using opn'_def subst_open_aux apply auto
-  using opn'_def subst_open_aux by fastforce*) sorry
-next
-case BVar thus ?case by simp
-next
-case App thus ?case by simp
-next
-case Lam s ?case 
-unfolding subst.simps
-unfolding opn.simps
+lemma fvar_subst_simp: "x \<noteq> y \<Longrightarrow> FVar y = FVar y[x ::= u]" by simp
+lemma fvar_subst_simp2: "u = FVar x[x ::= u]" by simp
+
+lemma subst_open_var: "trm u \<Longrightarrow> x \<noteq> y \<Longrightarrow> (t^FVar y)[x ::= u] = (t [x ::= u])^FVar y"
+unfolding opn'_def
+using subst_open
+apply (subst(2) fvar_subst_simp)
 apply simp
-try
-*)
+apply (rule_tac subst_open)
+by simp
+
+lemma subst_intro: "trm u \<Longrightarrow> x \<notin> FV t \<Longrightarrow> (t^FVar x)[x::=u] = t^u"
+unfolding opn'_def
+apply (subst(6) fvar_subst_simp2[where x=x])
+apply (subst(10) subst_fresh2[where x=x and u=u])
+defer
+apply (rule subst_open)
+by auto
 
 
 inductive 
