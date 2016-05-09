@@ -43,6 +43,8 @@ thm trm.simps
 lemma bvar_not_trm: "trm (BVar n) \<Longrightarrow> False"
 using trm.cases by auto
 
+
+
 lemma x_Ex: "\<And>L:: atom set. finite L \<Longrightarrow> \<exists>x. x \<notin> L" by (simp add: ex_new_if_finite atom_inf)
 lemma FV_finite: "finite (FV u)"
 by (induct u, auto)
@@ -58,6 +60,7 @@ proof goal_cases
   then have "trm (BVar 2)^FVar x" by simp
   thus ?case using bvar_Suc_n_open_any bvar_not_trm numeral_2_eq_2 by auto
 qed
+
 
 
 inductive wf_ctxt :: "ctxt \<Rightarrow> bool" where
@@ -145,11 +148,13 @@ lemma fvar_subst_simp2: "u = FVar x[x ::= u]" by simp
 
 lemma subst_open_var: "trm u \<Longrightarrow> x \<noteq> y \<Longrightarrow> (t^FVar y)[x ::= u] = (t [x ::= u])^FVar y"
 unfolding opn'_def
-using subst_open
 apply (subst(2) fvar_subst_simp)
 apply simp
 apply (rule_tac subst_open)
 by simp
+
+lemma subst_open_var2: "trm u \<Longrightarrow> x \<noteq> y \<Longrightarrow> (t [x ::= u])^FVar y = (t^FVar y)[x ::= u]" using subst_open_var by simp
+
 
 lemma subst_intro: "trm u \<Longrightarrow> x \<notin> FV t \<Longrightarrow> (t^FVar x)[x::=u] = t^u"
 unfolding opn'_def
@@ -159,6 +164,8 @@ defer
 apply (rule subst_open)
 by auto
 
+lemma subst_intro2: "trm u \<Longrightarrow> x \<notin> FV t \<Longrightarrow> t^u = (t^FVar x)[x::=u]" using subst_intro by simp
+
 
 inductive 
   pbeta :: "ptrm \<Rightarrow> ptrm \<Rightarrow> bool" ("_ \<Rightarrow>\<parallel> _" [80,80] 80)
@@ -167,8 +174,61 @@ where
 | reflY[intro]: "Y \<sigma> \<Rightarrow>\<parallel> Y \<sigma>"
 | app[intro]: "\<lbrakk> M \<Rightarrow>\<parallel> M' ; N \<Rightarrow>\<parallel> N' \<rbrakk> \<Longrightarrow> App M N \<Rightarrow>\<parallel> App M' N'"
 | abs[intro]: "\<lbrakk> finite L ; (\<And>x. x \<notin> L \<Longrightarrow> M^(FVar x) \<Rightarrow>\<parallel> M'^(FVar x)) \<rbrakk> \<Longrightarrow> Lam M \<Rightarrow>\<parallel> Lam M'"
-| beta[intro]: "\<lbrakk> M \<Rightarrow>\<parallel> M' ; N \<Rightarrow>\<parallel> N' \<rbrakk> \<Longrightarrow> App (Lam M) N \<Rightarrow>\<parallel> M'^N'"
+| beta[intro]: "\<lbrakk> finite L ; (\<And>x. x \<notin> L \<Longrightarrow> M^(FVar x) \<Rightarrow>\<parallel> M'^(FVar x)) ; N \<Rightarrow>\<parallel> N' \<rbrakk> \<Longrightarrow> App (Lam M) N \<Rightarrow>\<parallel> M'^N'"
 | Y[intro]: "\<lbrakk> M \<Rightarrow>\<parallel> M' \<rbrakk> \<Longrightarrow> App (Y \<sigma>) M \<Rightarrow>\<parallel> App M' (App (Y \<sigma>) M')"
+
+
+lemma subst_trm: "trm e \<Longrightarrow> trm u \<Longrightarrow> trm(e[x::=u])"
+proof (induct rule:trm.induct)
+case var thus ?case by (simp add:trm.var)
+next
+case app thus ?case by (simp add:trm.app)
+next
+case Y thus ?case by (simp add:trm.Y)
+next
+case (lam L t) 
+  show ?case
+  unfolding subst.simps
+  apply (rule trm.lam[where L="L \<union> {x}"])
+  using lam apply auto[1]
+  apply (subst subst_open_var2)
+  using lam by auto
+qed
+
+lemma trm_opn: "trm (Lam M) \<and> trm N \<Longrightarrow> trm M^N"
+apply (frule conjE[where R="trm (Lam M)"])
+apply simp
+apply (drule conjE[where R="trm N"])
+apply simp
+apply (cases rule:trm.cases)
+apply auto
+proof goal_cases
+case (1 L) 
+  then obtain x where 2: "x \<notin> L \<union> FV M" by (meson FV_finite finite_UnI x_Ex)
+  with 1 have 3: "trm M^FVar x" by simp
+  
+  show ?case
+  apply(subst subst_intro2)
+  using 1 apply simp
+  using 2 apply auto[1]
+  apply (subst subst_trm)
+  using 1 3 by auto
+qed
+
+lemma trm_pbeta_simp1: "M \<Rightarrow>\<parallel> M' \<Longrightarrow> trm M \<and> trm M'"
+apply rule
+apply (induct M M' rule:pbeta.induct)
+apply (subst trm.simps, simp)+
+apply auto[1]
+apply (simp add: lam trm.app)
+apply (simp add: trm.Y trm.app)
+apply (induct M M' rule:pbeta.induct)
+apply (subst trm.simps, simp)+
+apply auto[1]
+apply (rule trm_opn)
+apply (simp add: lam)
+apply (simp add: trm.Y trm.app)
+done
 
 
 primrec 
@@ -198,8 +258,29 @@ where
 | reflY[intro]: "Y \<sigma> >>> Y \<sigma>"
 | app[intro]: "\<lbrakk> not_abst M ; not_Y M ;  M >>> M' ; N >>> N' \<rbrakk> \<Longrightarrow> App M N >>> App M' N'"
 | abs[intro]: "\<lbrakk> finite L ; (\<And>x. x \<notin> L \<Longrightarrow> M^(FVar x) >>> M'^(FVar x)) \<rbrakk> \<Longrightarrow> Lam M >>>  Lam M'"
-| beta[intro]: "\<lbrakk> M >>> M' ; N >>> N' \<rbrakk> \<Longrightarrow> App (Lam M) N >>> M'^N'"
+| beta[intro]: "\<lbrakk> finite L ; (\<And>x. x \<notin> L \<Longrightarrow> M^(FVar x) >>> M'^(FVar x)) ; N >>> N' \<rbrakk> \<Longrightarrow> App (Lam M) N >>> M'^N'"
 | Y[intro]: "\<lbrakk> M >>> M' \<rbrakk> \<Longrightarrow> App (Y \<sigma>) M >>> App M' (App (Y \<sigma>) M')"
+
+
+lemma trm_pbeta_max_simp1: "M >>> M' \<Longrightarrow> trm M \<and> trm M'"
+apply rule
+apply (induct M M' rule:pbeta_max.induct)
+apply (subst trm.simps, simp)+
+apply auto[1]
+apply (simp add: lam trm.app)
+apply (simp add: trm.Y trm.app)
+apply (induct M M' rule:pbeta_max.induct)
+apply (subst trm.simps, simp)+
+apply auto[1]
+apply (rule trm_opn)
+apply (simp add: lam)
+apply (simp add: trm.Y trm.app)
+done
+
+
+
+lemma pbeta_beta': "finite L \<Longrightarrow> (\<And>x. x \<notin> L \<Longrightarrow> M^(FVar x) \<Rightarrow>\<parallel> M'^(FVar x)) \<Longrightarrow> N \<Rightarrow>\<parallel> N' \<Longrightarrow> App (Lam M) N \<Rightarrow>\<parallel> {0 \<rightarrow> N'} M'" using pbeta.beta opn'_def by simp
+
 
 lemma Lem2_5_1:
   assumes "s \<Rightarrow>\<parallel> s'"
@@ -220,11 +301,11 @@ case app
   by simp+
 next
 case (abs L M M') 
-  show ?case 
+  show ?case
   unfolding subst.simps
   apply (rule_tac L="L \<union> {x}" in pbeta.abs)
   using abs apply simp 
-unfolding opn'_def
+  unfolding opn'_def
   apply (subst subst_fresh2[where x=x and u=t])
   apply auto[1]
   apply (subst(8) subst_fresh2[where x=x and u=t'])
@@ -234,24 +315,162 @@ unfolding opn'_def
   apply (subst subst_open2)
   defer
   using abs(2,3) apply (simp add: UnI1 abs.prems opn'_def)
-  sorry (*prove M \<Rightarrow>\<parallel> M' \<Longrightarrow> trm M \<and> trm M'" *)
-next
-case (beta M M' N N')
-  show ?case sorry
+  using trm_pbeta_simp1 abs.prems by auto
+ next
+case (beta L M M' N N')
+  show ?case unfolding subst.simps opn'_def
+  apply (subst subst_open)
+  defer
+  apply (rule_tac L="L \<union> {x}" in pbeta_beta')
+  using beta apply simp
+  apply (subst subst_open_var2)
+  using beta trm_pbeta_simp1 apply simp
+  apply auto[1]
+  apply (subst subst_open_var2)
+  using beta trm_pbeta_simp1 apply simp
+  apply auto[1]
+  using beta trm_pbeta_simp1 by auto
 next
 case Y thus ?case by auto
 qed
 
+
+lemma pbeta_max_beta': "M >>> M' \<Longrightarrow> N >>> N' \<Longrightarrow> App (Lam M) N >>> {0 \<rightarrow> N'} M'" using pbeta_max.beta opn'_def by simp
+
+(*lemma Lem2_5_1_max:
+  assumes "s >>> s'"
+      shows "(s[x ::= FVar y]) >>> (s'[x ::= FVar y])"
+using assms proof (induct s s' rule:pbeta_max.induct)
+case (refl s)
+  then show ?case by auto
+next
+case (reflY s)
+  then show ?case by auto
+next
+case app
+  show ?case 
+  unfolding subst.simps
+  apply (rule pbeta_max.app)
+  defer
+  defer
+  using app
+  apply simp+
+  apply (metis app.hyps(1) app.hyps(2) app.hyps(3) bvar_not_trm not_Y.elims(2) not_abst.simps(1) not_abst.simps(3) not_abst.simps(4) subst.simps(1) subst.simps(3) trm_pbeta_max_simp1)
+  by (metis app.hyps(1) app.hyps(2) app.hyps(3) bvar_not_trm not_Y.elims(2) not_Y.elims(3) not_Y.simps(1) not_abst.simps(4) ptrm.distinct(17) subst.simps(1) subst.simps(3) trm_pbeta_max_simp1)
+next
+case (abs L M M') 
+  show ?case
+  unfolding subst.simps
+  apply (rule_tac L="L \<union> {x}" in pbeta_max.abs)
+  using abs apply simp 
+  unfolding opn'_def
+  apply (subst subst_fresh2[where x=x and u="FVar y"])
+  apply auto[1]
+  apply (subst(8) subst_fresh2[where x=x and u="FVar y"])
+  apply auto[1]
+  apply (subst subst_open2)
+  defer
+  apply (subst subst_open2)
+  defer
+  using abs(2,3) apply (simp add: UnI1 abs.prems opn'_def)
+  using trm_pbeta_simp1 abs.prems by auto
+ next
+case (beta M M' N N')
+  show ?case unfolding subst.simps opn'_def
+  apply (subst subst_open)
+  defer
+  apply (rule_tac pbeta_max_beta')
+  using trm_pbeta_simp1 beta.prems beta by auto
+next
+case Y thus ?case by auto
+qed
+*)
 lemma not_Y_ex: "\<not>(not_Y M) \<Longrightarrow> \<exists>\<sigma>. M = Y \<sigma>"
 apply (cases M rule:not_Y.cases)
 by auto
+
 
 lemma pbeta_max_ex:
   fixes a
   assumes "trm a"
   shows "\<exists>d. a >>> d"
+thm trm.induct
 using assms apply (induct a rule:trm.induct)
 apply auto
+
+apply (case_tac "not_abst t1")
+apply (case_tac "not_Y t1")
+apply auto[1]
+
+proof goal_cases
+case (1 trm1 trm2 d da)
+  then obtain \<sigma> where 2: "trm1 = Y \<sigma>" using not_Y_ex by auto
+  have "App (Y \<sigma>) trm2 >>> App da (App (Y \<sigma>) da)"
+  apply (rule_tac pbeta_max.Y)
+  by (rule 1(4))
+  thus ?case unfolding 2 by auto
+next
+case (2 trm1 trm2 d da)
+  from 2(3,4,5,1,2) show ?case
+  apply (induct trm1 d rule:pbeta_max.induct)
+  apply auto
+proof goal_cases
+case (1 L M M')
+ have "App (Lam M) trm2 >>> M'^da" 
+ apply rule
+then show ?case by auto
+
+
+sorry
+next
+case (3 L t)
+  from 3(3) show ?case sorry
+qed
+
+(*using assms proof (induct a rule:trm.induct)
+print_cases
+case var thus ?case by auto
+next
+case Y thus ?case by auto
+next
+case (app t1 t2) 
+  show ?case
+  apply rule
+  apply rule
+
+(*case (lam L t)
+  then have 0: "\<And>x. x \<notin> L \<Longrightarrow> \<exists>d. t^FVar x >>> d^FVar x" by (metis opn'_def opn_trm trm_pbeta_max_simp1)
+  then have 1:  "\<And>x. x \<notin> L \<union> FV t \<Longrightarrow> \<exists>d. t^FVar x >>> d^FVar x" by simp
+  from lam obtain x where 2: "x \<notin> L \<union> FV t" by (meson FV_finite finite_UnI x_Ex)
+  with 0 obtain d where 3: "t^FVar x >>> d^FVar x" by auto
+  then obtain x' where 4: "x' \<notin> FV d" "x' \<notin> FV t" by (meson FV_finite Un_iff finite_UnI x_Ex)
+  with 3 have "(t^FVar x)[x::= FVar x'] >>> (d^FVar x)[x::= FVar x']" using Lem2_5_1_max by simp
+  then have "(t[x::= FVar x']^(FVar x[x::= FVar x'])) >>> (d^FVar x)[x::= FVar x']" using "2" UnI2 fvar_subst_simp2 subst_fresh subst_intro trm.var by auto
+  then have "(t[x::= FVar x']^(FVar x[x::= FVar x'])) >>> (d[x::= FVar x']^(FVar x[x::= FVar x']))" by (simp add: opn'_def subst_open trm.var)
+  then have "t^FVar x' >>> d[x::= FVar x']^(FVar x[x::= FVar x'])" using "2" UnI2 subst.simps(1) subst_fresh by auto
+  then have 5: "t^FVar x' >>> d[x::= FVar x']^FVar x'" by auto
+
+  then have 5: "\<And>y. y \<notin> L \<Longrightarrow> t^FVar y >>> d[x::= FVar x']^FVar y"
+  proof goal_cases
+  case (1 y) thus ?case
+  apply(subst subst_intro2[where x=x])
+  using trm.var apply simp
+  defer
+  apply(subst (2) subst_intro2[where x=x])
+  using trm.var apply simp
+  defer
+  apply(rule Lem2_5_1_max)
+  using 3 apply simp
+  using 2 apply simp
+sorry
+  qed
+show ?case apply(rule)
+apply (rule_tac L=L in pbeta_max.abs)
+using lam apply simp
+using 5 by auto
+ 
+defer
+
 apply (case_tac "not_abst t1")
 apply (case_tac "not_Y t1")
 apply auto[1]
@@ -264,14 +483,89 @@ case (1 trm1 trm2 d da)
   thus ?case unfolding 2 by auto
 next
 case (2 trm1 trm2 d da)
-  from 2(3,3,4) show ?case
+  from 2(3,4,5) show ?case
   apply (induct trm1 d rule:pbeta_max.induct)
   apply auto
-apply fastforce+
-defer
-apply fastforce+
-sorry
+  sorry
+next
+case 3 thus ?case sorry
+qed
+*)
+*)
+
+
+lemma pbeta_max_closes_pbeta:
+  fixes a b d
+  assumes "a >>> d"
+  and "a \<Rightarrow>\<parallel> b"
+  shows "b \<Rightarrow>\<parallel> d"
+using assms proof (induct arbitrary: b rule:pbeta_max.induct)
+case (refl a)  
+  show ?case using refl pbeta.cases by fastforce
+next
+case (reflY a) then have 1: "b = Y a" apply (cases rule: pbeta.cases) by simp
+  show ?case unfolding 1 by auto
+next
+case beta thus ?case sorry
+next
+(*case (beta u ar ard al ald)
+  from beta(1,7) show ?case
+  apply (rule_tac pbeta_cases_2)
+  apply (simp, simp)
+  proof -
+  case (goal2 arb alb)
+    with beta have "alb \<Rightarrow>\<parallel> ald" "arb \<Rightarrow>\<parallel> ard" by simp+
+    thus ?case unfolding goal2 apply (rule_tac Lem2_5_1) by simp+
+  next
+  case (goal1 alb arb)
+    with beta have ih: "alb \<Rightarrow>\<parallel> ald" "arb \<Rightarrow>\<parallel> ard" by simp+
+    show ?case unfolding goal1 
+    apply (rule_tac pbeta.beta) using goal1 beta ih
+    by simp_all
+  qed
+next*)
+case (app al ald ar ard) 
+  from app(7,1,2) show ?case
+  apply (cases "App al ar" b rule:pbeta.cases)
+  using app apply auto[1]
+  apply simp
+  by simp
+next
+case (abs L al ald) thus ?case sorry
+next
+case (Y M M' \<sigma>) 
+  from Y(3) show ?case
+  apply (cases rule:pbeta.cases)
+  proof goal_cases
+  case (1 M'' N'')
+    from 1(2) have 2: "M'' = Y \<sigma>" by (cases rule:pbeta.cases, simp)
+    show ?case unfolding 1 2
+    apply (rule pbeta.Y)
+    using 1 Y by simp
+  next
+  case (2 M'') show ?case unfolding 2
+    apply (rule pbeta.app)
+    using Y 2 apply simp
+    apply (rule pbeta.app)
+    apply (rule pbeta.reflY)
+    using Y 2 by simp
+  qed
 qed
 
+lemma Lem2_5_2: 
+  assumes "a \<Rightarrow>\<parallel> b"
+      and "a \<Rightarrow>\<parallel> c"
+    shows "\<exists>d. b \<Rightarrow>\<parallel> d \<and> c \<Rightarrow>\<parallel> d"
+proof -
+  obtain d where 1: "a >>> d" using pbeta_max_ex assms(2) trm_pbeta_simp1 by blast
+  have "b \<Rightarrow>\<parallel> d \<and> c \<Rightarrow>\<parallel> d" 
+  apply rule 
+  apply (rule_tac pbeta_max_closes_pbeta)
+  using 1 assms apply simp+
+  apply (rule_tac pbeta_max_closes_pbeta)
+  using 1 assms apply simp+
+  done
+  thus ?thesis by auto
+qed
 
 end
