@@ -41,6 +41,8 @@ where
   apply(simp add: fresh_star_Pair perm_supp_eq)
 done
 
+lemma "Lam [x]. Var x = Lam [y]. Var y" by simp
+
 nominal_termination (eqvt)
   by lexicographic_order
 

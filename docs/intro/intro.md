@@ -265,7 +265,7 @@ Clearly, the first version of this lemma is much more intuitive.
 
 ###Locally Nameless
 
-The locally nameless approach to minders is a mix of the two previous approaches. Whilst a named representation uses variables for both free and bound variables and the nameless encoding uses de Bruijn idices in both cases as well, a locally nameless encoding distinguishes between the two types of variables.   
+The locally nameless approach to minders is a mix of the two previous approaches. Whilst a named representation uses variables for both free and bound variables and the nameless encoding uses de Bruijn indices in both cases as well, a locally nameless encoding distinguishes between the two types of variables.   
 Free variables are represented by names, much like in the named version, and bound variables are encoded using de Bruijn indices. A named term, such as $\lambda x. xy$, would be represented as $\lambda 1y$. The following definition captures the syntax of the locally nameless terms:
 
 ~~~
@@ -276,11 +276,23 @@ datatype ptrm =
 | Lam trm
 ~~~
 
-Note however, that this definition doesn't quite fit the notion of $\lambda$-terms, since something like ```(BVar 1)``` does not represent a term (since bound variables can only appear in the context of a lmbda, such as ```(Lam (BVar 1))```).
+Note however, that this definition doesn't quite fit the notion of $\lambda$-terms, since a ```pterm``` like ```(BVar 1)``` does not represent a $\lambda$-term, since bound variables can only appear in the context of a lambda, such as in ```(Lam (BVar 1))```.
 
 ##Higher-Order approaches
 
+Unlike concrete approaches to formalizing the lambda calculus, where the notion of binding and substitution is defined explicitly in the host language, higher-order formalizations use the function space of the implementation language, which handles binding. This way, the definitions of capture avoiding substitution or notion of $\alpha$-equivalence are offloaded onto the meta-language.
+
 ###HOAS
+HOAS, or higher-order abstract syntax [@pfenning88, @harper93], is a framework for defining logics based on the simply typed lambda calculus. A form of HOAS, introduced by @harper93, called the Logical Framework (LF) has been implemented as Twelf by @pfenning99.   
+Using HOAS for encoding the $\lambda$-calculus comes down to encoding binders using the meta-language binders. An example from the @polakow15 paper on embedding linear lambda calculus in Haskell encodes lambda terms as:
+
+~~~
+data Exp a where
+  Lam :: Exp a -> Exp b -> Exp (a -> b)
+  App :: Exp (a -> b) -> Exp a -> Exp b
+~~~
+
+This definition avoids the need for explicitly defining substitution, because it uses Haskell's variables, which already include the necessary definitions. However, using HOAS only works if the notion of $\alpha$-equivalence and substitution of the meta-language coincide with these notions in the object-language.
 
 ###Weak Higher-Order?
 
