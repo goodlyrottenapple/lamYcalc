@@ -991,17 +991,12 @@ case 1
   thus ?case using 1 weakening wt_terms_impl_wf_ctxt wf_ctxt_exchange by blast
 qed
 
-(*thm wt_trm.cases
-lemma wt_trm_cases_2:
-  shows "\<Gamma> \<turnstile> Lam. M : a3 \<Longrightarrow> atom x \<sharp> \<Gamma>\<Longrightarrow> (\<And>\<sigma> \<tau>. a3 = \<sigma> \<rightarrow> \<tau> \<Longrightarrow> ((x, \<sigma>)#\<Gamma>) \<turnstile> M : \<tau> \<Longrightarrow> P) \<Longrightarrow> P"
-*)
 
 lemma trm_wt_trm: "\<Gamma> \<turnstile> M : \<sigma> \<Longrightarrow> trm M"
 apply (induct \<Gamma> M \<sigma> rule:wt_trm.induct)
 apply (subst trm.simps, simp)+
 apply auto[1]
 by (subst trm.simps, simp)+
-
 
 
 lemma subst_typ':
