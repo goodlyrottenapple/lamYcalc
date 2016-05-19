@@ -1,0 +1,36 @@
+point of comparison:
+
+lemma pbeta_max_ex -  lam case
+
+
+
+
+Binders
+=================
+
+- expand on the intro
+
+1. datatypes - ind/rec principles
+2. raw terms - example lemma to show the ind princip no tenough
+3. have to identify alpha-terms
+4. done by equiv. classes 
+	-	functions on equiv.classes no longer wf
+		ex:
+		function indetifying a bound variable in a term
+
+5.	use BVC
+6. problem: how to have both
+	-	ind/rec principles and
+	-	alpha equivalence
+
+	in a formal setting
+
+
+
+- more info about de bruijn
+	talk about the isomorphism between normal/raw terms vs de bruijn levels rep.
+
+
+
+-	HOAS understand better: is the example used good/useful?
+

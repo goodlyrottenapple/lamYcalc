@@ -178,7 +178,7 @@ $M^N \equiv \{0 \to N\}M\\$
     \AxiomC{term$(M)$}
     \AxiomC{$N \Rightarrow N'$}
     \LeftLabel{$(red_R)$}
-    \BinaryInfC{$MN \Rightarrow M'N$}
+  see the full list of pins and alternate functions here  \BinaryInfC{$MN \Rightarrow M'N$}
     \DisplayProof
     \vskip 1.5em
     \AxiomC{$\forall x \not\in L.\ M^x \Rightarrow M'^x$}
@@ -203,15 +203,21 @@ $M^N \equiv \{0 \to N\}M\\$
 
 #Bindings
 
-When describing the terms of the (untyped) $\lambda$-calculus on paper, the terms of the $\lambda$-calculus are usually inductively defined in the following way:
+When describing the (untyped) $\lambda$-calculus on paper, the terms of the $\lambda$-calculus are usually inductively defined in the following way:
 
 $$t::= x\ |\ tt\ |\ \lambda x.t \text{ where }x \in Var$$
 
-Whilst the case of variables ($x$) and application ($tt$) is fairly straight forward, appearing identically in a more formal/rigorous setting of a theorem prover or a programming language, there are assumptions we implicitly make about the lambda case ($\lambda x.t$). Specifically, the lambda case introduces a variable $x$, which may appear bound within the body $t$ of the lambda expression. The consequence of this binding in an informal setting includes implicitly adopting a lambda equivalence on terms, where $\lambda x.x$ and $\lambda y.y$ intuitively represent the same lambda term. In this informal setting, reasoning about lambda terms often involves the use of the Barendregt Variable Convention to pick out suitably fresh bound variables in a term, intuitively relying on the $\alpha$-equivalence of lambda terms to swap out one such term for another. Indeed, even the usual definition of substitution assumes this convention in the lambda case, namely by implicitly assuming the given lambda term $\lambda y. s$ can always be swapped out for an alpha equivalent term $\lambda y'. s'$, such that $y'$ satisfies the side conditions: 
+This definition of terms yields an induction/recursion principle, which can be used to define functions over the $\lambda$-terms by structural recursion and prove properties about the $\lambda$-terms using structural induction (recursion and induction being two sides of the same coin).   
+Functional languages like Haskell or Isabelle include a way of inductively defining terms and often provide the inductive/recursive principles, such as pattern matching on the term constructors in function definitions or inductive rules based on the definition of terms.
 
-$$(\lambda y. s)[t/x] \equiv \lambda y.(s[t/x]) \text{ assuming } y \not\equiv x\text{ and }y \not\in FV(t)$$
+Whilst the definition above describes terms of the lambda calculus, there are implicit assumptions one makes about the terms, namely, the $x$ in the $\lambda x.t$ case appears bound in $t$. This means that while $x$ and $y$ might be distinct terms of the $\lambda$-calculus (i.e. $x \neq y$), $\lambda x.x$ and $\lambda y.y$ represent the same term, as $x$ and $y$ are bound by the $\lambda$. Without the notion of $\alpha$-equivalence of terms, one cannot prove any properties of terms involving bound variables, such as saying that $\lambda x.x \equiv \lambda y.y$.   
+The solution to this issue is to quotient the terms of the lambda calculus by the relation of $\alpha$-equivalence. This way, $\lambda x.x \equiv_\alpha \lambda y.y$, because both terms are part of the same equivalence class. In an informal setting, reasoning about lambda terms often involves substitution of one $\alpha$-equivalent term for another implicitly, to avoid issues with bound names appearing within another term (often referred to as the Barendregt Variable Convention). Indeed, even the usual definition of substitution uses this convention in the lambda case, by implicitly assuming the given lambda term $\lambda y. s$ can always be swapped out for an alpha equivalent term $\lambda y'. s'$, such that $y'$ satisfies the side conditions: 
 
-Whilst this approach allows for much simpler and more elegant proofs on paper, in a formal setting of a theorem prover, the notions of alpha equivalence terms and the use of Barendregt Variable Convention have to be formalized and used rigorously. In general, there are two main approaches taken in a rigorous formalization of the terms of the lambda calculus, namely the concrete approaches and the higher-order approaches, both described in some detail below.
+$$(\lambda y'. s')[t/x] \equiv \lambda y'.(s'[t/x]) \text{ assuming } y' \not\equiv x\text{ and }y' \not\in FV(t)$$
+
+This definition of substitution is therefore a function on $\alpha$-equivalence classes of terms, rather than on the "raw" terms. Because of this, the principles of induction/recursion, obtained from the definition of the "raw" terms are no longer sufficient, as this definition is obviously not structurally recursive. In order to reason about the term of the $\lambda$-calculus formally, we therefore need a formalization of the terms which provides induction principles for $\alpha$-equivalent terms.
+
+In general, there are two main approaches taken in a rigorous formalization of the terms of the lambda calculus, namely the concrete approaches and the higher-order approaches, both described in some detail below.
 
 ##Concrete approaches
 
@@ -251,8 +257,63 @@ datatype trm =
 | Lam trm
 ~~~
 
-This representation of terms uses natural numbers instead of named variables. As a result, the notion of $\alpha$-equivalence is no longer relevant, as all terms encoded this way are invariant under $\alpha$-conversion. As an example, both $\lambda x.x$ and $\lambda y.y$ are written as $\lambda 1$, using de Brujin indices. The natural number denotes the number of lambda's that are in scope between the variable and it's corresponding lambda. In their comparison between named vs. nameless/de Bruijn representations of lambda terms, @berghofer06 give further details about the definition of substitution, which no longer needs the variable convention and can therefore be defined using primitive structural recursion.   
-The main disadvantage of this approach is the relative unreadability of both the terms and the formulation of properties about these terms. For example, the substitution lemma, which in the named setting would be stated as:
+This representation of terms uses indices instead of named variables. The indices are natural numbers, which encode an occurrence of a variable in a $\lambda$-term. For bound variables, the index indicates which $\lambda$ it refers to, by encoding the number of $\lambda$-binders that are in the scope between the index and the $\lambda$-binder the variable corresponds to. For example, the term $\lambda x.\lambda y. yx$ will be represented as $\lambda\ \lambda\ 0\ 1$. Here, 0 stands for $y$, as there are no binders in scope between itself and the $\lambda$ it corresponds to, and $1$ corresponds to $x$, as there is one $\lambda$-binder in scope. To encode free variables, one simply choses an index greater than the number of $\lambda$'s currently in scope, for example, $\lambda\ 4$.   
+Since there are no named variables, there is only one way to represent any $\lambda$-term, and the notion of $\alpha$-equivalence is no longer relevant.
+
+
+To see that this representation of $\lambda$-terms is isomorphic to the usual named definition, we can define two function $f$ and $g$, which translate the named representation to de Bruijn notation and vice versa. More precisely, since we are dealing with $\alpha$-equivalence classes, its is an isomorphism between these that we can formalize. 
+
+To make things easier, we consider a representation of named terms, where we map named variables, $x, y, z,...$ to indexed variables $x_1,x_2,x_3,...$. Then, the mapping from named terms to de Bruijn term is given by $f$, which we define in terms of an auxiliary function $e$:
+
+\begin{align*} 
+e_k^m(x_n) &= \begin{cases}
+k-m(x_n)-1 & x_n \in \text{dom }m\\
+k+n & otherwise
+\end{cases}\\
+e_k^m(uv) &= e_k^m(u)\ e_k^m(v)\\
+e_k^m(\lambda x_n.u) &= \lambda\ e_{k+1}^{m \oplus (x_n,k)}(u)
+\end{align*}
+
+Then $f = e_0^\emptyset$
+
+The function $e$ takes two additional parameters, $k$ and $m$. $k$ keeps track of the scope from the root of the term and $m$ is a map from bound variables to the levels they were bound at. In the variable case, if $x_n$ appears in $m$, it is a bound variable, and it's index can be calculated by taking the difference between the current index and the index $m(x_k)$, at which the variable was bound. If $x_n$ is not in $m$, then the variable is encoded by adding the current level $k$ to $n$.   
+In the abstraction case, $x_n$ is added to $m$ with the current level $k$, possibly overshadowing a previous binding of the same variable at a different level (like in $\lambda x_1. (\lambda x_1. x_1)$) and $k$ is incremented, going into the body of the abstraction. <!--For all closed terms, the choice of $k$ is arbitrary.-->
+
+
+The function $g$, taking de Bruijn terms to named terms is a little more tricky. We need to replace indices encoding free variables (those that have a value greater than or equal to $k$, where $k$ is the number of binders in scope) with named variables, such that for every index $n$, we substitute $x_m$, where $m = n-k$, without capturing these free variables.
+
+We need two auxiliary functions to define $g$:
+
+\begin{align*} 
+h_k^b(n) &= \begin{cases}
+x_{n-k} & n \geq k\\
+x_{k+b-n-1} & otherwise
+\end{cases}\\
+h_k^b(uv) &= h_k^b(u)\ h_k^b(v)\\
+h_k^b(\lambda u) &= \lambda x_k.\ h_{k+1}^b(u)
+\end{align*}
+
+**Im not sure what the sensible notation for these should be...**
+
+
+\begin{align*} 
+\Diamond_k(n) &= \begin{cases}
+n-k & n \geq k\\
+0 & otherwise
+\end{cases}\\
+\Diamond_k(uv) &= \max \Diamond_k(u)\ \Diamond_k(v)\\
+\Diamond_k(\lambda u) &= \Diamond_{k+1}(u)
+\end{align*}
+
+The function $g$ is then defined as $g(t) \equiv h_0^{\Diamond_0(t)+1}(t)$. As mentioned above, the complicated definition has to do with avoiding free variable capture. A term like $\lambda (\lambda\ 2)$ intuitively represents a named lambda term with two bound variables and a free variable $x_0$ according to the definition above. If we started giving the bound variables names in a naive way, starting from $x_0$, we would end up with a term $\lambda x_0.(\lambda x_1.x_0)$, which is obviously not the term we had in mind, as $x_0$ is no longer a free variable. To ensure we start naming the bound variables in such a way as to avoid this situation, we use $\Diamond$ to compute the maximal value of any free variable in the given term, and then start naming bound variables with an index one higher than the value returned by $\Diamond$.
+
+
+<!--Note that while $f_k^\emptyset \circ g_k = id$ is true, since the de Bruijn terms are invariant under $\alpha$-equivalence, $g_k \circ f_k^\emptyset = id$ is not, since taking the aforementioned term $\lambda x_1. (\lambda x_1. x_1)$, we have $(g_1 \circ f_1^\emptyset)( \lambda x_1. (\lambda x_1. x_1) ) = \lambda x_1. (\lambda x_2. x_2)$.
+However, its easy to see that $\lambda x_1. (\lambda x_1. x_1) \equiv_\alpha \lambda x_1. (\lambda x_2. x_2)$, thus we can say that $\forall t.\ (g_k \circ f_k^\emptyset)(t) \equiv_\alpha t$.
+$\\$-->
+
+As mentioned earlier, checking $\alpha$-equivalence for de Bruijn notation is the same as checking for syntactic equality, and since the de Bruijn terms are defined inductively, we obtain induction/recursion principles for $\alpha$-equivalent terms. In their comparison between named vs. nameless/de Bruijn representations of lambda terms, @berghofer06 give details about the definition of substitution, which no longer needs the variable convention and can therefore be defined using primitive structural recursion.   
+The main disadvantage of using de Bruijn indices is the relative unreadability of both the terms and the formulation of properties about these terms. For example, the substitution lemma, which in the named setting would be stated as:
 
 $$\text{If }x \neq y\text{ and }x \not\in FV(L)\text{, then }
 M[N/x][L/y] \equiv M[L/y][N[L/y]/x].$$
