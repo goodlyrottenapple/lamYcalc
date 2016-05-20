@@ -178,7 +178,7 @@ $M^N \equiv \{0 \to N\}M\\$
     \AxiomC{term$(M)$}
     \AxiomC{$N \Rightarrow N'$}
     \LeftLabel{$(red_R)$}
-  see the full list of pins and alternate functions here  \BinaryInfC{$MN \Rightarrow M'N$}
+    \BinaryInfC{$MN \Rightarrow M'N$}
     \DisplayProof
     \vskip 1.5em
     \AxiomC{$\forall x \not\in L.\ M^x \Rightarrow M'^x$}
@@ -274,7 +274,7 @@ e_k^m(uv) &= e_k^m(u)\ e_k^m(v)\\
 e_k^m(\lambda x_n.u) &= \lambda\ e_{k+1}^{m \oplus (x_n,k)}(u)
 \end{align*}
 
-Then $f = e_0^\emptyset$
+Then $f(t) \equiv e_0^\emptyset(t)$
 
 The function $e$ takes two additional parameters, $k$ and $m$. $k$ keeps track of the scope from the root of the term and $m$ is a map from bound variables to the levels they were bound at. In the variable case, if $x_n$ appears in $m$, it is a bound variable, and it's index can be calculated by taking the difference between the current index and the index $m(x_k)$, at which the variable was bound. If $x_n$ is not in $m$, then the variable is encoded by adding the current level $k$ to $n$.   
 In the abstraction case, $x_n$ is added to $m$ with the current level $k$, possibly overshadowing a previous binding of the same variable at a different level (like in $\lambda x_1. (\lambda x_1. x_1)$) and $k$ is incremented, going into the body of the abstraction. <!--For all closed terms, the choice of $k$ is arbitrary.-->
@@ -290,7 +290,7 @@ x_{n-k} & n \geq k\\
 x_{k+b-n-1} & otherwise
 \end{cases}\\
 h_k^b(uv) &= h_k^b(u)\ h_k^b(v)\\
-h_k^b(\lambda u) &= \lambda x_k.\ h_{k+1}^b(u)
+h_k^b(\lambda u) &= \lambda x_{k+b}.\ h_{k+1}^b(u)
 \end{align*}
 
 **Im not sure what the sensible notation for these should be...**
