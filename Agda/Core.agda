@@ -20,27 +20,6 @@ data PTerm : Set where
   app : (e₁ : PTerm) -> (e₂ : PTerm) -> PTerm
   Y : (t₁ : Type) -> PTerm
 
--- lam-inj : {t u : PTerm} -> _≡_ {A = PTerm} (lam t) (lam u) -> t ≡ u
--- lam-inj refl = refl
-
-lam-inj : {t u : PTerm} -> (lam t) ≡ (lam u) -> t ≡ u
-lam-inj refl = refl
-
-lam-inj2 : ∀ {t u} -> _≡_ {A = PTerm} (lam t) (lam u) -> t ≡ u
-lam-inj2 = lam-inj
-
-lam-eq : {t u : PTerm} -> t ≡ u -> (lam t) ≡ (lam u)
-lam-eq refl = refl
-
-app-inj-l : {t₁ t₂ u₁ u₂ : PTerm} -> (app t₁ t₂) ≡ (app u₁ u₂) -> t₁ ≡ u₁
-app-inj-l refl = refl
-
-app-inj-r : {t₁ t₂ u₁ u₂ : PTerm} -> (app t₁ t₂) ≡ (app u₁ u₂) -> t₂ ≡ u₂
-app-inj-r refl = refl
-
-app-eq : ∀ {t₁ t₂ u₁ u₂} -> t₁ ≡ u₁ -> t₂ ≡ u₂ -> (app t₁ t₂) ≡ (app u₁ u₂)
-app-eq refl refl = refl
-
 [_>>_] : ℕ -> PTerm -> PTerm -> PTerm
 [ k >> u ] (bv i) with k ≟ i
 ... | yes _ = u
@@ -50,11 +29,11 @@ app-eq refl refl = refl
 [ k >> u ] (app t1 t2) = app ([ k >> u ] t1) ([ k >> u ] t2)
 [ k >> u ] (Y t) = Y t
 
-opn : PTerm -> PTerm -> PTerm
-opn u = [ 0 >> u ]
+_^_ : PTerm -> PTerm -> PTerm
+t ^ u = [ 0 >> u ] t
 
-opnVar : Atom -> PTerm -> PTerm
-opnVar x = opn (fv x)
+_^'_ : PTerm -> Atom -> PTerm
+t ^' x = t ^ (fv x)
 
 [_<<_] : ℕ -> Atom -> PTerm -> PTerm
 [ k << x ] (bv i) = bv i
@@ -68,14 +47,14 @@ opnVar x = opn (fv x)
 cls : Atom -> PTerm -> PTerm
 cls x = [ 0 << x ]
 
-_[_/_] : PTerm -> Atom -> PTerm -> PTerm
-bv i [ x / u ] = bv i
-fv y [ x / u ] with x ≟ y
+_[_::=_] : PTerm -> Atom -> PTerm -> PTerm
+bv i [ x ::= u ] = bv i
+fv y [ x ::= u ] with x ≟ y
 ... | yes _ = u
-... | no + = fv y
-lam t [ x / u ] = lam (t [ x / u ])
-app t1 t2 [ x / u ] = app (t1 [ x / u ]) (t2 [ x / u ])
-Y t₁ [ x / u ] = Y t₁
+... | no _ = fv y
+lam t [ x ::= u ] = lam (t [ x ::= u ])
+app t1 t2 [ x ::= u ] = app (t1 [ x ::= u ]) (t2 [ x ::= u ])
+Y t₁ [ x ::= u ] = Y t₁
 
 FVars = List Atom
 
@@ -89,6 +68,10 @@ FV (Y t) = []
 data Term : PTerm -> Set where
   var : ∀ {x} -> Term (fv x)
   lam : (L : FVars) -> ∀ {e} ->
-    (cf : ∀ {x} -> (x∉L : x ∉ L) -> Term (opnVar x e)) -> Term (lam e)
+    (cf : ∀ {x} -> (x∉L : x ∉ L) -> Term (e ^' x)) -> Term (lam e)
   app : ∀ {e₁ e₂} -> Term e₁ -> Term e₂ -> Term (app e₁ e₂)
   Y : ∀ {t} -> Term (Y t)
+
+
+postulate ∃fresh : FVars -> Atom
+postulate ∃fresh-spec : ∀ L -> ∃fresh L ∉ L
