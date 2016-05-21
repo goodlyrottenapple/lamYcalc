@@ -1,5 +1,6 @@
 module Core where
 
+open import Data.Empty
 open import Data.Nat
 open import Data.List
 open import Data.List.Any as Any

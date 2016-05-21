@@ -77,32 +77,32 @@ subst-fresh2 x t u x∉FVt rewrite subst-fresh x t u x∉FVt = refl
 suc-inj : ∀ i j → suc i ≡ suc j → i ≡ j
 suc-inj i ._ refl = refl
 
-open-term-aux : ∀ j t i u e → ¬ (i ≡ j) -> [ j >> t ] e ≡ [ i >> u ] ([ j >> t ] e) ->
+^-Term-eq-aux : ∀ j t i u e → ¬ (i ≡ j) -> [ j >> t ] e ≡ [ i >> u ] ([ j >> t ] e) ->
   e ≡ [ i >> u ] e
-open-term-aux j t i u (bv k) i≠j eq with i ≟ k
-open-term-aux j t i u (bv ._) i≠j eq | yes refl with j ≟ i
-open-term-aux j t ._ u (bv ._) i≠j eq | yes refl | yes refl = ⊥-elim (i≠j refl)
-open-term-aux j t i u (bv ._) i≠j eq | yes refl | no _ with i ≟ i
-open-term-aux j t i u (bv ._) i≠j eq | yes refl | no _ | yes refl = eq
-open-term-aux j t i u (bv ._) i≠j eq | yes refl | no _ | no i≠i = ⊥-elim (i≠i refl)
-open-term-aux j t i u (bv k) i≠j eq | no _ = refl
-open-term-aux j t i u (fv x) i≠j eq = refl
-open-term-aux j t i u (lam e) i≠j eq
-  with open-term-aux (suc j) t (suc i) u e
+^-Term-eq-aux j t i u (bv k) i≠j eq with i ≟ k
+^-Term-eq-aux j t i u (bv ._) i≠j eq | yes refl with j ≟ i
+^-Term-eq-aux j t ._ u (bv ._) i≠j eq | yes refl | yes refl = ⊥-elim (i≠j refl)
+^-Term-eq-aux j t i u (bv ._) i≠j eq | yes refl | no _ with i ≟ i
+^-Term-eq-aux j t i u (bv ._) i≠j eq | yes refl | no _ | yes refl = eq
+^-Term-eq-aux j t i u (bv ._) i≠j eq | yes refl | no _ | no i≠i = ⊥-elim (i≠i refl)
+^-Term-eq-aux j t i u (bv k) i≠j eq | no _ = refl
+^-Term-eq-aux j t i u (fv x) i≠j eq = refl
+^-Term-eq-aux j t i u (lam e) i≠j eq
+  with ^-Term-eq-aux (suc j) t (suc i) u e
            (λ eq' -> i≠j (suc-inj i j eq')) (lam-inj eq)
 ... | eq'' = lam-eq eq''
-open-term-aux j t i u (app e₁ e₂) i≠j eq
-  with open-term-aux j t i u e₁ i≠j (app-inj-l eq)
-     | open-term-aux j t i u e₂ i≠j (app-inj-r eq)
+^-Term-eq-aux j t i u (app e₁ e₂) i≠j eq
+  with ^-Term-eq-aux j t i u e₁ i≠j (app-inj-l eq)
+     | ^-Term-eq-aux j t i u e₂ i≠j (app-inj-r eq)
 ... | eq₁ | eq₂
   = app-eq eq₁ eq₂
-open-term-aux j t i u (Y s) i≠j eq = refl
+^-Term-eq-aux j t i u (Y s) i≠j eq = refl
 
 
 
-open-term : ∀ k t {e} → Term e → e ≡ [ k >> t ] e
-open-term k t var = refl
-open-term k t {lam e} (lam L cf) = body
+^-Term-eq : ∀ k t {e} → Term e → e ≡ [ k >> t ] e
+^-Term-eq k t var = refl
+^-Term-eq k t {lam e} (lam L cf) = body
   where
     y = ∃fresh L
 
@@ -110,13 +110,13 @@ open-term k t {lam e} (lam L cf) = body
     y∉ = ∃fresh-spec L
 
     body : lam e ≡ [ k >> t ] (lam e)
-    body with open-term (suc k) t {[ 0 >> fv y ] e} (cf y∉)
-    ... | eq with open-term-aux 0 (fv y) (suc k) t e (λ ()) eq
+    body with ^-Term-eq (suc k) t {[ 0 >> fv y ] e} (cf y∉)
+    ... | eq with ^-Term-eq-aux 0 (fv y) (suc k) t e (λ ()) eq
     ...   | eq' = lam-eq eq'
-open-term k t (app trm-u trm-v) with
-  open-term k t trm-u | open-term k t trm-v
+^-Term-eq k t (app trm-u trm-v) with
+  ^-Term-eq k t trm-u | ^-Term-eq k t trm-v
 ... | e1 | e2 = app-eq e1 e2
-open-term k t₁ Y = refl
+^-Term-eq k t₁ Y = refl
 
 
 subst-open : ∀ x t k u e -> Term t ->
@@ -125,7 +125,7 @@ subst-open x t k u (bv i) trm-t with k ≟ i
 ... | yes _ = refl
 ... | no _ = refl
 subst-open x t k u (fv y) trm-t with x ≟ y
-... | yes _ = open-term k (u [ x ::= t ]) trm-t
+... | yes _ = ^-Term-eq k (u [ x ::= t ]) trm-t
 ... | no _ = refl
 subst-open x t k u (lam e) trm-t rewrite
   subst-open x t (suc k) u e trm-t = refl
