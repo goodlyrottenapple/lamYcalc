@@ -7,6 +7,8 @@ open import Data.List.Any as Any
 open Any.Membership-≡
 open import Relation.Nullary
 open import Relation.Binary.PropositionalEquality
+open import Data.Product
+
 
 open import Core
 open import Core-Lemmas
@@ -75,7 +77,6 @@ subst-Term Y Term-u = Y
   y∉ : y ∉ (L ++ FV m)
   y∉ = ∃fresh-spec (L ++ FV m)
 
-
   body : Term (m ^ n)
   body rewrite subst-intro y n m (∉-cons-r L (FV m) y∉) Term-n =
     subst-Term {y} {m ^' y} {n} (cf (∉-cons-l L (FV m) y∉)) Term-n
@@ -87,7 +88,7 @@ subst-Term Y Term-u = Y
 ->||-Term-l refl = var
 ->||-Term-l reflY = Y
 ->||-Term-l (app m->||m' m->||m'') = app (->||-Term-l m->||m') (->||-Term-l m->||m'')
-->||-Term-l (abs L x) = lam L (λ {x₁} x∉L → ->||-Term-l (x x∉L))
+->||-Term-l (abs L x) = lam L (λ x∉L → ->||-Term-l (x x∉L))
 ->||-Term-l (beta L x m->||m') =
   app (lam L (λ {x₁} x∉L → ->||-Term-l (x x∉L)))
       (->||-Term-l m->||m')
@@ -97,10 +98,31 @@ subst-Term Y Term-u = Y
 ->||-Term-r refl = var
 ->||-Term-r reflY = Y
 ->||-Term-r (app m->||m' m->||m'') = app (->||-Term-r m->||m') (->||-Term-r m->||m'')
-->||-Term-r (abs L x) = lam L (λ {x₁} x∉L → ->||-Term-r (x x∉L))
+->||-Term-r (abs L x) = lam L (λ x∉L → ->||-Term-r (x x∉L))
 ->||-Term-r (beta L {m} {m'} {n} {n'} cf m->||m') =
   ^-Term {m'} {n'} (lam L (λ {x₁} x∉L → ->||-Term-r (cf x∉L))) (->||-Term-r m->||m')
 ->||-Term-r (Y m->||m') = app (->||-Term-r m->||m') (app Y (->||-Term-r m->||m'))
+
+
+>>>-Term-l : ∀ {m m'} -> m >>> m' -> Term m
+>>>-Term-l refl = var
+>>>-Term-l reflY = Y
+>>>-Term-l (app nAbsY m>>>m' m>>>m'') = app (>>>-Term-l m>>>m') (>>>-Term-l m>>>m'')
+>>>-Term-l (abs L x) = lam L (λ x∉L → >>>-Term-l (x x∉L))
+>>>-Term-l (beta L x m>>>m') =
+  app (lam L (λ {x₁} x∉L → >>>-Term-l (x x∉L)))
+      (>>>-Term-l m>>>m')
+>>>-Term-l (Y {m} {m'} m>>>m') = app Y (>>>-Term-l m>>>m')
+
+>>>-Term-r : ∀ {m m'} -> m >>> m' -> Term m'
+>>>-Term-r refl = var
+>>>-Term-r reflY = Y
+>>>-Term-r (app nAbsY m>>>m' m>>>m'') = app (>>>-Term-r m>>>m') (>>>-Term-r m>>>m'')
+>>>-Term-r (abs L x) = lam L (λ x∉L → >>>-Term-r (x x∉L))
+>>>-Term-r (beta L {m} {m'} {n} {n'} cf m>>>m') =
+  ^-Term {m'} {n'} (lam L (λ {x₁} x∉L → >>>-Term-r (cf x∉L))) (>>>-Term-r m>>>m')
+>>>-Term-r (Y m>>>m') = app (>>>-Term-r m>>>m') (app Y (>>>-Term-r m>>>m'))
+
 
 lem2-5-1 : ∀ s s' t t' (x : ℕ) -> s ->|| s' -> t ->|| t' ->
   (s [ x ::= t ]) ->|| (s' [ x ::= t' ])
@@ -157,3 +179,81 @@ lem2-5-1-^ s s' t t' L cf t->||t' = body
     subst-intro x t s (∉-cons-l (FV s) (FV s') (∉-cons-r L (FV s ++ FV s') x∉)) (->||-Term-l t->||t') |
     subst-intro x t' s' (∉-cons-r (FV s) (FV s') (∉-cons-r L (FV s ++ FV s') x∉)) (->||-Term-r t->||t') =
       lem2-5-1 (s ^' x) (s' ^' x) t t' x (cf (∉-cons-l L (FV s ++ FV s') x∉)) t->||t'
+
+
+-- ^-^-swap : ∀ k n x y m -> ¬(k ≡ n) -> ¬(x ≡ y) -> [ k >> fv x ] ([ n >> fv y ] m) ≡ [ n >> fv y ] ([ k >> fv x ] m)
+-- ^-^-swap k n x y (bv i) k≠n x≠y = {!   !}
+-- ^-^-swap k n x y (fv x₁) k≠n x≠y = {!   !}
+-- ^-^-swap k n x y (lam m) k≠n x≠y = {!   !}
+-- ^-^-swap k n x y (app m m₁) k≠n x≠y = {!   !}
+-- ^-^-swap k n x y (Y t₁) k≠n x≠y = refl
+
+*^-^≡subst : ∀ m x y {k} -> Term m -> ([ k >> fv y ] ([ k << x ] m)) ≡ m [ x ::= fv y ]
+*^-^≡subst _ x y (var {z}) with x ≟ z
+*^-^≡subst .(fv x) x y {k} var | yes refl with k ≟ k
+*^-^≡subst .(fv x) x y var | yes refl | yes refl = refl
+*^-^≡subst .(fv x) x y var | yes refl | no k≠k = ⊥-elim (k≠k refl)
+*^-^≡subst _ x y var | no x≠z = refl
+*^-^≡subst _ x y {k} (lam L {t} cf) = body
+  where
+  x' = ∃fresh (x ∷ y ∷ (L ++ FV t))
+
+  x'∉ : x' ∉ (x ∷ y ∷ (L ++ FV t))
+  x'∉ = ∃fresh-spec (x ∷ y ∷ (L ++ FV t))
+
+  subst1 : [ 0 >> fv x' ] ([ suc k >> fv y ] ([ suc k << x ] t)) ≡ [ 0 >> fv x' ] (t [ x ::= fv y ])
+  subst1 = {!   !}
+
+  body : [ k >> fv y ] ([ k << x ] (lam t)) ≡ (lam t [ x ::= fv y ])
+  body rewrite
+    fv-^-*^-refl2 x' ([ (suc k) >> fv y ] ([ (suc k) << x ] t)) {0}
+      (fv-^ {_} {x'} {y} ([ suc k << x ] t) {!   !} (fv-x-neq-y x' y {(L ++ FV t)} (∉-∷-elim (y ∷ L ++ FV t) x'∉))) |
+    fv-^-*^-refl2 x' (t [ x ::= fv y ]) {0} {!   !} =
+      cong lam
+        (cong [ 0 << x' ] {([ 0 >> fv x' ] ([ suc k >> fv y ] ([ suc k << x ] t)))} {([ 0 >> fv x' ] (t [ x ::= fv y ]))} subst1)
+
+*^-^≡subst _ x y {k} (app {m1} {m2} term-m1 term-m2) rewrite
+  *^-^≡subst m1 x y {k} term-m1 | *^-^≡subst m2 x y {k} term-m2 = refl
+*^-^≡subst _ x y Y = refl
+
+*^-^->>> : ∀ {x y t d k} -> t >>> d -> y ∉ x ∷ (FV t ++ FV d) -> ([ k >> fv y ] ([ k << x ] t)) >>> ([ k >> fv y ] ([ k << x ] d))
+*^-^->>> {x} {y} {t} {d} {k} t>>>d y∉ rewrite
+  *^-^≡subst t x y {k} (>>>-Term-l t>>>d) | *^-^≡subst d x y {k} (>>>-Term-r t>>>d) = {!   !}
+
+∃>>> : ∀ {a} -> Term a -> ∃(λ d -> a >>> d)
+∃>>> (var {x}) = fv x , refl
+∃>>> (lam L {t} cf) = body
+  where
+  x = ∃fresh (L ++ FV t)
+
+  x∉ : x ∉ (L ++ FV t)
+  x∉ = ∃fresh-spec (L ++ FV t)
+
+  d-spec : ∃(λ d -> (t ^' x) >>> d)
+  d-spec = ∃>>> (cf (∉-cons-l L (FV t) x∉))
+
+  d : PTerm
+  d = proj₁ d-spec
+
+  subst1 : ∀ x y t k -> x ∉ FV t -> (t ^' y) ≡ (([ k << x ] ([ k >> fv x ] t)) ^' y)
+  subst1 x y t k x∉FVt rewrite fv-^-*^-refl x t {k} x∉FVt = refl
+
+  cf' : ∀ {y} -> y ∉ x ∷ (FV d ++ FV t) -> (t ^' y) >>> ((* x ^ d) ^' y)
+  cf' {y} y∉ rewrite subst1 x y t 0 (∉-cons-r L (FV t) x∉) =
+    *^-^->>> {x} {y} {t ^' x} {d} {0} (proj₂ d-spec)
+      (∉-∷ x (FV (t ^' x) ++ FV d) (fv-x-neq-y y x y∉)
+        (∉-cons-intro (FV (t ^' x)) (FV d)
+          (fv-^ {0} {y} {x} t (∉-cons-r (FV d) _ (∉-∷-elim _ y∉)) (fv-x-neq-y _ _ y∉))
+          (∉-cons-l _ (FV t) (∉-∷-elim _ y∉))))
+
+  body : ∃(λ d -> (lam t) >>> d)
+  body = lam (* x ^ d) , (abs (x ∷ (FV d ++ FV t)) cf')
+
+∃>>> (app {t1} {t2} trm-t1 trm-t2) with trm-t1 | ∃>>> trm-t1 | ∃>>> trm-t2
+∃>>> (app trm-t1 trm-t2) | (var {x}) | d1 , t1>>>d1 | d2 , t2>>>d2 = app (fv x) d2 , app fv refl t2>>>d2
+∃>>> (app {_} {t2} trm-t1 trm-t2) | lam L cf | _ , abs L₁ {t1} {d1} cf₁ | d2 , t2>>>d2 =
+  d1 ^ d2 , beta L₁ {t1} {d1} {t2} {d2} cf₁ t2>>>d2
+∃>>> (app {_} {t2} trm-t1 trm-t2) | app {p1} {p2} trm-p1 trm-p2 | d1 , t1>>>d1 | d2 , t2>>>d2 =
+  app d1 d2 , app app t1>>>d1 t2>>>d2
+∃>>> (app trm-t1 trm-t2) | (Y {t}) | d1 , t1>>>d1 | d2 , t2>>>d2 = app d2 (app (Y t) d2) , Y t2>>>d2
+∃>>> (Y {t}) = Y t , reflY
