@@ -39,12 +39,13 @@ fv-subst-neq x y t x≠y with y ≟ x
 fv-subst-neq x .x t x≠y | yes refl = ⊥-elim (x≠y refl)
 fv-subst-neq x y t x≠y | no p = refl
 
-fv-x-eq-y : {A : Set} (x y : A) -> x ∈ (y ∷ []) -> (x ≡ y)
-fv-x-eq-y y .y (here refl) = refl
-fv-x-eq-y x y (there ())
+fv-x≡y : {A : Set} (x y : A) -> x ∈ (y ∷ []) -> (x ≡ y)
+fv-x≡y y .y (here refl) = refl
+fv-x≡y x y (there ())
 
-fv-x-neq-y : ∀ (x y : ℕ) {L} -> x ∉ (y ∷ L) -> ¬ (x ≡ y)
-fv-x-neq-y x y x∉y∷L x≡y = x∉y∷L (here x≡y)
+fv-x≠y : ∀ (x y : ℕ) {L} -> x ∉ (y ∷ L) -> ¬ (x ≡ y)
+fv-x≠y x y x∉y∷L x≡y = x∉y∷L (here x≡y)
+
 
 ∈-cons-l : ∀ {A : Set} {x : A} {xs} ys -> x ∈ xs -> x ∈ (xs ++ ys)
 ∈-cons-l ys (here eq) = here eq
@@ -65,7 +66,7 @@ fv-x-neq-y x y x∉y∷L x≡y = x∉y∷L (here x≡y)
 ∉-cons-intro (x₁ ∷ xs) ys x∉xs x∉ys (there x∈xs++ys) = ∉-cons-intro xs ys (λ z → x∉xs (there z)) x∉ys x∈xs++ys
 
 ∉-∷ : ∀ {y : ℕ} x xs -> ¬(y ≡ x) -> y ∉ xs -> y ∉ x ∷ xs
-∉-∷ {y} x [] ¬y≡x y∉[] y∈x∷[] = ¬y≡x (fv-x-eq-y y x y∈x∷[])
+∉-∷ {y} x [] ¬y≡x y∉[] y∈x∷[] = ¬y≡x (fv-x≡y y x y∈x∷[])
 ∉-∷ x (x₁ ∷ xs) ¬y≡x y∉xs (here refl) = ¬y≡x refl
 ∉-∷ x (x₁ ∷ xs) ¬y≡x y∉xs (there y∈xs) = y∉xs y∈xs
 
@@ -74,7 +75,7 @@ fv-x-neq-y x y x∉y∷L x≡y = x∉y∷L (here x≡y)
 
 fv-^ : ∀ {k x y} m -> x ∉ FV m -> ¬(x ≡ y) -> x ∉ FV ([ k >> fv y ] m)
 fv-^ {k} (bv i) x∉FVm x≠y x∈ with k ≟ i
-fv-^ {_} {x} {y} (bv k) x∉FVm x≠y x∈ | yes refl = x≠y (fv-x-eq-y x y x∈)
+fv-^ {_} {x} {y} (bv k) x∉FVm x≠y x∈ | yes refl = x≠y (fv-x≡y x y x∈)
 fv-^ (bv i) x∉FVm x≠y x∈ | no k≠i = x∉FVm x∈
 fv-^ (fv _) x∉FVm x≠y x∈ = x∉FVm x∈
 fv-^ (lam m) x∉FVm x≠y x∈ = fv-^ m x∉FVm x≠y x∈
@@ -83,6 +84,32 @@ fv-^ {k} {x} {y} (app t1 t2) x∉FVm x≠y =
     (λ x∈t1 → fv-^ t1 (∉-cons-l _ _ x∉FVm) x≠y x∈t1)
     (λ x∈t2 → fv-^ t2 (∉-cons-r (FV t1) _ x∉FVm) x≠y x∈t2)
 fv-^ (Y t₁) x∉FVm x≠y x∈ = x∉FVm x∈
+
+fv-*^ : ∀ {k x y} m -> x ∉ FV m -> x ∉ FV ([ k << y ] m)
+fv-*^ (bv i) x∉FVm x∈ = x∉FVm x∈
+fv-*^ {_} {x} {y} (fv z) x∉FVm x∈ with y ≟ z
+fv-*^ (fv y) x∉FVm x∈ | yes refl = x∉FVm (there x∈)
+fv-*^ (fv z) x∉FVm x∈ | no y≠z = x∉FVm x∈
+fv-*^ (lam m) x∉FVm x∈ = fv-*^ m x∉FVm x∈
+fv-*^ {k} {x} {y} (app t1 t2) x∉FVm =
+  ∉-cons-intro (FV ([ k << y ] t1)) (FV ([ k << y ] t2))
+    (λ x∈t1 → fv-*^ t1 (∉-cons-l _ _ x∉FVm) x∈t1)
+    (λ x∈t2 → fv-*^ t2 (∉-cons-r (FV t1) _ x∉FVm) x∈t2)
+fv-*^ (Y _) x∉FVm x∈ = x∉FVm x∈
+
+fv-subst : ∀ {x y} m n -> x ∉ FV m ++ FV n -> x ∉ FV (m [ y ::= n ])
+fv-subst (bv i) n x∉FVm x∈ = x∉FVm (∈-cons-l _ x∈)
+fv-subst {x} {y} (fv z) n x∉FVm x∈ with y ≟ z
+fv-subst (fv y) n x∉FVm x∈ | yes refl = x∉FVm (there x∈)
+fv-subst (fv z) n x∉FVm x∈ | no y≠z = x∉FVm (∈-cons-l _ x∈)
+fv-subst (lam m) n x∉FVm x∈ = fv-subst m n x∉FVm x∈
+fv-subst {x} {y} (app t1 t2) n x∉FVm =
+  ∉-cons-intro (FV (t1 [ y ::= n ])) (FV (t2 [ y ::= n ]))
+    (λ x∈t1 → fv-subst t1 n (∉-cons-intro (FV t1) (FV n)
+      (∉-cons-l _ _ (∉-cons-l _ _ x∉FVm)) (∉-cons-r (FV t1 ++ FV t2) _ x∉FVm)) x∈t1)
+    (λ x∈t2 → fv-subst t2 n (∉-cons-intro (FV t2) (FV n)
+      (∉-cons-r (FV t1) _ (∉-cons-l _ _ x∉FVm)) (∉-cons-r (FV t1 ++ FV t2) _ x∉FVm)) x∈t2)
+fv-subst (Y t₁) n x∉FVm x∈ = x∉FVm (∈-cons-l _ x∈)
 
 
 subst-fresh : ∀ x t u -> (x∉FVt : x ∉ (FV t)) -> (t [ x ::= u ]) ≡ t
@@ -209,3 +236,101 @@ fv-^-*^-refl x (Y t₁) x∉FVt = refl
 
 fv-^-*^-refl2 : ∀ x t {k} -> x ∉ FV t -> t ≡ ([ k << x ] ([ k >> fv x ] t))
 fv-^-*^-refl2 x t {k} x∉ rewrite fv-^-*^-refl x t {k} x∉ = refl
+
+≡-suc : ∀ {x y} -> suc x ≡ suc y -> x ≡ y
+≡-suc {zero} refl = refl
+≡-suc {suc x} refl = refl
+
+
+^-^-swap : ∀ k n x y m -> ¬(k ≡ n) -> ¬(x ≡ y) -> [ k >> fv x ] ([ n >> fv y ] m) ≡ [ n >> fv y ] ([ k >> fv x ] m)
+^-^-swap k n x y (bv i) k≠n x≠y with n ≟ i
+^-^-swap k n x y (bv .n) k≠n x≠y | yes refl with k ≟ n
+^-^-swap n .n x y (bv .n) k≠n x≠y | yes refl | yes refl = ⊥-elim (k≠n refl)
+^-^-swap k n x y (bv .n) k≠n x≠y | yes refl | no _ with n ≟ n
+^-^-swap k n x y (bv .n) k≠n x≠y | yes refl | no _ | yes refl = refl
+^-^-swap k n x y (bv .n) k≠n x≠y | yes refl | no _ | no n≠n = ⊥-elim (n≠n refl)
+^-^-swap k n x y (bv i) k≠n x≠y | no n≠i with k ≟ n
+^-^-swap n .n x y (bv i) k≠n x≠y | no n≠i | yes refl = ⊥-elim (k≠n refl)
+^-^-swap k n x y (bv i) k≠n x≠y | no n≠i | no _ with k ≟ i
+^-^-swap k n x y (bv .k) k≠n x≠y | no n≠i | no _ | yes refl = refl
+^-^-swap k n x y (bv i) k≠n x≠y | no n≠i | no _ | no k≠i with n ≟ i
+^-^-swap k i x y (bv .i) k≠n x≠y | no n≠i | no _ | no k≠i | yes refl = ⊥-elim (n≠i refl)
+^-^-swap k n x y (bv i) k≠n x≠y | no n≠i | no _ | no k≠i | no _ = refl
+^-^-swap k n x y (fv z) k≠n x≠y = refl
+^-^-swap k n x y (lam m) k≠n x≠y = cong lam (^-^-swap (suc k) (suc n) x y m (λ sk≡sn → k≠n (≡-suc sk≡sn)) x≠y)
+^-^-swap k n x y (app t1 t2) k≠n x≠y rewrite
+  ^-^-swap k n x y t1 k≠n x≠y | ^-^-swap k n x y t2 k≠n x≠y = refl
+^-^-swap k n x y (Y _) k≠n x≠y = refl
+
+
+
+^-^*-swap : ∀ k n x y m -> ¬(k ≡ n) -> ¬(x ≡ y) -> [ k << x ] ([ n >> fv y ] m) ≡ [ n >> fv y ] ([ k << x ] m)
+^-^*-swap k n x y (bv i) k≠n x≠y with n ≟ i
+^-^*-swap k n x y (bv .n) k≠n x≠y | yes refl with x ≟ y
+^-^*-swap k n x .x (bv .n) k≠n x≠y | yes refl | yes refl = ⊥-elim (x≠y refl)
+^-^*-swap k n x y (bv .n) k≠n x≠y | yes refl | no _ = refl
+^-^*-swap k n x y (bv i) k≠n x≠y | no n≠i = refl
+^-^*-swap k n x y (fv z) k≠n x≠y with x ≟ z
+^-^*-swap k n x y (fv .x) k≠n x≠y | yes refl with n ≟ k
+^-^*-swap k .k x y (fv .x) k≠n x≠y | yes refl | yes refl = ⊥-elim (k≠n refl)
+^-^*-swap k n x y (fv .x) k≠n x≠y | yes refl | no n≠k = refl
+^-^*-swap k n x y (fv z) k≠n x≠y | no x≠z = refl
+^-^*-swap k n x y (lam m) k≠n x≠y = cong lam (^-^*-swap (suc k) (suc n) x y m (λ sk≡sn → k≠n (≡-suc sk≡sn)) x≠y)
+^-^*-swap k n x y (app t1 t2) k≠n x≠y rewrite
+  ^-^*-swap k n x y t1 k≠n x≠y | ^-^*-swap k n x y t2 k≠n x≠y = refl
+^-^*-swap k n x y (Y _) k≠n x≠y = refl
+
+^-^*-swap2 : ∀ n k y x m -> ¬(k ≡ n) -> ¬(x ≡ y) -> [ n >> fv y ] ([ k << x ] m) ≡ [ k << x ] ([ n >> fv y ] m)
+^-^*-swap2 n k y x m k≠n x≠y rewrite ^-^*-swap k n x y m k≠n x≠y = refl
+
+
+≡-sym : ∀ {A : Set} {x y : A} -> x ≡ y -> y ≡ x
+≡-sym refl = refl
+
+*^-^≡subst : ∀ m x y {k} -> Term m -> ([ k >> fv y ] ([ k << x ] m)) ≡ m [ x ::= fv y ]
+*^-^≡subst _ x y (var {z}) with x ≟ z
+*^-^≡subst .(fv x) x y {k} var | yes refl with k ≟ k
+*^-^≡subst .(fv x) x y var | yes refl | yes refl = refl
+*^-^≡subst .(fv x) x y var | yes refl | no k≠k = ⊥-elim (k≠k refl)
+*^-^≡subst _ x y var | no x≠z = refl
+*^-^≡subst _ x y {k} (lam L {t} cf) = body
+  where
+  x' = ∃fresh (x ∷ y ∷ (L ++ FV t))
+
+  x'∉ : x' ∉ (x ∷ y ∷ (L ++ FV t))
+  x'∉ = ∃fresh-spec (x ∷ y ∷ (L ++ FV t))
+
+  x'∉L : x' ∉ L
+  x'∉L = ∉-cons-l _ (FV t) (∉-∷-elim _ (∉-∷-elim _ x'∉))
+
+  x'∉FVt : x' ∉ FV t
+  x'∉FVt = ∉-cons-r L _ (∉-∷-elim _ (∉-∷-elim _ x'∉))
+
+  x'≠x : ¬(x' ≡ x)
+  x'≠x = fv-x≠y _ _ x'∉
+
+  x'≠y : ¬(x' ≡ y)
+  x'≠y = fv-x≠y _ _ (∉-∷-elim _ x'∉)
+
+  ih : [ suc k >> fv y ] ([ suc k << x ] (t ^' x')) ≡ ((t ^' x') [ x ::= fv y ])
+  ih = *^-^≡subst (t ^' x') x y (cf x'∉L)
+
+  subst1 : [ 0 >> fv x' ] ([ suc k >> fv y ] ([ suc k << x ] t)) ≡ [ 0 >> fv x' ] (t [ x ::= fv y ])
+  subst1 rewrite
+    ^-^-swap 0 (suc k) x' y ([ suc k << x ] t) (λ ()) x'≠y |
+    ^-^*-swap2 0 (suc k) x' x t (λ ()) (λ x≡x' → x'≠x (≡-sym x≡x')) |
+    subst-open-var x' x (fv y) t x'≠x var = ih
+
+  body : [ k >> fv y ] ([ k << x ] (lam t)) ≡ (lam t [ x ::= fv y ])
+  body rewrite
+    fv-^-*^-refl2 x' ([ (suc k) >> fv y ] ([ (suc k) << x ] t)) {0}
+      (fv-^ {_} {x'} {y} ([ suc k << x ] t)
+        (fv-*^ t x'∉FVt) (fv-x≠y x' y {(L ++ FV t)} (∉-∷-elim _ x'∉))) |
+    fv-^-*^-refl2 x' (t [ x ::= fv y ]) {0}
+      (fv-subst t (fv y) (∉-cons-intro (FV t) (FV (fv y)) x'∉FVt (∉-∷ _ _ x'≠y (λ ())))) =
+      cong lam
+        (cong [ 0 << x' ] {([ 0 >> fv x' ] ([ suc k >> fv y ] ([ suc k << x ] t)))} {([ 0 >> fv x' ] (t [ x ::= fv y ]))} subst1)
+
+*^-^≡subst _ x y {k} (app {m1} {m2} term-m1 term-m2) rewrite
+  *^-^≡subst m1 x y {k} term-m1 | *^-^≡subst m2 x y {k} term-m2 = refl
+*^-^≡subst _ x y Y = refl

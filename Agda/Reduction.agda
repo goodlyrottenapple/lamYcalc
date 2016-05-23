@@ -61,7 +61,7 @@ subst-Term var Term-u | no p = var
 subst-Term {x} {_} {u} (lam L {e} cf) Term-u = lam (x ∷ L) body
   where
   body : {y : ℕ} -> y ∉ x ∷ L → Term ((e [ x ::= u ]) ^' y)
-  body {y} y∉x∷L rewrite subst-open-var y x u e (fv-x-neq-y y x y∉x∷L) Term-u =
+  body {y} y∉x∷L rewrite subst-open-var y x u e (fv-x≠y y x y∉x∷L) Term-u =
     subst-Term (cf (λ z → y∉x∷L (there z))) Term-u
 
 
@@ -136,7 +136,7 @@ lem2-5-1 _ _ t t' x (app {m} {m'} {n} {n'} ss' ss'') t->||t' = app (lem2-5-1 m m
 lem2-5-1 _ _ t t' x (abs L {m} {m'} cf) t->||t' = abs (x ∷ L) body
   where
   x∉FVy : (y : ℕ) -> (y ∉ x ∷ L) -> x ∉ FV (fv y)
-  x∉FVy y y∉x∷L x∈FVy with fv-x-eq-y x y x∈FVy
+  x∉FVy y y∉x∷L x∈FVy with fv-x≡y x y x∈FVy
   x∉FVy .x y∉x∷L x∈FVy | refl = y∉x∷L (here refl)
 
   body : {y : ℕ} -> (y ∉ x ∷ L) -> ((m [ x ::= t ]) ^' y) ->|| ((m' [ x ::= t' ]) ^' y)
@@ -155,8 +155,8 @@ lem2-5-1 _ _ t t' x (beta L {m} {m'} {n} {n'} cf n->||n') t->||t' rewrite
   where
   body : {y : ℕ} -> y ∉ x ∷ L -> ((m [ x ::= t ]) ^' y) ->|| ((m' [ x ::= t' ]) ^' y)
   body {y} y∉x∷L rewrite
-    subst-open-var y x t m (fv-x-neq-y y x y∉x∷L) (->||-Term-l t->||t') |
-    subst-open-var y x t' m' (fv-x-neq-y y x y∉x∷L) (->||-Term-r t->||t') =
+    subst-open-var y x t m (fv-x≠y y x y∉x∷L) (->||-Term-l t->||t') |
+    subst-open-var y x t' m' (fv-x≠y y x y∉x∷L) (->||-Term-r t->||t') =
       lem2-5-1 (m ^' y) (m' ^' y) t t' x (cf (λ z → y∉x∷L (there z))) t->||t'
 
   body₂ : (n [ x ::= t ]) ->|| (n' [ x ::= t' ])
@@ -181,44 +181,59 @@ lem2-5-1-^ s s' t t' L cf t->||t' = body
       lem2-5-1 (s ^' x) (s' ^' x) t t' x (cf (∉-cons-l L (FV s ++ FV s') x∉)) t->||t'
 
 
--- ^-^-swap : ∀ k n x y m -> ¬(k ≡ n) -> ¬(x ≡ y) -> [ k >> fv x ] ([ n >> fv y ] m) ≡ [ n >> fv y ] ([ k >> fv x ] m)
--- ^-^-swap k n x y (bv i) k≠n x≠y = {!   !}
--- ^-^-swap k n x y (fv x₁) k≠n x≠y = {!   !}
--- ^-^-swap k n x y (lam m) k≠n x≠y = {!   !}
--- ^-^-swap k n x y (app m m₁) k≠n x≠y = {!   !}
--- ^-^-swap k n x y (Y t₁) k≠n x≠y = refl
+NotAbsY-subst : ∀ {x y m} -> NotAbsY m -> NotAbsY (m [ x ::= fv y ])
+NotAbsY-subst {x} (fv {y}) with x ≟ y
+NotAbsY-subst {x} {y} fv | yes refl rewrite
+  fv-subst-eq x x (fv y) refl = fv
+NotAbsY-subst fv | no _ = fv
+NotAbsY-subst bv = bv
+NotAbsY-subst app = app
 
-*^-^≡subst : ∀ m x y {k} -> Term m -> ([ k >> fv y ] ([ k << x ] m)) ≡ m [ x ::= fv y ]
-*^-^≡subst _ x y (var {z}) with x ≟ z
-*^-^≡subst .(fv x) x y {k} var | yes refl with k ≟ k
-*^-^≡subst .(fv x) x y var | yes refl | yes refl = refl
-*^-^≡subst .(fv x) x y var | yes refl | no k≠k = ⊥-elim (k≠k refl)
-*^-^≡subst _ x y var | no x≠z = refl
-*^-^≡subst _ x y {k} (lam L {t} cf) = body
+
+lem2-5-1>>> : ∀ s s' (x y : ℕ) -> s >>> s' -> (s [ x ::= fv y ]) >>> (s' [ x ::= fv y ])
+lem2-5-1>>> _ _ x y (refl {z}) with x ≟ z
+lem2-5-1>>> .(fv x) .(fv x) x y refl | yes refl rewrite
+  fv-subst-eq x x (fv y) refl = refl
+lem2-5-1>>> _ _ x y (refl {z}) | no z≠x = refl
+lem2-5-1>>> _ _ x y reflY = reflY
+lem2-5-1>>> _ _ x y (app {m} {m'} {n} {n'} ¬absY ss' ss'') =
+  app (NotAbsY-subst ¬absY) (lem2-5-1>>> m m' x y ss') (lem2-5-1>>> n n' x y ss'')
+lem2-5-1>>> _ _ x y (abs L {m} {m'} cf) = abs (x ∷ L) body
   where
-  x' = ∃fresh (x ∷ y ∷ (L ++ FV t))
+  x∉FVz : (z : ℕ) -> (z ∉ x ∷ L) -> x ∉ FV (fv z)
+  x∉FVz z z∉x∷L x∈FVz with fv-x≡y x z x∈FVz
+  x∉FVz .x z∉x∷L x∈FVz | refl = z∉x∷L (here refl)
 
-  x'∉ : x' ∉ (x ∷ y ∷ (L ++ FV t))
-  x'∉ = ∃fresh-spec (x ∷ y ∷ (L ++ FV t))
+  body : {z : ℕ} -> (z ∉ x ∷ L) -> ((m [ x ::= fv y ]) ^' z) >>> ((m' [ x ::= fv y ]) ^' z)
+  body {z} z∉x∷L rewrite
+    subst-fresh2 x (fv z) (fv y) (x∉FVz z z∉x∷L) |
+    subst-open2 x (fv y) 0 (fv z) m var |
+    subst-fresh x (fv z) (fv y) (x∉FVz z z∉x∷L) |
+    subst-fresh2 x (fv z) (fv y) (x∉FVz z z∉x∷L) |
+    subst-open2 x (fv y) 0 (fv z) m' var |
+    subst-fresh x (fv z) (fv y) (x∉FVz z z∉x∷L) =
+      lem2-5-1>>> (m ^' z) (m' ^' z) x y (cf (λ z₁ → z∉x∷L (there z₁)))
 
-  subst1 : [ 0 >> fv x' ] ([ suc k >> fv y ] ([ suc k << x ] t)) ≡ [ 0 >> fv x' ] (t [ x ::= fv y ])
-  subst1 = {!   !}
+lem2-5-1>>> _ _ x y (beta L {m} {m'} {n} {n'} cf n>>>n') rewrite
+  subst-open x (fv y) 0 n' m' var =
+    beta (x ∷ L) {_} {m' [ x ::= fv y ]} body body₂
+  where
+  body : {z : ℕ} -> z ∉ x ∷ L -> ((m [ x ::= fv y ]) ^' z) >>> ((m' [ x ::= fv y ]) ^' z)
+  body {z} z∉x∷L rewrite
+    subst-open-var z x (fv y) m (fv-x≠y z x z∉x∷L) var |
+    subst-open-var z x (fv y) m' (fv-x≠y z x z∉x∷L) var =
+      lem2-5-1>>> (m ^' z) (m' ^' z) x y (cf (λ z₁ → z∉x∷L (there z₁)))
 
-  body : [ k >> fv y ] ([ k << x ] (lam t)) ≡ (lam t [ x ::= fv y ])
-  body rewrite
-    fv-^-*^-refl2 x' ([ (suc k) >> fv y ] ([ (suc k) << x ] t)) {0}
-      (fv-^ {_} {x'} {y} ([ suc k << x ] t) {!   !} (fv-x-neq-y x' y {(L ++ FV t)} (∉-∷-elim (y ∷ L ++ FV t) x'∉))) |
-    fv-^-*^-refl2 x' (t [ x ::= fv y ]) {0} {!   !} =
-      cong lam
-        (cong [ 0 << x' ] {([ 0 >> fv x' ] ([ suc k >> fv y ] ([ suc k << x ] t)))} {([ 0 >> fv x' ] (t [ x ::= fv y ]))} subst1)
+  body₂ : (n [ x ::= fv y ]) >>> (n' [ x ::= fv y ])
+  body₂ = lem2-5-1>>> n n' x y n>>>n'
 
-*^-^≡subst _ x y {k} (app {m1} {m2} term-m1 term-m2) rewrite
-  *^-^≡subst m1 x y {k} term-m1 | *^-^≡subst m2 x y {k} term-m2 = refl
-*^-^≡subst _ x y Y = refl
+lem2-5-1>>> _ _ x y (Y {m} {m'} ss') = Y (lem2-5-1>>> m m' x y ss')
+
+
 
 *^-^->>> : ∀ {x y t d k} -> t >>> d -> y ∉ x ∷ (FV t ++ FV d) -> ([ k >> fv y ] ([ k << x ] t)) >>> ([ k >> fv y ] ([ k << x ] d))
 *^-^->>> {x} {y} {t} {d} {k} t>>>d y∉ rewrite
-  *^-^≡subst t x y {k} (>>>-Term-l t>>>d) | *^-^≡subst d x y {k} (>>>-Term-r t>>>d) = {!   !}
+  *^-^≡subst t x y {k} (>>>-Term-l t>>>d) | *^-^≡subst d x y {k} (>>>-Term-r t>>>d) = lem2-5-1>>> t d x y t>>>d
 
 ∃>>> : ∀ {a} -> Term a -> ∃(λ d -> a >>> d)
 ∃>>> (var {x}) = fv x , refl
@@ -241,9 +256,9 @@ lem2-5-1-^ s s' t t' L cf t->||t' = body
   cf' : ∀ {y} -> y ∉ x ∷ (FV d ++ FV t) -> (t ^' y) >>> ((* x ^ d) ^' y)
   cf' {y} y∉ rewrite subst1 x y t 0 (∉-cons-r L (FV t) x∉) =
     *^-^->>> {x} {y} {t ^' x} {d} {0} (proj₂ d-spec)
-      (∉-∷ x (FV (t ^' x) ++ FV d) (fv-x-neq-y y x y∉)
+      (∉-∷ x (FV (t ^' x) ++ FV d) (fv-x≠y y x y∉)
         (∉-cons-intro (FV (t ^' x)) (FV d)
-          (fv-^ {0} {y} {x} t (∉-cons-r (FV d) _ (∉-∷-elim _ y∉)) (fv-x-neq-y _ _ y∉))
+          (fv-^ {0} {y} {x} t (∉-cons-r (FV d) _ (∉-∷-elim _ y∉)) (fv-x≠y _ _ y∉))
           (∉-cons-l _ (FV t) (∉-∷-elim _ y∉))))
 
   body : ∃(λ d -> (lam t) >>> d)
