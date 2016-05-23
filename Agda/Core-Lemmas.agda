@@ -1,3 +1,11 @@
+-----------------------------------------------------------------------------
+-- Disclaimer
+--
+-- Some definitions and proofs in this file were copied and adapted from a
+-- formalization of the λ-calculus by Shin-Cheng Mu, which can be found at:
+-- http://www.iis.sinica.edu.tw/~scm/2011/proving-the-church-rosser-theorem/
+-----------------------------------------------------------------------------
+
 module Core-Lemmas where
 
 open import Data.Empty
@@ -13,17 +21,22 @@ open import Core
 lam-inj : {t u : PTerm} -> (PTerm.lam t) ≡ (PTerm.lam u) -> t ≡ u
 lam-inj refl = refl
 
+
 lam-inj2 : ∀ {t u} -> _≡_ {A = PTerm} (lam t) (lam u) -> t ≡ u
 lam-inj2 = lam-inj
+
 
 lam-eq : {t u : PTerm} -> t ≡ u -> (PTerm.lam t) ≡ (PTerm.lam u)
 lam-eq refl = refl
 
+
 app-inj-l : {t₁ t₂ u₁ u₂ : PTerm} -> (PTerm.app t₁ t₂) ≡ (PTerm.app u₁ u₂) -> t₁ ≡ u₁
 app-inj-l refl = refl
 
+
 app-inj-r : {t₁ t₂ u₁ u₂ : PTerm} -> (PTerm.app t₁ t₂) ≡ (PTerm.app u₁ u₂) -> t₂ ≡ u₂
 app-inj-r refl = refl
+
 
 app-eq : ∀ {t₁ t₂ u₁ u₂} -> t₁ ≡ u₁ -> t₂ ≡ u₂ -> (PTerm.app t₁ t₂) ≡ (PTerm.app u₁ u₂)
 app-eq refl refl = refl
@@ -34,14 +47,17 @@ fv-subst-eq x _ t refl with x ≟ x
 ... | yes refl = refl
 ... | no p = ⊥-elim (p refl)
 
+
 fv-subst-neq : ∀ x y t -> ¬(x ≡ y) -> fv x [ y ::= t ] ≡ fv x
 fv-subst-neq x y t x≠y with y ≟ x
 fv-subst-neq x .x t x≠y | yes refl = ⊥-elim (x≠y refl)
 fv-subst-neq x y t x≠y | no p = refl
 
+
 fv-x≡y : {A : Set} (x y : A) -> x ∈ (y ∷ []) -> (x ≡ y)
 fv-x≡y y .y (here refl) = refl
 fv-x≡y x y (there ())
+
 
 fv-x≠y : ∀ (x y : ℕ) {L} -> x ∉ (y ∷ L) -> ¬ (x ≡ y)
 fv-x≠y x y x∉y∷L x≡y = x∉y∷L (here x≡y)
@@ -51,13 +67,16 @@ fv-x≠y x y x∉y∷L x≡y = x∉y∷L (here x≡y)
 ∈-cons-l ys (here eq) = here eq
 ∈-cons-l ys (there x∈xs') = there (∈-cons-l ys x∈xs')
 
+
 ∉-cons-l : ∀ {A : Set} {x : A} xs ys -> x ∉ xs ++ ys -> x ∉ xs
 ∉-cons-l _ ys x∉xs++ys (here eq) = x∉xs++ys (here eq)
 ∉-cons-l .(x' ∷ xs') ys x∉xs++ys (there {x'} {xs'} x∈xs') = ∉-cons-l xs' ys (λ z → x∉xs++ys (there z)) x∈xs'
 
+
 ∉-cons-r : ∀ {A : Set} {x : A} xs ys -> x ∉ xs ++ ys -> x ∉ ys
 ∉-cons-r [] ys x∉xs++ys x∈ys = x∉xs++ys x∈ys
 ∉-cons-r (_ ∷ xs) ys x∉xs++ys x∈ys = ∉-cons-r xs ys (λ z → x∉xs++ys (there z)) x∈ys
+
 
 ∉-cons-intro : ∀ {A : Set} {x : A} xs ys -> x ∉ xs -> x ∉ ys -> x ∉ xs ++ ys
 ∉-cons-intro [] _ x∉xs x∉ys (here refl) = x∉ys (here refl)
@@ -65,13 +84,16 @@ fv-x≠y x y x∉y∷L x≡y = x∉y∷L (here x≡y)
 ∉-cons-intro (x₁ ∷ xs) ys x∉xs x∉ys (here refl) = x∉xs (here refl)
 ∉-cons-intro (x₁ ∷ xs) ys x∉xs x∉ys (there x∈xs++ys) = ∉-cons-intro xs ys (λ z → x∉xs (there z)) x∉ys x∈xs++ys
 
+
 ∉-∷ : ∀ {y : ℕ} x xs -> ¬(y ≡ x) -> y ∉ xs -> y ∉ x ∷ xs
 ∉-∷ {y} x [] ¬y≡x y∉[] y∈x∷[] = ¬y≡x (fv-x≡y y x y∈x∷[])
 ∉-∷ x (x₁ ∷ xs) ¬y≡x y∉xs (here refl) = ¬y≡x refl
 ∉-∷ x (x₁ ∷ xs) ¬y≡x y∉xs (there y∈xs) = y∉xs y∈xs
 
+
 ∉-∷-elim : ∀ {A : Set} {y x : A} xs -> y ∉ x ∷ xs -> y ∉ xs
 ∉-∷-elim xs y∉ = λ z → y∉ (there z)
+
 
 fv-^ : ∀ {k x y} m -> x ∉ FV m -> ¬(x ≡ y) -> x ∉ FV ([ k >> fv y ] m)
 fv-^ {k} (bv i) x∉FVm x≠y x∈ with k ≟ i
@@ -85,6 +107,7 @@ fv-^ {k} {x} {y} (app t1 t2) x∉FVm x≠y =
     (λ x∈t2 → fv-^ t2 (∉-cons-r (FV t1) _ x∉FVm) x≠y x∈t2)
 fv-^ (Y t₁) x∉FVm x≠y x∈ = x∉FVm x∈
 
+
 fv-*^ : ∀ {k x y} m -> x ∉ FV m -> x ∉ FV ([ k << y ] m)
 fv-*^ (bv i) x∉FVm x∈ = x∉FVm x∈
 fv-*^ {_} {x} {y} (fv z) x∉FVm x∈ with y ≟ z
@@ -96,6 +119,7 @@ fv-*^ {k} {x} {y} (app t1 t2) x∉FVm =
     (λ x∈t1 → fv-*^ t1 (∉-cons-l _ _ x∉FVm) x∈t1)
     (λ x∈t2 → fv-*^ t2 (∉-cons-r (FV t1) _ x∉FVm) x∈t2)
 fv-*^ (Y _) x∉FVm x∈ = x∉FVm x∈
+
 
 fv-subst : ∀ {x y} m n -> x ∉ FV m ++ FV n -> x ∉ FV (m [ y ::= n ])
 fv-subst (bv i) n x∉FVm x∈ = x∉FVm (∈-cons-l _ x∈)
@@ -123,12 +147,14 @@ subst-fresh x (app t1 t2) u x∉FVt rewrite
   subst-fresh x t2 u (∉-cons-r (FV t1) (FV t2) x∉FVt) = refl
 subst-fresh x (Y t₁) u x∉FVt = refl
 
+
 subst-fresh2 : ∀ x t u -> (x∉FVt : x ∉ (FV t)) -> t ≡ (t [ x ::= u ])
 subst-fresh2 x t u x∉FVt rewrite subst-fresh x t u x∉FVt = refl
 
 
 suc-inj : ∀ i j → suc i ≡ suc j → i ≡ j
 suc-inj i ._ refl = refl
+
 
 ^-Term-eq-aux : ∀ j t i u e → ¬ (i ≡ j) -> [ j >> t ] e ≡ [ i >> u ] ([ j >> t ] e) ->
   e ≡ [ i >> u ] e
@@ -150,7 +176,6 @@ suc-inj i ._ refl = refl
 ... | eq₁ | eq₂
   = app-eq eq₁ eq₂
 ^-Term-eq-aux j t i u (Y s) i≠j eq = refl
-
 
 
 ^-Term-eq : ∀ k t {e} → Term e → e ≡ [ k >> t ] e
@@ -187,9 +212,11 @@ subst-open x t k u (app v w) trm-t rewrite
   subst-open x t k u w trm-t = refl
 subst-open x t k u (Y t₁) trm-t = refl
 
+
 subst-open2 : ∀ x t k u e -> Term t ->
   [ k >> (u [ x ::= t ]) ] (e [ x ::= t ]) ≡ ([ k >> u ] e) [ x ::= t ]
 subst-open2 x t k u e trm-t rewrite subst-open x t k u e trm-t = refl
+
 
 subst-open-var : ∀ x y u e -> ¬ (x ≡ y) -> Term u ->
   ((e [ y ::= u ]) ^' x) ≡ (e ^' x) [ y ::= u ]
@@ -198,6 +225,7 @@ subst-open-var x y u e x≠y lu
 ...  | eq with y ≟ x
 subst-open-var x ._ u e x≠y lu | eq | yes refl = ⊥-elim (x≠y refl)
 subst-open-var x y u e x≠y lu | eq | no _ = sym eq
+
 
 subst-open-var2 : ∀ x y u e -> ¬ (x ≡ y) -> Term u ->
   (e ^' x) [ y ::= u ] ≡ ((e [ y ::= u ]) ^' x)

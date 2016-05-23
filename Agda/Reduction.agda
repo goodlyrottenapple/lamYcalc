@@ -9,12 +9,12 @@ open import Relation.Nullary
 open import Relation.Binary.PropositionalEquality
 open import Data.Product
 
-
 open import Core
 open import Core-Lemmas
 
 _↝_ : Set -> Set -> Set₁
 A ↝ B = A -> B -> Set
+
 
 data _->β_ : PTerm ↝ PTerm where
   redL : ∀ {n m m'} -> Term n → m ->β m' -> app m n ->β app m' n
@@ -24,9 +24,8 @@ data _->β_ : PTerm ↝ PTerm where
   beta : ∀ {m n} -> Term (lam m) -> Term n -> app (lam m) n ->β (m ^ n)
   Y : ∀ {m σ} -> Term m -> app (Y σ) m ->β app m (app (Y σ) m)
 
-test : ∀ {x} -> lam (app (lam (bv 0)) (fv x)) ->β lam (fv x)
-test = abs [] (λ _ -> beta (lam [] (λ x∉L -> var)) var)
-
+-- test : ∀ {x} -> lam (app (lam (bv 0)) (fv x)) ->β lam (fv x)
+-- test = abs [] (λ _ -> beta (lam [] (λ x∉L -> var)) var)
 
 data _->||_ : PTerm ↝ PTerm where
   refl : ∀ {x} -> fv x ->|| fv x
@@ -38,10 +37,12 @@ data _->||_ : PTerm ↝ PTerm where
     (app (lam m) n) ->|| (m' ^ n')
   Y : ∀ {m m' σ} -> m ->|| m' -> app (Y σ) m ->|| app m' (app (Y σ) m')
 
+
 data NotAbsY : PTerm -> Set where
   fv : ∀ {x} -> NotAbsY (fv x)
   bv : ∀ {n} -> NotAbsY (bv n)
   app : ∀ {t1 t2} -> NotAbsY (app t1 t2)
+
 
 data _>>>_ : PTerm ↝ PTerm where
   refl : ∀ {x} -> fv x >>> fv x
@@ -64,10 +65,10 @@ subst-Term {x} {_} {u} (lam L {e} cf) Term-u = lam (x ∷ L) body
   body {y} y∉x∷L rewrite subst-open-var y x u e (fv-x≠y y x y∉x∷L) Term-u =
     subst-Term (cf (λ z → y∉x∷L (there z))) Term-u
 
-
 subst-Term (app Term-e Term-e₁) Term-u =
   app (subst-Term Term-e Term-u) (subst-Term Term-e₁ Term-u)
 subst-Term Y Term-u = Y
+
 
 ^-Term : ∀ {m n} -> Term (lam m) -> Term n -> Term (m ^ n)
 ^-Term {m} {n} (lam L cf) Term-n = body
@@ -81,8 +82,6 @@ subst-Term Y Term-u = Y
   body rewrite subst-intro y n m (∉-cons-r L (FV m) y∉) Term-n =
     subst-Term {y} {m ^' y} {n} (cf (∉-cons-l L (FV m) y∉)) Term-n
 
-  -- subst-Term {y} {m ^' y} {n}
-
 
 ->||-Term-l : ∀ {m m'} -> m ->|| m' -> Term m
 ->||-Term-l refl = var
@@ -93,6 +92,7 @@ subst-Term Y Term-u = Y
   app (lam L (λ {x₁} x∉L → ->||-Term-l (x x∉L)))
       (->||-Term-l m->||m')
 ->||-Term-l (Y {m} {m'} m->||m') = app Y (->||-Term-l m->||m')
+
 
 ->||-Term-r : ∀ {m m'} -> m ->|| m' -> Term m'
 ->||-Term-r refl = var
@@ -113,6 +113,7 @@ subst-Term Y Term-u = Y
   app (lam L (λ {x₁} x∉L → >>>-Term-l (x x∉L)))
       (>>>-Term-l m>>>m')
 >>>-Term-l (Y {m} {m'} m>>>m') = app Y (>>>-Term-l m>>>m')
+
 
 >>>-Term-r : ∀ {m m'} -> m >>> m' -> Term m'
 >>>-Term-r refl = var
@@ -230,10 +231,10 @@ lem2-5-1>>> _ _ x y (beta L {m} {m'} {n} {n'} cf n>>>n') rewrite
 lem2-5-1>>> _ _ x y (Y {m} {m'} ss') = Y (lem2-5-1>>> m m' x y ss')
 
 
-
 *^-^->>> : ∀ {x y t d k} -> t >>> d -> y ∉ x ∷ (FV t ++ FV d) -> ([ k >> fv y ] ([ k << x ] t)) >>> ([ k >> fv y ] ([ k << x ] d))
 *^-^->>> {x} {y} {t} {d} {k} t>>>d y∉ rewrite
   *^-^≡subst t x y {k} (>>>-Term-l t>>>d) | *^-^≡subst d x y {k} (>>>-Term-r t>>>d) = lem2-5-1>>> t d x y t>>>d
+
 
 ∃>>> : ∀ {a} -> Term a -> ∃(λ d -> a >>> d)
 ∃>>> (var {x}) = fv x , refl

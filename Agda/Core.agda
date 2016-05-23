@@ -1,3 +1,11 @@
+-----------------------------------------------------------------------------
+-- Disclaimer
+--
+-- Some definitions and proofs in this file were copied and adapted from a
+-- formalization of the λ-calculus by Shin-Cheng Mu, which can be found at:
+-- http://www.iis.sinica.edu.tw/~scm/2011/proving-the-church-rosser-theorem/
+-----------------------------------------------------------------------------
+
 module Core where
 
 open import Data.Empty
