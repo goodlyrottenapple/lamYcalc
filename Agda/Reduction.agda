@@ -273,3 +273,63 @@ lem2-5-1>>> _ _ x y (Y {m} {m'} ss') = Y (lem2-5-1>>> m m' x y ss')
   app d1 d2 , app app t1>>>d1 t2>>>d2
 ∃>>> (app trm-t1 trm-t2) | (Y {t}) | d1 , t1>>>d1 | d2 , t2>>>d2 = app d2 (app (Y t) d2) , Y t2>>>d2
 ∃>>> (Y {t}) = Y t , reflY
+
+
+Y->||Y-≡ : ∀ {t t' : Type} -> (Y t) ->|| (Y t') -> (PTerm.Y t) ≡ (Y t')
+Y->||Y-≡ reflY = refl
+
+>>>closes->|| : ∀ {a b d} -> a >>> d -> a ->|| b -> b ->|| d
+>>>closes->|| refl refl = refl
+>>>closes->|| reflY reflY = reflY
+>>>closes->|| (app ¬absY al>>>ald ar>>>ard) (app al->||alb ar->||arb) =
+  app (>>>closes->|| al>>>ald al->||alb) (>>>closes->|| ar>>>ard ar->||arb)
+>>>closes->|| (app () al>>>ald ar>>>ard) (beta _ _ _)
+>>>closes->|| (app () al>>>ald ar>>>ard) (Y _)
+>>>closes->|| (abs L {a} {d} cf) (abs L₁ {.a} {b} cf₁) = abs (L ++ L₁) ih
+  where
+  ih : ∀ {x : ℕ} → x ∉ L ++ L₁ → (b ^' x) ->|| (d ^' x)
+  ih {x} x∉L++L₁ = >>>closes->|| (cf (∉-cons-l _ _ x∉L++L₁)) (cf₁ (∉-cons-r L _ x∉L++L₁))
+
+>>>closes->|| (beta _ _ _) (app {m' = bv _} () _)
+>>>closes->|| (beta _ _ _) (app {m' = fv _} () _)
+>>>closes->|| (beta L {_} {ald} {ar} {ard} cf ar>>>ard) (app {m' = lam alb} {n' = arb} (abs L₁ cf₁) ar->||arb) =
+  beta (L ++ L₁) {m' = ald} ih arb->||ard
+  where
+  arb->||ard : arb ->|| ard
+  arb->||ard = >>>closes->|| ar>>>ard ar->||arb
+
+  ih : ∀ {x} -> x ∉ L ++ L₁ -> (alb ^' x) ->|| (ald ^' x)
+  ih {x} x∉L++L₁ = >>>closes->|| (cf (∉-cons-l _ _ x∉L++L₁)) (cf₁ (∉-cons-r L _ x∉L++L₁))
+
+>>>closes->|| (beta _ _ _) (app {m' = app _ _} () _)
+>>>closes->|| (beta _ _ _) (app {m' = Y _} () _)
+>>>closes->|| (beta L {al} {ald} {ar} {ard} cf ar>>>ard) (beta L₁ {m' = alb} {n' = arb} cf₁ ar->||arb) =
+  lem2-5-1-^ alb ald arb ard (L ++ L₁) ih arb->||ard
+  where
+  arb->||ard : arb ->|| ard
+  arb->||ard = >>>closes->|| ar>>>ard ar->||arb
+
+  ih : ∀ {x} -> x ∉ L ++ L₁ -> (alb ^' x) ->|| (ald ^' x)
+  ih {x} x∉L++L₁ = >>>closes->|| (cf (∉-cons-l _ _ x∉L++L₁)) (cf₁ (∉-cons-r L _ x∉L++L₁))
+
+>>>closes->|| (Y _) (app {m' = bv _} () _)
+>>>closes->|| (Y _) (app {m' = fv _} () _)
+>>>closes->|| (Y _) (app {m' = lam _} () _)
+>>>closes->|| (Y _) (app {m' = app _ _} () _)
+>>>closes->|| (Y {m} {m'} {t} m>>>m') (app {m' = Y t'} {n' = n''} Yt->||Yt' m->||n'') rewrite
+  Y->||Y-≡ Yt->||Yt' = Y (>>>closes->|| m>>>m' m->||n'')
+>>>closes->|| (Y {m} {m'} {t} m>>>m') (Y {m' = m''} m->||m'') =
+  app (>>>closes->|| m>>>m' m->||m'') (app reflY (>>>closes->|| m>>>m' m->||m''))
+
+
+lem2-5-2 : ∀ {a b c} -> a ->|| b -> a ->|| c -> ∃(λ d -> b ->|| d × c ->|| d)
+lem2-5-2 {a} a->||b a->||c = d , ((>>>closes->|| a>>>d a->||b) , (>>>closes->|| a>>>d a->||c))
+  where
+  a>>>d-spec : ∃(λ d -> a >>> d)
+  a>>>d-spec = ∃>>> (->||-Term-l a->||c)
+
+  d : PTerm
+  d = proj₁ a>>>d-spec
+
+  a>>>d : a >>> d
+  a>>>d = proj₂ a>>>d-spec
