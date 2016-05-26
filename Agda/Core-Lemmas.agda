@@ -85,14 +85,21 @@ fv-x≠y x y x∉y∷L x≡y = x∉y∷L (here x≡y)
 ∉-cons-intro (x₁ ∷ xs) ys x∉xs x∉ys (there x∈xs++ys) = ∉-cons-intro xs ys (λ z → x∉xs (there z)) x∉ys x∈xs++ys
 
 
-∉-∷ : ∀ {y : ℕ} x xs -> ¬(y ≡ x) -> y ∉ xs -> y ∉ x ∷ xs
-∉-∷ {y} x [] ¬y≡x y∉[] y∈x∷[] = ¬y≡x (fv-x≡y y x y∈x∷[])
+∉-∷ : ∀ {A : Set} {y : A} (x : A) xs -> ¬(y ≡ x) -> y ∉ xs -> y ∉ x ∷ xs
+∉-∷ {_} {y} x [] ¬y≡x y∉[] y∈x∷[] = ¬y≡x (fv-x≡y y x y∈x∷[])
 ∉-∷ x (x₁ ∷ xs) ¬y≡x y∉xs (here refl) = ¬y≡x refl
 ∉-∷ x (x₁ ∷ xs) ¬y≡x y∉xs (there y∈xs) = y∉xs y∈xs
 
 
 ∉-∷-elim : ∀ {A : Set} {y x : A} xs -> y ∉ x ∷ xs -> y ∉ xs
 ∉-∷-elim xs y∉ = λ z → y∉ (there z)
+
+∈-∷-elim : ∀ {A : Set} {x : A} (y : A) xs -> ¬(x ≡ y) -> y ∈ x ∷ xs -> y ∈ xs
+∈-∷-elim x [] x≠y (here refl) = ⊥-elim (x≠y refl)
+∈-∷-elim y [] _ (there ())
+∈-∷-elim x (x₁ ∷ xs) x≠y (here refl) = ⊥-elim (x≠y refl)
+∈-∷-elim y (x₁ ∷ xs) _ (there y∈x∷xs) = y∈x∷xs
+
 
 
 fv-^ : ∀ {k x y} m -> x ∉ FV m -> ¬(x ≡ y) -> x ∉ FV ([ k >> fv y ] m)
@@ -356,8 +363,8 @@ fv-^-*^-refl2 x t {k} x∉ rewrite fv-^-*^-refl x t {k} x∉ = refl
         (fv-*^ t x'∉FVt) (fv-x≠y x' y {(L ++ FV t)} (∉-∷-elim _ x'∉))) |
     fv-^-*^-refl2 x' (t [ x ::= fv y ]) {0}
       (fv-subst t (fv y) (∉-cons-intro (FV t) (FV (fv y)) x'∉FVt (∉-∷ _ _ x'≠y (λ ())))) =
-      cong lam
-        (cong [ 0 << x' ] {([ 0 >> fv x' ] ([ suc k >> fv y ] ([ suc k << x ] t)))} {([ 0 >> fv x' ] (t [ x ::= fv y ]))} subst1)
+    cong lam
+      (cong [ 0 << x' ] {([ suc k >> fv y ] ([ suc k << x ] t)) ^' x'} {(t [ x ::= fv y ]) ^' x'} subst1)
 
 *^-^≡subst _ x y {k} (app {m1} {m2} term-m1 term-m2) rewrite
   *^-^≡subst m1 x y {k} term-m1 | *^-^≡subst m2 x y {k} term-m2 = refl

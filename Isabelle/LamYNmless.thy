@@ -925,7 +925,7 @@ apply auto
 using wf_ctxt_cons by (meson x_Ex)
 
 
-lemma subst_typ_aux: "(x, \<tau>) # \<Gamma> \<turnstile> FVar y : \<sigma> \<Longrightarrow> x = y \<Longrightarrow> \<tau> = \<sigma>"
+lemma opn_typ_aux: "(x, \<tau>) # \<Gamma> \<turnstile> FVar y : \<sigma> \<Longrightarrow> x = y \<Longrightarrow> \<tau> = \<sigma>"
 proof (rule ccontr, goal_cases)
 case 1 
   then have "wf_ctxt ((y, \<tau>) # \<Gamma>)" by (simp add: wt_terms_impl_wf_ctxt)
@@ -996,10 +996,10 @@ lemma trm_wt_trm: "\<Gamma> \<turnstile> M : \<sigma> \<Longrightarrow> trm M"
 apply (induct \<Gamma> M \<sigma> rule:wt_trm.induct)
 apply (subst trm.simps, simp)+
 apply auto[1]
-by (subst trm.simps, simp)+
+by (subst trm.simps, simp)
 
 
-lemma subst_typ':
+lemma subst_typ:
   assumes "trm M" and "((x,\<tau>)#\<Gamma>) \<turnstile> M : \<sigma>" and "\<Gamma> \<turnstile> N : \<tau>"
   shows "\<Gamma> \<turnstile> M[x ::= N] : \<sigma>"
 using assms proof (induct M arbitrary: \<Gamma> x N \<sigma> rule: trm.induct)
@@ -1009,7 +1009,7 @@ case (var y)
   case True 
     show ?thesis 
     apply (simp add: True)
-    using var subst_typ_aux True by blast
+    using var opn_typ_aux True by blast
   next
   case False
     from var have 1: "wf_ctxt \<Gamma>" using wt_terms_impl_wf_ctxt wf_ctxt_cons by auto
@@ -1066,7 +1066,7 @@ case (Y \<gamma>)
 qed
 
 
-lemma subst_typ:
+lemma opn_typ:
   fixes L
   assumes "finite L" "\<And>x. x \<notin> L \<Longrightarrow> ((x,\<tau>)#\<Gamma>) \<turnstile> M^FVar x : \<sigma>" and "\<Gamma> \<turnstile> N : \<tau>"
   shows "\<Gamma> \<turnstile> M^N : \<sigma>"
@@ -1079,7 +1079,7 @@ proof -
   apply (rule trm_wt_trm)
   using assms apply simp
   using 1 apply simp
-  apply (rule subst_typ')
+  apply (rule subst_typ)
   apply (rule trm_wt_trm)
   using 2 apply simp
   apply (rule assms(2))
@@ -1136,7 +1136,7 @@ case (beta M N)
   then obtain L where 3: "finite L" "\<And>x. x \<notin> L \<Longrightarrow> (x, \<tau>) # \<Gamma> \<turnstile> M^FVar x : \<sigma>" by auto
 
   show ?case
-  apply (rule_tac L=L in subst_typ)
+  apply (rule_tac L=L in opn_typ)
   using 3 1(2) by auto
 next
 case (Y M \<tau>)

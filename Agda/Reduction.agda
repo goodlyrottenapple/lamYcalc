@@ -87,11 +87,9 @@ subst-Term Y Term-u = Y
 ->||-Term-l refl = var
 ->||-Term-l reflY = Y
 ->||-Term-l (app m->||m' m->||m'') = app (->||-Term-l m->||m') (->||-Term-l m->||m'')
-->||-Term-l (abs L x) = lam L (λ x∉L → ->||-Term-l (x x∉L))
-->||-Term-l (beta L x m->||m') =
-  app (lam L (λ {x₁} x∉L → ->||-Term-l (x x∉L)))
-      (->||-Term-l m->||m')
-->||-Term-l (Y {m} {m'} m->||m') = app Y (->||-Term-l m->||m')
+->||-Term-l (abs L x) = lam L (λ {x₁} x∉L → ->||-Term-l (x x∉L))
+->||-Term-l (beta L cf m->||m') = app (lam L (λ x∉L → ->||-Term-l (cf x∉L))) (->||-Term-l m->||m')
+->||-Term-l (Y m->||m') = app Y (->||-Term-l m->||m')
 
 
 ->||-Term-r : ∀ {m m'} -> m ->|| m' -> Term m'
@@ -277,6 +275,7 @@ lem2-5-1>>> _ _ x y (Y {m} {m'} ss') = Y (lem2-5-1>>> m m' x y ss')
 
 Y->||Y-≡ : ∀ {t t' : Type} -> (Y t) ->|| (Y t') -> (PTerm.Y t) ≡ (Y t')
 Y->||Y-≡ reflY = refl
+
 
 >>>closes->|| : ∀ {a b d} -> a >>> d -> a ->|| b -> b ->|| d
 >>>closes->|| refl refl = refl
