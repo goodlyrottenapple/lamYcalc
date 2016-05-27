@@ -100,7 +100,9 @@ fv-x≠y x y x∉y∷L x≡y = x∉y∷L (here x≡y)
 ∈-∷-elim x (x₁ ∷ xs) x≠y (here refl) = ⊥-elim (x≠y refl)
 ∈-∷-elim y (x₁ ∷ xs) _ (there y∈x∷xs) = y∈x∷xs
 
-
+cons-⊆ : ∀ {A : Set} {x : A} {xs ys} -> xs ⊆ ys -> x ∷ xs ⊆ x ∷ ys
+cons-⊆ xs⊆ys (here px) = here px
+cons-⊆ xs⊆ys (there y∈xs) = there (xs⊆ys y∈xs)
 
 fv-^ : ∀ {k x y} m -> x ∉ FV m -> ¬(x ≡ y) -> x ∉ FV ([ k >> fv y ] m)
 fv-^ {k} (bv i) x∉FVm x≠y x∈ with k ≟ i
