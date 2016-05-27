@@ -83,6 +83,20 @@ subst-Term Y Term-u = Y
     subst-Term {y} {m ^' y} {n} (cf (∉-cons-l L (FV m) y∉)) Term-n
 
 
+->β-Term-l : ∀ {m m'} -> m ->β m' -> Term m
+->β-Term-l (redL x m->βm') = app (->β-Term-l m->βm') x
+->β-Term-l (redR x m->βm') = app x (->β-Term-l m->βm')
+->β-Term-l (abs L x) = lam L (λ {x₁} x∉L → ->β-Term-l (x x∉L))
+->β-Term-l (beta x x₁) = app x x₁
+->β-Term-l (Y x) = app Y x
+
+->β-Term-r : ∀ {m m'} -> m ->β m' -> Term m'
+->β-Term-r (redL x m->βm') = app (->β-Term-r m->βm') x
+->β-Term-r (redR x m->βm') = app x (->β-Term-r m->βm')
+->β-Term-r (abs L x) = lam L (λ {x₁} x∉L → ->β-Term-r (x x∉L))
+->β-Term-r (beta {m} {n} x x₁) = ^-Term {m} {n} x x₁
+->β-Term-r (Y x) = app x (app Y x)
+
 ->||-Term-l : ∀ {m m'} -> m ->|| m' -> Term m
 ->||-Term-l refl = var
 ->||-Term-l reflY = Y
