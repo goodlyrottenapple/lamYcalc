@@ -1,8 +1,14 @@
 module ChurchRosser where
 open import Data.Empty
 open import Data.Product
+open import Data.List
+open import Data.List.Any as Any
+open Any.Membership-≡
+open import Relation.Nullary
+open import Relation.Binary.PropositionalEquality using (_≡_)
 
 open import Core
+open import Core-Lemmas
 open import Reduction
 open import Typing
 
@@ -101,16 +107,61 @@ redR* (base x) trm-m = base (redR trm-m x)
 redR* refl trm-m = refl
 redR* (trans n->β*o o->β*n) trm-m = trans (redR* n->β*o trm-m) (redR* o->β*n trm-m)
 
-->||*-imp->β* : ∀ {m m'} -> (_->||_ *) m m' -> (_->β_ *) m m'
-->||*-imp->β* (base refl) = refl
-->||*-imp->β* (base reflY) = refl
-->||*-imp->β* (base (app {m} {m'} {n} {n'} m->||m' n->||n')) =
+abs' : ∀ {m m' x} -> m ->β m' -> (lam (* x ^ m)) ->β (lam (* x ^ m'))
+abs' {m} {m'} {x} m->βm' = abs [] body
+  where
+  body : ∀ {y} -> y ∉ [] -> ((* x ^ m) ^' y) ->β ((* x ^ m') ^' y)
+  body {y} y∉ rewrite
+    *^-^≡subst m x y {0} (->β-Term-l m->βm') |
+    *^-^≡subst m' x y {0} (->β-Term-r m->βm') = lem2-5-1->β m m' x y m->βm'
+
+abs*' : ∀ {m m' x} -> (_->β_ *) m m' -> (_->β_ *) (lam (* x ^ m)) (lam (* x ^ m'))
+abs*' (base m->βm') = base (abs' m->βm')
+abs*' refl = refl
+abs*' (trans m->β*m' m->β*m'') = trans (abs*' m->β*m') (abs*' m->β*m'')
+
+abs* : ∀ {m m'} L -> (cf : ∀ {x} -> x ∉ L -> (_->β_ *) (m ^' x) (m' ^' x)) -> (_->β_ *) (lam m) (lam m')
+abs* {m} {m'} L cf = body
+  where
+  x = ∃fresh (L ++ FV m ++ FV m')
+
+  x∉ : x ∉ (L ++ FV m ++ FV m')
+  x∉ = ∃fresh-spec (L ++ FV m ++ FV m')
+
+  subst : ∀ m -> x ∉ FV m -> _≡_ {_} {PTerm} (lam m) (lam (* x ^ (m ^' x)))
+  subst m x∉m rewrite
+    fv-^-*^-refl x m {0} x∉m = _≡_.refl
+
+  body : (_->β_ *) (lam m) (lam m')
+  body rewrite
+    subst m (∉-cons-l _ _ (∉-cons-r L _ x∉)) |
+    subst m' (∉-cons-r (FV m) _ (∉-cons-r L _ x∉)) = abs*' (cf (∉-cons-l _ _ x∉))
+
+
+->||-imp->β* : ∀ {m m'} -> m ->|| m' -> (_->β_ *) m m'
+->||-imp->β* refl = refl
+->||-imp->β* reflY = refl
+->||-imp->β* (app {m} {m'} {n} {n'} m->||m' n->||n') =
   trans {b = (app m n')}
-    (redR* (->||*-imp->β* (base n->||n')) (->||-Term-l m->||m'))
-    (redL* (->||*-imp->β* (base m->||m')) (->||-Term-r n->||n'))
-->||*-imp->β* (base (abs L x)) = {!   !}
-->||*-imp->β* (base (beta L cf m->||m')) = {!   !}
-->||*-imp->β* (base (Y m->||m')) = {!   !}
+    (redR* (->||-imp->β* n->||n') (->||-Term-l m->||m'))
+    (redL* (->||-imp->β* m->||m') (->||-Term-r n->||n'))
+->||-imp->β* (abs L cf) = abs* L (λ x∉ → ->||-imp->β* (cf x∉))
+->||-imp->β* (beta L {m} {m'} {n} {n'} cf n->||n') =
+  trans {b = app (lam m') n}
+    (redL* (abs* L (λ {x} z → ->||-imp->β* (cf z))) (->||-Term-l n->||n'))
+    (trans {b = app (lam m') n'}
+      (redR* (->||-imp->β* n->||n') (lam L (λ x∉L → ->||-Term-r (cf x∉L))))
+      (base (beta (lam L (λ x∉L → ->||-Term-r (cf x∉L))) (->||-Term-r n->||n'))))
+->||-imp->β* (Y {m} {m'} {τ} m->||m') =
+  trans {b = app m (app (Y τ) m)}
+    (base (Y (->||-Term-l m->||m')))
+    (trans {b = app m' (app (Y τ) m)}
+      (redL* (->||-imp->β* m->||m') (app Y (->||-Term-l m->||m')))
+      (redR* (redR* (->||-imp->β* m->||m') Y) (->||-Term-r m->||m')))
+
+
+->||*-imp->β* : ∀ {m m'} -> (_->||_ *) m m' -> (_->β_ *) m m'
+->||*-imp->β* (base m->||m') = ->||-imp->β* m->||m'
 ->||*-imp->β* refl = refl
 ->||*-imp->β* (trans m->||*m' n->||*n') = trans (->||*-imp->β* m->||*m') (->||*-imp->β* n->||*n')
 

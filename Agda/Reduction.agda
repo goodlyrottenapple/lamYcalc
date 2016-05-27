@@ -203,6 +203,31 @@ NotAbsY-subst bv = bv
 NotAbsY-subst app = app
 
 
+lem2-5-1->β : ∀ s s' (x y : ℕ) -> s ->β s' -> (s [ x ::= fv y ]) ->β (s' [ x ::= fv y ])
+lem2-5-1->β _ _ x y (redL trm-n s->βs') = redL (subst-Term trm-n var) (lem2-5-1->β _ _ x y s->βs')
+lem2-5-1->β _ _ x y (redR trm-m s->βs') = redR (subst-Term trm-m var) (lem2-5-1->β _ _ x y s->βs')
+lem2-5-1->β _ _ x y (abs L {m} {m'} cf) = abs (x ∷ L) body
+  where
+  x∉FVz : (z : ℕ) -> (z ∉ x ∷ L) -> x ∉ FV (fv z)
+  x∉FVz z z∉x∷L x∈FVz with fv-x≡y x z x∈FVz
+  x∉FVz .x z∉x∷L x∈FVz | refl = z∉x∷L (here refl)
+
+  body : {z : ℕ} -> (z ∉ x ∷ L) -> ((m [ x ::= fv y ]) ^' z) ->β ((m' [ x ::= fv y ]) ^' z)
+  body {z} z∉x∷L rewrite
+    subst-fresh2 x (fv z) (fv y) (x∉FVz z z∉x∷L) |
+    subst-open2 x (fv y) 0 (fv z) m var |
+    subst-fresh x (fv z) (fv y) (x∉FVz z z∉x∷L) |
+    subst-fresh2 x (fv z) (fv y) (x∉FVz z z∉x∷L) |
+    subst-open2 x (fv y) 0 (fv z) m' var |
+    subst-fresh x (fv z) (fv y) (x∉FVz z z∉x∷L) =
+      lem2-5-1->β (m ^' z) (m' ^' z) x y (cf (λ z₁ → z∉x∷L (there z₁)))
+
+lem2-5-1->β _ _ x y (beta {n = n} (lam L {m} cf) trm-n) rewrite
+  subst-open x (fv y) 0 n m var =
+    beta (subst-Term {x} {lam m} {fv y} (lam L cf) var) (subst-Term trm-n var)
+lem2-5-1->β _ _ x y (Y trm-m) = Y (subst-Term trm-m var)
+
+
 lem2-5-1>>> : ∀ s s' (x y : ℕ) -> s >>> s' -> (s [ x ::= fv y ]) >>> (s' [ x ::= fv y ])
 lem2-5-1>>> _ _ x y (refl {z}) with x ≟ z
 lem2-5-1>>> .(fv x) .(fv x) x y refl | yes refl rewrite
