@@ -1156,7 +1156,6 @@ case (Y M \<tau>)
     using 1(2) 2(1) by simp+
 qed
 
-
 lemma beta_Y_c_typ:
   assumes "\<Gamma> \<turnstile> M : \<sigma>"
   and "beta_Y* M M'"
