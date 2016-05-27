@@ -1,0 +1,3 @@
+[submodule "Isabelle/Nominal/Nominal2-Isabelle"]
+	path = Isabelle/Nominal/Nominal2-Isabelle
+	url = https://github.com/goodlyrottenapple/Nominal2-Isabelle.git

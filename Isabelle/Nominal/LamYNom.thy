@@ -1,5 +1,5 @@
-theory LamYNom2
-imports "Nominal2-Isabelle2016/Nominal/Nominal2" begin
+theory LamYNom
+imports "Nominal2-Isabelle/Nominal/Nominal2" begin
 
 text {* Disclaimer: Some of the definitions were copied over and adapted from Nominal2-Isabelle2015/Nominal/Nominal2/Ex/Lambda.thy *}
 
