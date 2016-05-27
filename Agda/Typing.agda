@@ -126,6 +126,7 @@ exchange {Γ} {m} {x} {y} {τ₁} {τ₂} x∷y∷Γ⊢m∶δ =
     sub (there (here px)) = here px
     sub (there (there ∈)) = there (there ∈)
 
+
 subst-⊢ : ∀ {Γ m n τ₁ τ₂ x} -> Term m -> ((x , τ₁) ∷ Γ) ⊢ m ∶ τ₂ -> Γ ⊢ n ∶ τ₁ ->
   Γ ⊢ (m [ x ::= n ]) ∶ τ₂
 subst-⊢ {x = x} var (var {_} {y} wf-x∷Γ xτ∈Γ) Γ⊢n∶τ₁ with x ≟ y
