@@ -12,18 +12,22 @@ open import Core-Lemmas
 open import Reduction
 open import Typing
 
+
 data _* (R : PTerm ↝ PTerm) : PTerm ↝ PTerm where
   base : ∀ {a b} -> R a b -> (R *) a b
   refl : ∀ {a} -> (R *) a a
   trans : ∀ {a b c} -> (R *) a b -> (R *) b c -> (R *) a c
+
 
 ->β*-⊢ : ∀ {Γ m m' τ} -> Γ ⊢ m ∶ τ -> (_->β_ *) m m' -> Γ ⊢ m' ∶ τ
 ->β*-⊢ Γ⊢m∶τ (base m->βm') = ->β-⊢ Γ⊢m∶τ m->βm'
 ->β*-⊢ Γ⊢m∶τ refl = Γ⊢m∶τ
 ->β*-⊢ Γ⊢m∶τ (trans m->β*m' m->β*m'') = ->β*-⊢ (->β*-⊢ Γ⊢m∶τ m->β*m') m->β*m''
 
+
 DP : (R : PTerm ↝ PTerm)(T : PTerm ↝ PTerm) -> Set
 DP R T = ∀ {a b c} -> R a b -> T a c -> ∃ (λ d → (T b d) × (R c d))
+
 
 DP->||->||-imp-DP->||->||* : DP (_->||_) (_->||_) -> DP (_->||_) (_->||_ *)
 DP->||->||-imp-DP->||->||* DP->||->|| {b = b} a->||b (base a->||c) = d , (base b->||d , c->||d)
@@ -83,6 +87,7 @@ DP->||->||-imp-DP->||*->||* DP->||->|| {a} {b} {c} (trans {b = g} a->||*g g->||*
 ->||-refl (app trm-s trm-s₁) = app (->||-refl trm-s) (->||-refl trm-s₁)
 ->||-refl Y = reflY
 
+
 ->β-imp->|| : ∀ {m m'} -> m ->β m' -> m ->|| m'
 ->β-imp->|| (redL trm-n m->βm') = app (->β-imp->|| m->βm') (->||-refl trm-n)
 ->β-imp->|| (redR trm-m n->βn') = app (->||-refl trm-m) (->β-imp->|| n->βn')
@@ -91,21 +96,25 @@ DP->||->||-imp-DP->||*->||* DP->||->|| {a} {b} {c} (trans {b = g} a->||*g g->||*
   beta L {m' = m} (λ {x} x∉L → ->||-refl (cf x∉L)) (->||-refl trm-n)
 ->β-imp->|| (Y trm-m) = Y (->||-refl trm-m)
 
+
 ->β*-imp->||* : ∀ {m m'} -> (_->β_ *) m m' -> (_->||_ *) m m'
 ->β*-imp->||* (base m->βm') = base (->β-imp->|| m->βm')
 ->β*-imp->||* refl = refl
 ->β*-imp->||* (trans m->β*m' m->β*m'') =
   trans (->β*-imp->||* m->β*m') (->β*-imp->||* m->β*m'')
 
+
 redL* : ∀ {m m' n} -> (_->β_ *) m m' -> Term n -> (_->β_ *) (app m n) (app m' n)
 redL* (base x) trm-n = base (redL trm-n x)
 redL* refl trm-n = refl
 redL* (trans m->β*o o->β*m') trm-n = trans (redL* m->β*o trm-n) (redL* o->β*m' trm-n)
 
+
 redR* : ∀ {m n n'} -> (_->β_ *) n n' -> Term m -> (_->β_ *) (app m n) (app m n')
 redR* (base x) trm-m = base (redR trm-m x)
 redR* refl trm-m = refl
 redR* (trans n->β*o o->β*n) trm-m = trans (redR* n->β*o trm-m) (redR* o->β*n trm-m)
+
 
 abs' : ∀ {m m' x} -> m ->β m' -> (lam (* x ^ m)) ->β (lam (* x ^ m'))
 abs' {m} {m'} {x} m->βm' = abs [] body
@@ -115,10 +124,12 @@ abs' {m} {m'} {x} m->βm' = abs [] body
     *^-^≡subst m x y {0} (->β-Term-l m->βm') |
     *^-^≡subst m' x y {0} (->β-Term-r m->βm') = lem2-5-1->β m m' x y m->βm'
 
+
 abs*' : ∀ {m m' x} -> (_->β_ *) m m' -> (_->β_ *) (lam (* x ^ m)) (lam (* x ^ m'))
 abs*' (base m->βm') = base (abs' m->βm')
 abs*' refl = refl
 abs*' (trans m->β*m' m->β*m'') = trans (abs*' m->β*m') (abs*' m->β*m'')
+
 
 abs* : ∀ {m m'} L -> (cf : ∀ {x} -> x ∉ L -> (_->β_ *) (m ^' x) (m' ^' x)) -> (_->β_ *) (lam m) (lam m')
 abs* {m} {m'} L cf = body
@@ -178,9 +189,6 @@ church-rosser-⊢ {Γ} {τ} {a} {b} {c} Γ⊢a∶τ a->β*b a->β*c =
   d-spec = DP->||->||-imp-DP->||*->||* lem2-5-2 a->||*b a->||*c
 
   d = proj₁ d-spec
-  b->||*d = proj₁ (proj₂ d-spec)
-  c->||*d = proj₂ (proj₂ d-spec)
-  a->||*d = trans a->||*b b->||*d
-  a->β*d = ->||*-imp->β* a->||*d
-  b->β*d = ->||*-imp->β* b->||*d
-  c->β*d = ->||*-imp->β* c->||*d
+  b->β*d = ->||*-imp->β* (proj₁ (proj₂ d-spec))
+  c->β*d = ->||*-imp->β* (proj₂ (proj₂ d-spec))
+  a->β*d = trans a->β*b b->β*d
