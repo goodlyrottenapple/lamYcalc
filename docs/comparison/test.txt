@@ -1,0 +1,6 @@
+fun opn :: "nat ⇒ ptrm ⇒ ptrm ⇒ ptrm" ("{_ → _} _")  where
+"{k → u} (FVar x) = FVar x" |
+"{k → u} (BVar i) = (if i = k then u else BVar i)" |
+"{k → u} (App t1 t2) = App ({k → u} t1)({k → u} t2)" |
+"{k → u} (Lam t) = Lam ({(k+1) → u} t)" |
+"{k → u} (Y σ) = Y σ"

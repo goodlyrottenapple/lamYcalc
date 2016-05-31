@@ -232,7 +232,7 @@ The concrete or first-order approaches usually encode variables using names (lik
 
 This approach generally defines terms in much the same way as the informal inductive definition given above. Using a functional language, such as Haskell or ML, such a definition might look like this:
 
-~~~
+~~~{.haskell}
 datatype trm =
   Var name
 | App trm trm
@@ -244,7 +244,7 @@ As was mentioned before, defining "raw" terms and the notion of $\alpha$-equival
 To obtain an inductive definition of $\lambda$-terms with a built in notion of $\alpha$-equivalence, one can instead use nominal sets (described in the section on nominal sets/Isabelle?).
 The nominal package in Isabelle provides tools to automatically define terms with binders, which generate inductive definitions of $\alpha$-equivalent terms. Using nominal sets in Isabelle results in a definition of terms which looks very similar to the informal presentation of the lambda calculus:
 
-~~~
+~~~{.haskell}
 nominal_datatype trm =
   Var name
 | App trm trm
@@ -257,7 +257,7 @@ Most importantly, this definition allows one to define functions over $\alpha$-e
 
 Using a named representation of the lambda calculus in a fully formal setting can be inconvenient when dealing with bound variables. For example, substitution, as described in the introduction, with its side-condition of freshness of $y$ in $x$ and $t$ is not structurally recursive on "raw" terms, but rather requires well-founded recursion over $\alpha$-equivalence classes of terms. To avoid this problem in the definition of substitution, the terms of the lambda calculus can be encoded using de Bruijn indices:
 
-~~~
+~~~{.haskell}
 datatype trm =
   Var nat
 | App trm trm
@@ -336,7 +336,7 @@ Free variables are represented by names, much like in the named version, and bou
 
 While closed terms, like $\lambda x.x$ and $\lambda y.y$ are represented as de Bruijn terms, the term $\lambda x.xz$ and $\lambda x.xz$ are encoded as $\lambda\ 0z$. The following definition captures the syntax of the locally nameless terms:
 
-~~~
+~~~{.haskell}
 datatype ptrm =
   Fvar name
   BVar nat
@@ -353,7 +353,7 @@ The advantage of using a locally nameless definition of $\lambda$-terms is a bet
 Unlike concrete approaches to formalizing the lambda calculus, where the notion of binding and substitution is defined explicitly in the host language, higher-order formalizations use the function space of the implementation language, which handles binding. HOAS, or higher-order abstract syntax [@pfenning88, @harper93], is a framework for defining logics based on the simply typed lambda calculus. A form of HOAS, introduced by @harper93, called the Logical Framework (LF) has been implemented as Twelf by @pfenning99, which has been previously used to encode the $\lambda$-calculus.   
 Using HOAS for encoding the $\lambda$-calculus comes down to encoding binders using the meta-language binders. This way, the definitions of capture avoiding substitution or notion of $\alpha$-equivalence are offloaded onto the meta-language. As an example, take the following definition of terms of the $\lambda$-calculus in Haskell:
 
-~~~
+~~~{.haskell}
 data Term where
   Var :: Int -> Term
   App :: Term -> Term -> Term
