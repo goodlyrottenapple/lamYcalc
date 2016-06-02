@@ -1,6 +1,11 @@
 ---
 header-includes:
 	- \usepackage{bussproofs}
+    - \usepackage{minted}
+    - \hypersetup{ colorlinks=true, linkcolor=blue, filecolor=magenta, urlcolor=cyan}
+    - \urlstyle{same}
+    - \let\OldTexttt\texttt
+    - \renewcommand{\texttt}[1]{\small\OldTexttt{#1}}
 ---
 
 \newenvironment{bprooftree}
@@ -232,7 +237,7 @@ The concrete or first-order approaches usually encode variables using names (lik
 
 This approach generally defines terms in much the same way as the informal inductive definition given above. Using a functional language, such as Haskell or ML, such a definition might look like this:
 
-~~~{.haskell}
+~~~{.isabelle}
 datatype trm =
   Var name
 | App trm trm
@@ -244,7 +249,7 @@ As was mentioned before, defining "raw" terms and the notion of $\alpha$-equival
 To obtain an inductive definition of $\lambda$-terms with a built in notion of $\alpha$-equivalence, one can instead use nominal sets (described in the section on nominal sets/Isabelle?).
 The nominal package in Isabelle provides tools to automatically define terms with binders, which generate inductive definitions of $\alpha$-equivalent terms. Using nominal sets in Isabelle results in a definition of terms which looks very similar to the informal presentation of the lambda calculus:
 
-~~~{.haskell}
+~~~{.isabelle}
 nominal_datatype trm =
   Var name
 | App trm trm
@@ -257,7 +262,7 @@ Most importantly, this definition allows one to define functions over $\alpha$-e
 
 Using a named representation of the lambda calculus in a fully formal setting can be inconvenient when dealing with bound variables. For example, substitution, as described in the introduction, with its side-condition of freshness of $y$ in $x$ and $t$ is not structurally recursive on "raw" terms, but rather requires well-founded recursion over $\alpha$-equivalence classes of terms. To avoid this problem in the definition of substitution, the terms of the lambda calculus can be encoded using de Bruijn indices:
 
-~~~{.haskell}
+~~~{.isabelle}
 datatype trm =
   Var nat
 | App trm trm
@@ -336,7 +341,7 @@ Free variables are represented by names, much like in the named version, and bou
 
 While closed terms, like $\lambda x.x$ and $\lambda y.y$ are represented as de Bruijn terms, the term $\lambda x.xz$ and $\lambda x.xz$ are encoded as $\lambda\ 0z$. The following definition captures the syntax of the locally nameless terms:
 
-~~~{.haskell}
+~~~{.isabelle}
 datatype ptrm =
   Fvar name
   BVar nat
@@ -344,7 +349,7 @@ datatype ptrm =
 | Lam trm
 ~~~
 
-Note however, that this definition doesn't quite fit the notion of $\lambda$-terms, since a ```pterm``` like ```(BVar 1)``` does not represent a $\lambda$-term, since bound variables can only appear in the context of a lambda, such as in ```(Lam (BVar 1))```.
+Note however, that this definition doesn't quite fit the notion of $\lambda$-terms, since a `pterm` like `(BVar 1)` does not represent a $\lambda$-term, since bound variables can only appear in the context of a lambda, such as in `(Lam (BVar 1))`.
 
 The advantage of using a locally nameless definition of $\lambda$-terms is a better readability of such terms, compared to equivalent de Bruijn terms. Another advantage is the fact that definitions of functions and reasoning about properties of these terms is much closer to the informal setting.
 
@@ -360,7 +365,7 @@ data Term where
   Lam :: (Term -> Term) -> Term
 ~~~
 
-This definition avoids the need for explicitly defining substitution, because it encodes a lambda term as a Haskell function (Term -> Term), relying on Haskell's internal substitution and notion of $\alpha$-equivalence. As with the de Bruijn and locally nameless representations, this encoding gives us inductively defined terms with a built in notion of $\alpha$-equivalence.      
+This definition avoids the need for explicitly defining substitution, because it encodes a lambda term as a Haskell function `(Term -> Term)`, relying on Haskell's internal substitution and notion of $\alpha$-equivalence. As with the de Bruijn and locally nameless representations, this encoding gives us inductively defined terms with a built in notion of $\alpha$-equivalence.      
 However, using HOAS only works if the notion of $\alpha$-equivalence and substitution of the meta-language coincide with these notions in the object-language.
 
 
