@@ -1,2 +1,6 @@
 *.thy~
 *.agdai
+
+*.out
+*.aux
+*.log
