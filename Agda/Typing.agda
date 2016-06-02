@@ -44,7 +44,7 @@ _≟T_ : Decidable {A = Type} _≡_
 
 Ctxt = List (Atom × Type)
 
-dom : Ctxt -> FVars
+dom : ∀ {A : Set} -> List (Atom × A) -> FVars
 dom = Data.List.map proj₁
 
 data Wf-Ctxt : Ctxt -> Set where
@@ -70,7 +70,7 @@ map-∈ : ∀ {a b} {A : Set a} {B : Set b} {f : A → B} {y xs} →
          (∃ λ x → x ∈ xs × y ≡ f x) -> y ∈ Data.List.map f xs
 map-∈ {a} {b} {A} {B} {f = f} {y} {xs} x∈xs = (↔⇒ {implication} map-∈↔) x∈xs
 
-∉-dom : ∀ {L x τ} -> x ∉ dom L -> (x , τ) ∉ L
+∉-dom : ∀ {L x τ} -> x ∉ dom {Type} L -> (x , τ) ∉ L
 ∉-dom {Γ} {x} {τ} x∉domL xτ∈L = x∉domL (map-∈ ((x , τ) , (xτ∈L , refl)))
 
 var-⊢-≡ : ∀ {x y τ₁ τ₂ Γ} -> ((x , τ₁) ∷ Γ) ⊢ fv y ∶ τ₂ -> x ≡ y -> τ₁ ≡ τ₂
