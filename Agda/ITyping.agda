@@ -1,4 +1,4 @@
-module InTypes where
+module ITyping where
 
 open import Data.List
 open import Data.Product
@@ -60,4 +60,4 @@ data _⊩_∶_ : ICtxt -> PTerm -> IType -> Set where
     Γ ⊩ (app s t) ∶ τ
   abs : ∀ {Γ δ τ} (L : FVars) -> ∀ {t} ->
     ( cf : ∀ {x} -> (x∉L : x ∉ L) -> ((x , δ) ∷ Γ) ⊩ t ^' x ∶ τ ) -> Γ ⊩ lam t ∶ (δ ~> τ)
-  Y : ∀ {Γ A τ} -> Wf-ICtxt Γ -> τ ∷' A -> Γ ⊩ Y A ∶ (∩' (∩' τ ~> τ) ~> τ) -- dunno abou this definition??
+  Y : ∀ {Γ A τ₁ τ₂} -> Wf-ICtxt Γ -> τ₁ ∷'ₛ (A ⟶ A) -> τ₂ ∷' A -> Γ ⊩ Y A ∶ (τ₁ ~> τ₂) -- dunno abou this definition??
