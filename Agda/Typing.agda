@@ -70,8 +70,8 @@ map-∈ : ∀ {a b} {A : Set a} {B : Set b} {f : A → B} {y xs} →
          (∃ λ x → x ∈ xs × y ≡ f x) -> y ∈ Data.List.map f xs
 map-∈ {a} {b} {A} {B} {f = f} {y} {xs} x∈xs = (↔⇒ {implication} map-∈↔) x∈xs
 
-∉-dom : ∀ {L x τ} -> x ∉ dom {Type} L -> (x , τ) ∉ L
-∉-dom {Γ} {x} {τ} x∉domL xτ∈L = x∉domL (map-∈ ((x , τ) , (xτ∈L , refl)))
+∉-dom : ∀ {A : Set} {L x τ} -> x ∉ dom {A} L -> (x , τ) ∉ L
+∉-dom {A} {Γ} {x} {τ} x∉domL xτ∈L = x∉domL (map-∈ ((x , τ) , (xτ∈L , refl)))
 
 var-⊢-≡ : ∀ {x y τ₁ τ₂ Γ} -> ((x , τ₁) ∷ Γ) ⊢ fv y ∶ τ₂ -> x ≡ y -> τ₁ ≡ τ₂
 var-⊢-≡ {x} {.x} {τ₁} {τ₂} {Γ} (var (cons x∉ wf-Γ) x∈x∷Γ) refl with τ₂ ≟T τ₁
@@ -132,8 +132,8 @@ subst-⊢ : ∀ {Γ m n τ₁ τ₂ x} -> Term m -> ((x , τ₁) ∷ Γ) ⊢ m �
 subst-⊢ {x = x} var (var {_} {y} wf-x∷Γ xτ∈Γ) Γ⊢n∶τ₁ with x ≟ y
 subst-⊢ var (var wf-x∷Γ xτ∈Γ) Γ⊢n∶τ₁ | yes refl rewrite
   var-⊢-≡ (var wf-x∷Γ xτ∈Γ) refl = Γ⊢n∶τ₁
-subst-⊢ {Γ} {.x} {_} {τ₁} {τ₂} {x} var (var {.x} {y} wf-x∷Γ yτ₂∈Γ) Γ⊢n∶τ₁ | no x≠y =
-  var (⊢-imp-wfΓ Γ⊢n∶τ₁) (∈-∷-elim _ _ (λ xτ₂≡yτ₁ → x≠y (×-inj-l xτ₂≡yτ₁)) yτ₂∈Γ)
+subst-⊢ {Γ} {.x} {_} {τ₁} {τ₂} {x} var (var {.x} {y} (cons x∉ wf-Γ) yτ₂∈Γ) Γ⊢n∶τ₁ | no x≠y =
+  var wf-Γ (∈-∷-elim _ _ (λ xτ₂≡yτ₁ → x≠y (×-inj-l xτ₂≡yτ₁)) yτ₂∈Γ)
 subst-⊢ {Γ} {_} {n} {τ₁} {_} {x} (lam L cf) (abs {_} {τ₁'} {τ₂} L' {m} cf') Γ⊢n∶τ₁ = abs (x ∷ (L ++ L' ++ dom Γ)) body
   where
   body : ∀ {x' : ℕ} → x' ∉ x ∷ L ++ L' ++ dom Γ → ((x' , τ₁') ∷ Γ) ⊢ (m [ x ::= n ]) ^' x' ∶ τ₂
