@@ -115,12 +115,12 @@ data Λ : Type -> Set where
 -- ... | yes _ = just (proj₂ l)
 -- a ∈? (l ∷ ist) | no _ = a ∈? ist
 
--- PTerm->Λ : ∀ {Γ m t} -> (List (Atom × ℕ)) -> Γ ⊢ m ∶ t -> Λ t
--- PTerm->Λ {m = bv i} _ ()
--- PTerm->Λ {m = fv x} bound Γ⊢m∶t with x ∈? bound
--- PTerm->Λ {m = fv x} {t} bound Γ⊢m∶t | just i = bv {t} i
--- PTerm->Λ {m = fv x} bound Γ⊢m∶t | nothing = fv x
--- PTerm->Λ {m = lam m} bound (abs {_} {τ₁} {τ₂} L cf) = lam τ₁ (PTerm->Λ ((x , 0) ∷ bound') (cf (∉-cons-l _ _ x∉)))
+-- ⊢->Λ : ∀ {Γ m t} -> (List (Atom × ℕ)) -> Γ ⊢ m ∶ t -> Λ t
+-- ⊢->Λ {m = bv i} _ ()
+-- ⊢->Λ {m = fv x} bound Γ⊢m∶t with x ∈? bound
+-- ⊢->Λ {m = fv x} {t} bound Γ⊢m∶t | just i = bv {t} i
+-- ⊢->Λ {m = fv x} bound Γ⊢m∶t | nothing = fv x
+-- ⊢->Λ {m = lam m} bound (abs {_} {τ₁} {τ₂} L cf) = lam τ₁ (⊢->Λ ((x , 0) ∷ bound') (cf (∉-cons-l _ _ x∉)))
 --   where
 --   x = ∃fresh (L ++ FV m)
 --   x∉ : x ∉ (L ++ FV m)
@@ -129,11 +129,11 @@ data Λ : Type -> Set where
 --   bound' : List (Atom × ℕ)
 --   bound' = Data.List.map (λ a,i → (proj₁ a,i) , suc (proj₂ a,i)) bound
 --
--- PTerm->Λ {m = app t1 t} bound (app Γ⊢s Γ⊢t) = app (PTerm->Λ bound Γ⊢s) (PTerm->Λ bound Γ⊢t)
--- PTerm->Λ {m = Y τ} bound (Y x) = Y τ
+-- ⊢->Λ {m = app t1 t} bound (app Γ⊢s Γ⊢t) = app (⊢->Λ bound Γ⊢s) (⊢->Λ bound Γ⊢t)
+-- ⊢->Λ {m = Y τ} bound (Y x) = Y τ
 --
--- PTerm->Λ : ∀ {Γ m t} -> Γ ⊢ m ∶ t -> Λ t
--- PTerm->Λ = PTerm->Λ []
+-- ⊢->Λ : ∀ {Γ m t} -> Γ ⊢ m ∶ t -> Λ t
+-- ⊢->Λ = ⊢->Λ []
 
 data _~_ : ∀{t} -> Λ t -> PTerm -> Set where
   bv : ∀ {t i} -> (bv {t} i) ~ (bv i)
@@ -153,14 +153,16 @@ data _~_ : ∀{t} -> Λ t -> PTerm -> Set where
 
 
 
-PTerm->Λ : ∀ {Γ m t} -> Γ ⊢ m ∶ t -> Λ t
-PTerm->Λ {m = bv i} ()
-PTerm->Λ {m = fv x} {t} Γ⊢m∶t = fv {t} x
-PTerm->Λ {m = lam m} (abs {_} {τ₁} {τ₂} L cf) =
-  lam τ₁ ( Λ[ 0 << ∃fresh (L ++ FV m) ]
-    (PTerm->Λ (cf (∉-cons-l _ _ (∃fresh-spec (L ++ FV m)) ))) )
-PTerm->Λ {m = app t1 t} (app Γ⊢s Γ⊢t) = app (PTerm->Λ Γ⊢s) (PTerm->Λ Γ⊢t)
-PTerm->Λ {m = Y τ} (Y x) = Y τ
+⊢->Λ : ∀ {Γ m t} -> Γ ⊢ m ∶ t -> Λ t
+⊢->Λ {m = bv i} ()
+⊢->Λ {m = fv x} {t} Γ⊢m∶t = fv {t} x
+⊢->Λ {m = lam m} (abs {_} {τ₁} {τ₂} L cf) =
+  lam τ₁ ( Λ[ 0 << ∃fresh (L ++ FV m) ] (⊢->Λ (cf (∉-cons-l _ _ (∃fresh-spec (L ++ FV m)) ))) )
+⊢->Λ {m = app t1 t} (app Γ⊢s Γ⊢t) = app (⊢->Λ Γ⊢s) (⊢->Λ Γ⊢t)
+⊢->Λ {m = Y τ} (Y x) = Y τ
+
+⊢->Λ≡ : ∀ {Γ m n t} -> m ≡ n -> {Γ⊢m : Γ ⊢ m ∶ t} -> {Γ⊢n : Γ ⊢ n ∶ t} -> (⊢->Λ Γ⊢m) ≡ (⊢->Λ Γ⊢m)
+⊢->Λ≡ refl = λ {Γ⊢m} {Γ⊢n} → refl
 
 
 Λ*^-*^~ : ∀ {τ x k} t t' -> _~_ {τ} t t' -> Λ[ k << x ] t ~ ([ k << x ] t')
@@ -173,87 +175,31 @@ PTerm->Λ {m = Y τ} (Y x) = Y τ
 Λ*^-*^~ _ _ Y = Y
 
 
+⊢->Λ~ : ∀ {Γ t τ} -> (Γ⊢t : Γ ⊢ t ∶ τ) -> (⊢->Λ Γ⊢t) ~ t
+⊢->Λ~ {t = bv i} ()
+⊢->Λ~ {t = fv x} (var _ _) = fv
+⊢->Λ~ {t = lam t} (abs {τ₁ = τ₁} {τ₂} L cf) = lam ih
+  where
+  x = ∃fresh (L ++ FV t)
+  x∉ = ∃fresh-spec (L ++ FV t)
+  x∷Γ⊢t^'x = cf (∉-cons-l _ _ x∉)
 
-Λ*^-*^-swap : ∀ {t : Type} k n x y m -> ¬(k ≡ n) -> ¬(x ≡ y) -> Λ[_<<_] {t} k x (Λ[ n << y ] m) ≡ Λ[ n << y ] (Λ[ k << x ] m)
-Λ*^-*^-swap k n x y (bv i) k≠n x≠y = refl
-Λ*^-*^-swap k n x y (fv z) k≠n x≠y = {!   !}
-Λ*^-*^-swap k n x y (lam A m) k≠n x≠y =
-  cong (lam A) (Λ*^-*^-swap (suc k) (suc n) x y m (λ x₁ → k≠n (≡-suc x₁)) x≠y)
-Λ*^-*^-swap k n x y (app m m') k≠n x≠y rewrite
-  Λ*^-*^-swap k n x y m k≠n x≠y | Λ*^-*^-swap k n x y m' k≠n x≠y = refl
-Λ*^-*^-swap k n x y (Y t) k≠n x≠y = refl
+  sub : ∀ {τ x m} -> x ∉ FV t -> _~_ {τ} m t ≡ m ~ (* x ^ (t ^' x))
+  sub {_} {x} x∉ rewrite fv-^-*^-refl x t {0} x∉ = refl
 
-
-fv-^-Λ*^-refl : ∀ x t {k Γ τ} -> x ∉ FV t -> (Γ⊢t^x : Γ ⊢ [ k >> fv x ] t ∶ τ) -> (Λ[ k << x ] (PTerm->Λ Γ⊢t^x) ) ~ t
-fv-^-Λ*^-refl x (bv n) x∉FVt ()
-fv-^-Λ*^-refl x (fv y) x∉FVt Γ⊢t^x with x ≟ y
-fv-^-Λ*^-refl x (fv .x) x∉FVt Γ⊢t^x | yes refl = ⊥-elim (x∉FVt (here refl))
-fv-^-Λ*^-refl x (fv y) x∉FVt Γ⊢t^x | no x≠y = fv
-fv-^-Λ*^-refl x (lam t) {k} {Γ} x∉FVt (abs {τ₁ = τ₁} {τ₂} L cf) = lam {!   !}
-  --
-  -- where
-  -- x' = ∃fresh ( L ++ FV ([ suc k >> fv x ] t) )
-  -- x'∉ = ∃fresh-spec ( L ++ FV ([ suc k >> fv x ] t) )
-  --
-  -- x'Γ⊢[suc-k>>x]t^'x' : ((x' , τ₁) ∷ Γ) ⊢ ([ suc k >> fv x ] t) ^' x' ∶ τ₂
-  -- x'Γ⊢[suc-k>>x]t^'x' = cf (∉-cons-l L (FV ([ suc k >> fv x ] t)) (∃fresh-spec (L ++ FV ([ suc k >> fv x ] t))))
-  --
-  --
-  -- x'Γ⊢[suc-k>>x]t^'x'≡ : ((x' , τ₁) ∷ Γ) ⊢ [ suc k >> fv x ] (t ^' x') ∶ τ₂ ≡
-  --   ((x' , τ₁) ∷ Γ) ⊢ ([ suc k >> fv x ] t) ^' x' ∶ τ₂
-  -- x'Γ⊢[suc-k>>x]t^'x'≡ rewrite ^-^-swap (suc k) 0 x x' t (λ ()) (λ x≡x' → {!   !}) = refl
-  --
-  -- x'Γ⊢[suc-k>>x]t^'x'' : ((x' , τ₁) ∷ Γ) ⊢ [ suc k >> fv x ] (t ^' x') ∶ τ₂
-  -- x'Γ⊢[suc-k>>x]t^'x'' rewrite x'Γ⊢[suc-k>>x]t^'x'≡ = x'Γ⊢[suc-k>>x]t^'x'
-  --
-  -- ih'' : Λ[ (suc k) << x ] (PTerm->Λ x'Γ⊢[suc-k>>x]t^'x'') ~ (t ^' x')
-  -- ih'' = fv-^-Λ*^-refl x ([ 0 >> fv x' ] t) {!   !} x'Γ⊢[suc-k>>x]t^'x''
-  --
-  -- -- ih' : Λ[ 0 << x' ] ( Λ[ (suc k) << x ] (PTerm->Λ x'Γ⊢[suc-k>>x]t^'x') ) ~ t
-  -- -- ih' rewrite x'Γ⊢[suc-k>>x]t^'x'≡ = {!   !}
-  --
-  -- ih : Λ[ (suc k) << x ] ( Λ[ 0 << x' ] (PTerm->Λ x'Γ⊢[suc-k>>x]t^'x') ) ~ t
-  -- ih rewrite
-  --   Λ*^-*^-swap {τ₂} (suc k) 0 x x' (PTerm->Λ x'Γ⊢[suc-k>>x]t^'x') {!   !} {!   !} |
-  --   x'Γ⊢[suc-k>>x]t^'x'≡ = {!   !}
-
-fv-^-Λ*^-refl x (app s t) x∉FVt (app Γ⊢s^x Γ⊢t^x) = app
-  (fv-^-Λ*^-refl x s (∉-cons-l _ _ x∉FVt) Γ⊢s^x)
-  (fv-^-Λ*^-refl x t (∉-cons-r (FV s) _ x∉FVt) Γ⊢t^x)
-fv-^-Λ*^-refl x (Y τ) x∉FVt (Y x₁) = Y
+  ih : Λ[ 0 << x ] (⊢->Λ x∷Γ⊢t^'x) ~ t
+  ih rewrite sub {_} {x} {Λ[ 0 << x ] (⊢->Λ x∷Γ⊢t^'x)} (∉-cons-r L _ x∉) =
+    Λ*^-*^~ (⊢->Λ x∷Γ⊢t^'x) (t ^' x) (⊢->Λ~ (cf (∉-cons-l _ _ x∉)))
+⊢->Λ~ {t = app t t₁} (app Γ⊢t Γ⊢t₁) = app (⊢->Λ~ Γ⊢t) (⊢->Λ~ Γ⊢t₁)
+⊢->Λ~ {t = Y t₁} (Y x) = Y
 
 
-
-PTerm->Λ~ : ∀ {Γ t τ} -> {Γ⊢t : Γ ⊢ t ∶ τ} -> (PTerm->Λ Γ⊢t) ~ t
-PTerm->Λ~ {t = bv i} = λ {τ} → λ {}
-PTerm->Λ~ {t = fv x} = λ {τ} {Γ⊢t} → fv
-PTerm->Λ~ {t = lam t} {Γ⊢t = abs {τ₁ = τ₁} {τ₂} L cf} =
-  lam (fv-^-Λ*^-refl (∃fresh (L ++ FV t)) t (∉-cons-r L _ (∃fresh-spec (L ++ FV t))) (cf (∉-cons-l L (FV t) (∃fresh-spec (L ++ FV t)))))
-  -- where
-  -- x' = ∃fresh (L ++ FV t)
-  -- x'∷Γ⊢t^'x' = cf (∉-cons-l L (FV t) (∃fresh-spec (L ++ FV t)))
-  --
-  -- ih' : Λ[ 0 << x' ] (PTerm->Λ x'∷Γ⊢t^'x') ~ (* x' ^ (t ^' x'))
-  -- ih' = {!   !}
-  --
-  -- sub : ∀ {τ x m} -> x ∉ FV t -> _~_ {τ} m t ≡ m ~ (* x ^ (t ^' x))
-  -- sub {_} {x} x∉ rewrite fv-^-*^-refl x t {0} x∉ = refl
-  --
-  -- ih : Λ[ 0 << x' ] (PTerm->Λ x'∷Γ⊢t^'x') ~ t
-  -- ih rewrite sub {_} {x'} {Λ[ 0 << x' ] (PTerm->Λ x'∷Γ⊢t^'x')} {!   !} = ih'
-PTerm->Λ~ {t = app t t₁} {Γ⊢t = app Γ⊢t Γ⊢t₁} = app PTerm->Λ~ PTerm->Λ~
-PTerm->Λ~ {t = Y t₁} {Γ⊢t = Y x} = Y
-
-
-Λ->PTerm : ∀ {t} -> Λ t -> PTerm
-Λ->PTerm (bv i) = bv i
-Λ->PTerm (fv x) = fv x
-Λ->PTerm (lam A Λt) = lam (Λ->PTerm Λt)
-Λ->PTerm (app Λs Λt) = app (Λ->PTerm Λs) (Λ->PTerm Λt)
-Λ->PTerm (Y t) = Y t
-
-
-
+-- ers : ∀ {t} -> Λ t -> PTerm
+-- ers (bv i) = bv i
+-- ers (fv x) = fv x
+-- ers (lam A Λt) = lam (ers Λt)
+-- ers (app Λs Λt) = app (ers Λs) (ers Λt)
+-- ers (Y t) = Y t
 
 
 -- data ITypeₛ : IType -> Set where
@@ -270,6 +216,7 @@ PTerm->Λ~ {t = Y t₁} {Γ⊢t = Y x} = Y
 -- τₛ->τₛₛ o = o
 -- τₛ->τₛₛ (arr τₛ τₛ₁) = arr (τₛ->τₛₛ τₛ) (τₛ->τₛₛ τₛ₁)
 
+
 Λ[_>>_] : ∀ {τ τ'} -> ℕ -> Λ τ' -> Λ τ -> Λ τ
 Λ[_>>_] {τ} {τ'} k u (bv i) with k ≟ i | τ ≟T τ'
 Λ[ k >> u ] (bv i) | yes _ | yes refl = u
@@ -277,7 +224,7 @@ PTerm->Λ~ {t = Y t₁} {Γ⊢t = Y x} = Y
 ... | no _ | _ = bv i
 Λ[ k >> u ] (fv x) = fv x
 Λ[ k >> u ] (lam A t) = lam A (Λ[ (suc k) >> u ] t)
-Λ[ k >> u ] (app t1 t2) = app (Λ[ k >> u ] t1) (Λ[ k >> u ] t2) -- app (Λ[ k >> u ] t1) (Λ[ k >> u ] t2)
+Λ[ k >> u ] (app t1 t2) = app (Λ[ k >> u ] t1) (Λ[ k >> u ] t2)
 Λ[ k >> u ] (Y t) = Y t
 
 
@@ -286,20 +233,56 @@ data Y-shape : ∀ {τ} -> Λ τ -> Set where
   intro₂ : ∀ {A m} -> Y-shape (app m (app (Y A) m))
 
 data _⊩_∶_ : ∀ {A} -> ICtxt -> Λ A -> IType -> Set where
-  var : ∀ {A Γ x τ} {τᵢ : List IType} -> (wf-Γ : Wf-ICtxt Γ) -> (τᵢ∈Γ : (x , (∩ τᵢ)) ∈ Γ) -> (τᵢ≤∩τ : ∩ τᵢ ≤∩ τ) -> τ ∷' A ->
-    Γ ⊩ fv {A} x ∶ τ
-  app : ∀ {A B Γ s t τ₁ τ₂} -> Γ ⊩ s ∶ (τ₁ ~> τ₂) -> Γ ⊩ t ∶ τ₁ -> (τ₁ ~> τ₂) ∷' (A ⟶ B) -> τ₁ ∷' B ->
+  var : ∀ {A Γ x τ} {τᵢ : List IType} -> (wf-Γ : Wf-ICtxt Γ) -> (τᵢ∈Γ : (x , (∩ τᵢ)) ∈ Γ) -> (τᵢ≤∩τ : ∩ τᵢ ≤∩ τ) ->
+    τ ∷' A -> Γ ⊩ fv {A} x ∶ τ
+  app : ∀ {A B Γ s t τ₁ τ₂} -> Γ ⊩ s ∶ (τ₁ ~> τ₂) -> Γ ⊩ t ∶ τ₁ -> (τ₁ ~> τ₂) ∷' (A ⟶ B) -> τ₁ ∷' A ->
     Γ ⊩ (app {A} {B} s t) ∶ τ₂
   ∩-nil : ∀ {A Γ} {m : Λ A} -> (¬Y-shape : ¬ Y-shape m) -> (wf-Γ : Wf-ICtxt Γ) -> Γ ⊩ m  ∶ ω
   ∩-cons : ∀ {A Γ τ τᵢ} {m : Λ A} -> (¬Y-shape : ¬ Y-shape m) -> (wf-Γ : Wf-ICtxt Γ) ->
     Γ ⊩ m  ∶ τ -> Γ ⊩ m  ∶ (∩ τᵢ) -> Γ ⊩ m  ∶ (∩ (τ ∷ τᵢ))
   abs : ∀ {A B Γ τᵢ τ} (L : FVars) -> ∀ {t : Λ B} ->
-    ( cf : ∀ {x} -> (x∉L : x ∉ L) -> ((x , ∩ τᵢ) ∷ Γ) ⊩ Λ[ 0 >> fv {A} x ] t ∶ τ ) -> ∩ τᵢ ∷' A -> τ ∷' B -> Γ ⊩ lam A t ∶ (∩ τᵢ ~> τ)
+    ( cf : ∀ {x} -> (x∉L : x ∉ L) -> ((x , ∩ τᵢ) ∷ Γ) ⊩ Λ[ 0 >> fv {A} x ] t ∶ τ ) -> ∩ τᵢ ∷' A -> τ ∷' B ->
+    Γ ⊩ lam A t ∶ (∩ τᵢ ~> τ)
   Y : ∀ {Γ A τ τ₁ τ₂} -> Wf-ICtxt Γ -> τ ∷' A -> τ₁ ∷' A -> τ₂ ∷' A ->
     Γ ⊩ Y A ∶ ((τ ~> τ₁) ~> τ₂)
 
+data ΛTerm : ∀ {τ} -> Λ τ -> Set where
+  var : ∀ {A x} -> ΛTerm (fv {A} x)
+  lam : ∀ {A B} (L : FVars) -> ∀ {e : Λ B} ->
+    (cf : ∀ {x} -> (x∉L : x ∉ L) -> ΛTerm (Λ[ 0 >> fv {A} x ] e)) -> ΛTerm (lam A e)
+  app : ∀ {A B} {e₁ : Λ (A ⟶ B)} {e₂ : Λ A} -> ΛTerm e₁ -> ΛTerm e₂ -> ΛTerm (app e₁ e₂)
+  Y : ∀ {t} -> ΛTerm (Y t)
 
--- ⊩->β : ∀ {Γ m m' τ} -> Γ ⊩ m' ∶ τ -> m ->β m' -> Γ ⊩ m ∶ τ
+
+-- ⊢->Λ-ΛTerm : ∀ {Γ t τ} -> {Γ⊢t : Γ ⊢ t ∶ τ} -> (ΛTerm (⊢->Λ Γ⊢t))
+-- ⊢->Λ-ΛTerm {Γ⊢t = var x₁ x₂} = var
+-- ⊢->Λ-ΛTerm {Γ⊢t = app Γ⊢t Γ⊢t₁} = app ⊢->Λ-ΛTerm ⊢->Λ-ΛTerm
+-- ⊢->Λ-ΛTerm {Γ⊢t = abs L cf} = {!   !}
+-- ⊢->Λ-ΛTerm {Γ⊢t = Y x} = Y
+
+
+data _->Λβ_ : ∀ {τ} -> Λ τ ↝ Λ τ where
+  redL : ∀ {A B} {n : Λ A} {m m' : Λ (A ⟶ B)} -> ΛTerm n -> m ->Λβ m' -> app m n ->Λβ app m' n
+  redR : ∀ {A B} {m : Λ (A ⟶ B)} {n n' : Λ A} -> ΛTerm m -> n ->Λβ n' -> app m n ->Λβ app m n'
+  abs : ∀ L {A B} {m m' : Λ B} -> ( ∀ {x} -> x ∉ L -> Λ[ 0 >> fv {A} x ] m ->Λβ Λ[ 0 >> fv {A} x ] m' ) ->
+    lam A m ->Λβ lam A m'
+  beta : ∀ {A B} {m : Λ (A ⟶ B)} {n : Λ A} -> ΛTerm (lam A m) -> ΛTerm n -> app (lam A m) n ->Λβ (Λ[ 0 >> n ] m)
+  Y : ∀ {A} {m : Λ (A ⟶ A)} -> ΛTerm m -> app (Y A) m ->Λβ app m (app (Y A) m)
+
+
+
+⊩->β : ∀ {A Γ} {m m' : Λ A} {τ} -> Γ ⊩ m' ∶ τ -> m ->Λβ m' -> Γ ⊩ m ∶ τ
+⊩->β Γ⊩m'∶τ (redL trm-n m->βm') = {!   !}
+⊩->β Γ⊩m'∶τ (redR trm-m n->βn') = {!   !}
+⊩->β Γ⊩m'∶τ (abs L x) = {!   !}
+⊩->β Γ⊩m'∶τ (beta x x₁) = {!   !}
+⊩->β (app {s = m} Γ⊩m∶τ₁~>τ (app (Y wf-Γ τ₂∷A τ₃∷A τ₁∷A) Γ⊩m x τ₂~>τ₃∷A) (arr {A = A} _ τ∷A) _) (Y trm-m) =
+  app {A = A ⟶ A} (Y wf-Γ τ₁∷A τ∷A τ∷A) Γ⊩m∶τ₁~>τ (arr (arr τ₁∷A τ∷A) τ∷A) (arr τ₁∷A τ∷A)
+⊩->β (app Γ⊩m∶τ~>τ' (∩-nil ¬Y-shape wf-Γ) x τ∷A) (Y trm-m) = ⊥-elim (¬Y-shape intro₁)
+⊩->β (app Γ⊩m∶τ~>τ' (∩-cons ¬Y-shape wf-Γ Γ⊩Ym∶τ' Γ⊩Ym∶τ'') x τ∷A) (Y trm-m) = ⊥-elim (¬Y-shape intro₁)
+⊩->β (∩-nil ¬Y-shape wf-Γ) (Y x) = ⊥-elim (¬Y-shape intro₂)
+⊩->β (∩-cons ¬Y-shape wf-Γ Γ⊩m'∶τ Γ⊩m'∶τ₁) (Y x) = ⊥-elim (¬Y-shape intro₂)
+
 -- ⊩->β Γ⊩m'∶τ (redL x m->βm') = ⊩->β-redL Γ⊩m'∶τ m->βm'
 --   where
 --   ⊩->β-redL : ∀ {Γ m m' n τ} -> Γ ⊩ app m' n ∶ τ -> m ->β m' -> Γ ⊩ app m n ∶ τ
