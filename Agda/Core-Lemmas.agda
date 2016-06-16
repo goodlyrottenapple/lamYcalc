@@ -68,6 +68,11 @@ fv-x≠y x y x∉y∷L x≡y = x∉y∷L (here x≡y)
 ∈-cons-l ys (there x∈xs') = there (∈-cons-l ys x∈xs')
 
 
+∈-cons-r : ∀ {A : Set} {x : A} xs {ys} -> x ∈ ys -> x ∈ (xs ++ ys)
+∈-cons-r [] x∈ys = x∈ys
+∈-cons-r (_ ∷ xs) x∈ys = there (∈-cons-r xs x∈ys)
+
+
 ∉-cons-l : ∀ {A : Set} {x : A} xs ys -> x ∉ xs ++ ys -> x ∉ xs
 ∉-cons-l _ ys x∉xs++ys (here eq) = x∉xs++ys (here eq)
 ∉-cons-l .(x' ∷ xs') ys x∉xs++ys (there {x'} {xs'} x∈xs') = ∉-cons-l xs' ys (λ z → x∉xs++ys (there z)) x∈xs'
