@@ -1,10 +1,8 @@
 module ChurchRosser where
-open import Data.Empty
 open import Data.Product
 open import Data.List
 open import Data.List.Any as Any
 open Any.Membership-≡
-open import Relation.Nullary
 open import Relation.Binary.PropositionalEquality using (_≡_)
 
 open import Core

@@ -1,13 +1,12 @@
 module Reduction where
 
-open import Data.Empty
 open import Data.Nat
+open import Data.Product
 open import Data.List
 open import Data.List.Any as Any
 open Any.Membership-≡
 open import Relation.Nullary
 open import Relation.Binary.PropositionalEquality
-open import Data.Product
 
 open import Core
 open import Core-Lemmas

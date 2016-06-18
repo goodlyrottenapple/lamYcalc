@@ -4,16 +4,12 @@ open import Data.Empty
 open import Data.Product
 open import Data.Nat
 open import Data.List
-
 open import Data.List.Any as Any
 open Any.Membership-≡
 open import Data.List.Any.Membership
 open import Relation.Nullary
-open import Relation.Binary.PropositionalEquality
-
 open import Function.Related as Related
 open Related.EquationalReasoning
-open import Data.List.Any.Properties
 open import Relation.Binary.Core
 
 open import Core

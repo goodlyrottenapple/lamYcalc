@@ -10,14 +10,14 @@ module Core where
 
 open import Data.Empty
 open import Data.Nat
+open import Data.Nat.Properties
+open import Data.Sum
 open import Data.List
 open import Data.List.Any as Any
 open Any.Membership-≡
 open import Relation.Nullary
 open import Relation.Binary.PropositionalEquality
 
-open import Data.Sum
-open import Data.Nat.Properties
 
 Atom = ℕ
 
