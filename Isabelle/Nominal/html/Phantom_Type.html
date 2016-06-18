@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
+<title>Theory Phantom_Type (Isabelle2016: February 2016)</title>
+<link media="all" rel="stylesheet" type="text/css" href="isabelle.css"/>
+</head>
+
+<body>
+<div class="head"><h1>Theory Phantom_Type</h1>
+
+<span class="command">theory</span> <span class="name">Phantom_Type</span><br/>
+<span class="keyword">imports</span> <a href="../../HOL/HOL/Main.html"><span class="name">Main</span></a><br/>
+
+</div>
+<div class="source">
+<pre class="source"><span class="comment">(*  Title:      HOL/Library/Phantom_Type.thy
+    Author:     Andreas Lochbihler
+*)</span><span class="">
+</span><span class="">
+</span><span class="keyword1">section</span><span class=""> </span><span class="cartouche">&#8249;A generic phantom type&#8250;</span><span class="">
+</span><span class="">
+</span><span class="keyword1">theory</span><span class=""> </span><span class="">Phantom_Type</span><span class="">
+</span><span class="keyword2">imports</span><span class=""> </span><span class="">Main</span><span class="">
+</span><span class="keyword2">begin</span><span class="">
+</span><span class="">
+</span><span class="keyword1">datatype</span><span class=""> </span><span class="delimiter">(</span><span class="tfree">&#39;a</span><span class="delimiter">,</span><span class=""> </span><span class="tfree">&#39;b</span><span class="delimiter">)</span><span class=""> </span><span class="">phantom</span><span class=""> </span><span class="delimiter">=</span><span class=""> </span><span class="">phantom</span><span class=""> </span><span class="delimiter">(</span><span class="">of_phantom</span><span class="delimiter">:</span><span class=""> </span><span class="tfree">&#39;b</span><span class="delimiter">)</span><span class="">
+</span><span class="">
+</span><span class="keyword1">lemma</span><span class=""> </span><span class="">type_definition_phantom&#39;</span><span class="delimiter">:</span><span class=""> </span><span class="string">&quot;type_definition of_phantom phantom UNIV&quot;</span><span class="">
+</span><span class="keyword1">by</span><span class="delimiter">(</span><span class="">unfold_locales</span><span class="delimiter">)</span><span class=""> </span><span class="">simp_all</span><span class="">
+</span><span class="">
+</span><span class="keyword1">lemma</span><span class=""> </span><span class="">phantom_comp_of_phantom</span><span class=""> </span><span class="delimiter">[</span><span class="">simp</span><span class="delimiter">]</span><span class="delimiter">:</span><span class=""> </span><span class="string">&quot;phantom &#8728; of_phantom = id&quot;</span><span class="">
+</span><span class="">  </span><span class="keyword2">and</span><span class=""> </span><span class="">of_phantom_comp_phantom</span><span class=""> </span><span class="delimiter">[</span><span class="">simp</span><span class="delimiter">]</span><span class="delimiter">:</span><span class=""> </span><span class="string">&quot;of_phantom &#8728; phantom = id&quot;</span><span class="">
+</span><span class="keyword1">by</span><span class="delimiter">(</span><span class="">simp_all</span><span class=""> </span><span class="">add</span><span class="delimiter">:</span><span class=""> </span><span class="">o_def</span><span class=""> </span><span class="">id_def</span><span class="delimiter">)</span><span class="">
+</span><span class="">
+</span><span class="keyword1">syntax</span><span class=""> </span><span class="string">&quot;_Phantom&quot;</span><span class=""> </span><span class="delimiter">::</span><span class=""> </span><span class="string">&quot;type &#8658; logic&quot;</span><span class=""> </span><span class="delimiter">(</span><span class="string">&quot;(1Phantom/(1&#39;(_&#39;)))&quot;</span><span class="delimiter">)</span><span class="">
+</span><span class="keyword1">translations</span><span class="">
+</span><span class="">  </span><span class="string">&quot;Phantom(&#39;t)&quot;</span><span class=""> </span><span class="delimiter">=&gt;</span><span class=""> </span><span class="string">&quot;CONST phantom :: _ &#8658; (&#39;t, _) phantom&quot;</span><span class="">
+</span><span class="">
+</span><span class="keyword1">typed_print_translation</span><span class=""> </span><span class="cartouche">&#8249;
+  let
+    fun phantom_tr&#39; ctxt (Type (@{type_name fun}, [_, Type (@{type_name phantom}, [T, _])])) ts =
+          list_comb
+            (Syntax.const @{syntax_const &quot;_Phantom&quot;} $ Syntax_Phases.term_of_typ ctxt T, ts)
+      | phantom_tr&#39; _ _ _ = raise Match;
+  in [(@{const_syntax phantom}, phantom_tr&#39;)] end
+&#8250;</span><span class="">
+</span><span class="">
+</span><span class="keyword1">lemma</span><span class=""> </span><span class="">of_phantom_inject</span><span class=""> </span><span class="delimiter">[</span><span class="">simp</span><span class="delimiter">]</span><span class="delimiter">:</span><span class="">
+</span><span class="">  </span><span class="string">&quot;of_phantom x = of_phantom y &#10231; x = y&quot;</span><span class="">
+</span><span class="keyword1">by</span><span class="delimiter">(</span><span class="">cases</span><span class=""> </span><span class="">x</span><span class=""> </span><span class="">y</span><span class=""> </span><span class="">rule</span><span class="delimiter">:</span><span class=""> </span><span class="">phantom.exhaust</span><span class="delimiter">[</span><span class="">case_product</span><span class=""> </span><span class="">phantom.exhaust</span><span class="delimiter">]</span><span class="delimiter">)</span><span class=""> </span><span class="">simp</span><span class="">
+</span><span class="">
+</span><span class="keyword2">end</span><span class="">
+</span></pre>
+
+</div>
+</body>
+</html>

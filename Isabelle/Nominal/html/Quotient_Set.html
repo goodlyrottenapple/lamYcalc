@@ -1,0 +1,125 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
+<title>Theory Quotient_Set (Isabelle2016: February 2016)</title>
+<link media="all" rel="stylesheet" type="text/css" href="isabelle.css"/>
+</head>
+
+<body>
+<div class="head"><h1>Theory Quotient_Set</h1>
+
+<span class="command">theory</span> <span class="name">Quotient_Set</span><br/>
+<span class="keyword">imports</span> <a href="Quotient_Syntax.html"><span class="name">Quotient_Syntax</span></a><br/>
+
+</div>
+<div class="source">
+<pre class="source"><span class="comment">(*  Title:      HOL/Library/Quotient_Set.thy
+    Author:     Cezary Kaliszyk and Christian Urban
+*)</span><span class="">
+</span><span class="">
+</span><span class="keyword1">section</span><span class=""> </span><span class="cartouche">&#8249;Quotient infrastructure for the set type&#8250;</span><span class="">
+</span><span class="">
+</span><span class="keyword1">theory</span><span class=""> </span><span class="">Quotient_Set</span><span class="">
+</span><span class="keyword2">imports</span><span class=""> </span><span class="">Main</span><span class=""> </span><span class="">Quotient_Syntax</span><span class="">
+</span><span class="keyword2">begin</span><span class="">
+</span><span class="">
+</span><span class="keyword1">subsection</span><span class=""> </span><span class="cartouche">&#8249;Contravariant set map (vimage) and set relator, rules for the Quotient package&#8250;</span><span class="">
+</span><span class="">
+</span><span class="keyword1">definition</span><span class=""> </span><span class="string">&quot;rel_vset R xs ys &#8801; &#8704;x y. R x y &#10230; x &#8712; xs &#10231; y &#8712; ys&quot;</span><span class="">
+</span><span class="">
+</span><span class="keyword1">lemma</span><span class=""> </span><span class="">rel_vset_eq</span><span class=""> </span><span class="delimiter">[</span><span class="">id_simps</span><span class="delimiter">]</span><span class="delimiter">:</span><span class="">
+</span><span class="">  </span><span class="string">&quot;rel_vset op = = op =&quot;</span><span class="">
+</span><span class="">  </span><span class="keyword1">by</span><span class=""> </span><span class="delimiter">(</span><span class="">subst</span><span class=""> </span><span class="">fun_eq_iff</span><span class="delimiter">,</span><span class=""> </span><span class="">subst</span><span class=""> </span><span class="">fun_eq_iff</span><span class="delimiter">)</span><span class=""> </span><span class="delimiter">(</span><span class="">simp</span><span class=""> </span><span class="">add</span><span class="delimiter">:</span><span class=""> </span><span class="">set_eq_iff</span><span class=""> </span><span class="">rel_vset_def</span><span class="delimiter">)</span><span class="">
+</span><span class="">
+</span><span class="keyword1">lemma</span><span class=""> </span><span class="">rel_vset_equivp</span><span class="delimiter">:</span><span class="">
+</span><span class="">  </span><span class="keyword2">assumes</span><span class=""> </span><span class="">e</span><span class="delimiter">:</span><span class=""> </span><span class="string">&quot;equivp R&quot;</span><span class="">
+</span><span class="">  </span><span class="keyword2">shows</span><span class=""> </span><span class="string">&quot;rel_vset R xs ys &#10231; xs = ys &#8743; (&#8704;x y. x &#8712; xs &#10230; R x y &#10230; y &#8712; xs)&quot;</span><span class="">
+</span><span class="">  </span><span class="keyword1">unfolding</span><span class=""> </span><span class="">rel_vset_def</span><span class="">
+</span><span class="">  </span><span class="keyword1">using</span><span class=""> </span><span class="">equivp_reflp</span><span class="delimiter">[</span><span class="">OF</span><span class=""> </span><span class="">e</span><span class="delimiter">]</span><span class="">
+</span><span class="">  </span><span class="keyword1">by</span><span class=""> </span><span class="">auto</span><span class=""> </span><span class="delimiter">(</span><span class="">metis</span><span class="delimiter">,</span><span class=""> </span><span class="">metis</span><span class=""> </span><span class="">equivp_symp</span><span class="delimiter">[</span><span class="">OF</span><span class=""> </span><span class="">e</span><span class="delimiter">]</span><span class="delimiter">)</span><span class="">
+</span><span class="">
+</span><span class="keyword1">lemma</span><span class=""> </span><span class="">set_quotient</span><span class=""> </span><span class="delimiter">[</span><span class="">quot_thm</span><span class="delimiter">]</span><span class="delimiter">:</span><span class="">
+</span><span class="">  </span><span class="keyword2">assumes</span><span class=""> </span><span class="string">&quot;Quotient3 R Abs Rep&quot;</span><span class="">
+</span><span class="">  </span><span class="keyword2">shows</span><span class=""> </span><span class="string">&quot;Quotient3 (rel_vset R) (vimage Rep) (vimage Abs)&quot;</span><span class="">
+</span><span class="keyword1">proof</span><span class=""> </span><span class="delimiter">(</span><span class="">rule</span><span class=""> </span><span class="">Quotient3I</span><span class="delimiter">)</span><span class="">
+</span><span class="">  </span><span class="keyword1">from</span><span class=""> </span><span class="">assms</span><span class=""> </span><span class="keyword1">have</span><span class=""> </span><span class="string">&quot;&#8896;x. Abs (Rep x) = x&quot;</span><span class=""> </span><span class="keyword1">by</span><span class=""> </span><span class="delimiter">(</span><span class="">rule</span><span class=""> </span><span class="">Quotient3_abs_rep</span><span class="delimiter">)</span><span class="">
+</span><span class="">  </span><span class="keyword1">then</span><span class=""> </span><span class="keyword3">show</span><span class=""> </span><span class="string">&quot;&#8896;xs. Rep -` (Abs -` xs) = xs&quot;</span><span class="">
+</span><span class="">    </span><span class="keyword1">unfolding</span><span class=""> </span><span class="">vimage_def</span><span class=""> </span><span class="keyword1">by</span><span class=""> </span><span class="">auto</span><span class="">
+</span><span class="keyword1">next</span><span class="">
+</span><span class="">  </span><span class="keyword3">show</span><span class=""> </span><span class="string">&quot;&#8896;xs. rel_vset R (Abs -` xs) (Abs -` xs)&quot;</span><span class="">
+</span><span class="">    </span><span class="keyword1">unfolding</span><span class=""> </span><span class="">rel_vset_def</span><span class=""> </span><span class="">vimage_def</span><span class="">
+</span><span class="">    </span><span class="keyword1">by</span><span class=""> </span><span class="">auto</span><span class=""> </span><span class="delimiter">(</span><span class="">metis</span><span class=""> </span><span class="">Quotient3_rel_abs</span><span class="delimiter">[</span><span class="">OF</span><span class=""> </span><span class="">assms</span><span class="delimiter">]</span><span class="delimiter">)</span><span class="delimiter">+</span><span class="">
+</span><span class="keyword1">next</span><span class="">
+</span><span class="">  </span><span class="keyword3">fix</span><span class=""> </span><span class="">r</span><span class=""> </span><span class="">s</span><span class="">
+</span><span class="">  </span><span class="keyword3">show</span><span class=""> </span><span class="string">&quot;rel_vset R r s = (rel_vset R r r &#8743; rel_vset R s s &#8743; Rep -` r = Rep -` s)&quot;</span><span class="">
+</span><span class="">    </span><span class="keyword1">unfolding</span><span class=""> </span><span class="">rel_vset_def</span><span class=""> </span><span class="">vimage_def</span><span class=""> </span><span class="">set_eq_iff</span><span class="">
+</span><span class="">    </span><span class="keyword1">by</span><span class=""> </span><span class="">auto</span><span class=""> </span><span class="delimiter">(</span><span class="">metis</span><span class=""> </span><span class="">rep_abs_rsp</span><span class="delimiter">[</span><span class="">OF</span><span class=""> </span><span class="">assms</span><span class="delimiter">]</span><span class=""> </span><span class="">assms</span><span class="delimiter">[</span><span class="">simplified</span><span class=""> </span><span class="">Quotient3_def</span><span class="delimiter">]</span><span class="delimiter">)</span><span class="delimiter">+</span><span class="">
+</span><span class="keyword1">qed</span><span class="">
+</span><span class="">
+</span><span class="keyword1">declare</span><span class=""> </span><span class="delimiter">[</span><span class="delimiter">[</span><span class="">mapQ3</span><span class=""> </span><span class="">set</span><span class=""> </span><span class="delimiter">=</span><span class=""> </span><span class="delimiter">(</span><span class="">rel_vset</span><span class="delimiter">,</span><span class=""> </span><span class="">set_quotient</span><span class="delimiter">)</span><span class="delimiter">]</span><span class="delimiter">]</span><span class="">
+</span><span class="">
+</span><span class="keyword1">lemma</span><span class=""> </span><span class="">empty_set_rsp</span><span class="delimiter">[</span><span class="">quot_respect</span><span class="delimiter">]</span><span class="delimiter">:</span><span class="">
+</span><span class="">  </span><span class="string">&quot;rel_vset R {} {}&quot;</span><span class="">
+</span><span class="">  </span><span class="keyword1">unfolding</span><span class=""> </span><span class="">rel_vset_def</span><span class=""> </span><span class="keyword1">by</span><span class=""> </span><span class="">simp</span><span class="">
+</span><span class="">
+</span><span class="keyword1">lemma</span><span class=""> </span><span class="">collect_rsp</span><span class="delimiter">[</span><span class="">quot_respect</span><span class="delimiter">]</span><span class="delimiter">:</span><span class="">
+</span><span class="">  </span><span class="keyword2">assumes</span><span class=""> </span><span class="string">&quot;Quotient3 R Abs Rep&quot;</span><span class="">
+</span><span class="">  </span><span class="keyword2">shows</span><span class=""> </span><span class="string">&quot;((R ===&gt; op =) ===&gt; rel_vset R) Collect Collect&quot;</span><span class="">
+</span><span class="">  </span><span class="keyword1">by</span><span class=""> </span><span class="delimiter">(</span><span class="">intro</span><span class=""> </span><span class="">rel_funI</span><span class="delimiter">)</span><span class=""> </span><span class="delimiter">(</span><span class="">simp</span><span class=""> </span><span class="">add</span><span class="delimiter">:</span><span class=""> </span><span class="">rel_fun_def</span><span class=""> </span><span class="">rel_vset_def</span><span class="delimiter">)</span><span class="">
+</span><span class="">
+</span><span class="keyword1">lemma</span><span class=""> </span><span class="">collect_prs</span><span class="delimiter">[</span><span class="">quot_preserve</span><span class="delimiter">]</span><span class="delimiter">:</span><span class="">
+</span><span class="">  </span><span class="keyword2">assumes</span><span class=""> </span><span class="string">&quot;Quotient3 R Abs Rep&quot;</span><span class="">
+</span><span class="">  </span><span class="keyword2">shows</span><span class=""> </span><span class="string">&quot;((Abs ---&gt; id) ---&gt; op -` Rep) Collect = Collect&quot;</span><span class="">
+</span><span class="">  </span><span class="keyword1">unfolding</span><span class=""> </span><span class="">fun_eq_iff</span><span class="">
+</span><span class="">  </span><span class="keyword1">by</span><span class=""> </span><span class="delimiter">(</span><span class="">simp</span><span class=""> </span><span class="">add</span><span class="delimiter">:</span><span class=""> </span><span class="">Quotient3_abs_rep</span><span class="delimiter">[</span><span class="">OF</span><span class=""> </span><span class="">assms</span><span class="delimiter">]</span><span class="delimiter">)</span><span class="">
+</span><span class="">
+</span><span class="keyword1">lemma</span><span class=""> </span><span class="">union_rsp</span><span class="delimiter">[</span><span class="">quot_respect</span><span class="delimiter">]</span><span class="delimiter">:</span><span class="">
+</span><span class="">  </span><span class="keyword2">assumes</span><span class=""> </span><span class="string">&quot;Quotient3 R Abs Rep&quot;</span><span class="">
+</span><span class="">  </span><span class="keyword2">shows</span><span class=""> </span><span class="string">&quot;(rel_vset R ===&gt; rel_vset R ===&gt; rel_vset R) op &#8746; op &#8746;&quot;</span><span class="">
+</span><span class="">  </span><span class="keyword1">by</span><span class=""> </span><span class="delimiter">(</span><span class="">intro</span><span class=""> </span><span class="">rel_funI</span><span class="delimiter">)</span><span class=""> </span><span class="delimiter">(</span><span class="">simp</span><span class=""> </span><span class="">add</span><span class="delimiter">:</span><span class=""> </span><span class="">rel_vset_def</span><span class="delimiter">)</span><span class="">
+</span><span class="">
+</span><span class="keyword1">lemma</span><span class=""> </span><span class="">union_prs</span><span class="delimiter">[</span><span class="">quot_preserve</span><span class="delimiter">]</span><span class="delimiter">:</span><span class="">
+</span><span class="">  </span><span class="keyword2">assumes</span><span class=""> </span><span class="string">&quot;Quotient3 R Abs Rep&quot;</span><span class="">
+</span><span class="">  </span><span class="keyword2">shows</span><span class=""> </span><span class="string">&quot;(op -` Abs ---&gt; op -` Abs ---&gt; op -` Rep) op &#8746; = op &#8746;&quot;</span><span class="">
+</span><span class="">  </span><span class="keyword1">unfolding</span><span class=""> </span><span class="">fun_eq_iff</span><span class="">
+</span><span class="">  </span><span class="keyword1">by</span><span class=""> </span><span class="delimiter">(</span><span class="">simp</span><span class=""> </span><span class="">add</span><span class="delimiter">:</span><span class=""> </span><span class="">Quotient3_abs_rep</span><span class="delimiter">[</span><span class="">OF</span><span class=""> </span><span class="">set_quotient</span><span class="delimiter">[</span><span class="">OF</span><span class=""> </span><span class="">assms</span><span class="delimiter">]</span><span class="delimiter">]</span><span class="delimiter">)</span><span class="">
+</span><span class="">
+</span><span class="keyword1">lemma</span><span class=""> </span><span class="">diff_rsp</span><span class="delimiter">[</span><span class="">quot_respect</span><span class="delimiter">]</span><span class="delimiter">:</span><span class="">
+</span><span class="">  </span><span class="keyword2">assumes</span><span class=""> </span><span class="string">&quot;Quotient3 R Abs Rep&quot;</span><span class="">
+</span><span class="">  </span><span class="keyword2">shows</span><span class=""> </span><span class="string">&quot;(rel_vset R ===&gt; rel_vset R ===&gt; rel_vset R) op - op -&quot;</span><span class="">
+</span><span class="">  </span><span class="keyword1">by</span><span class=""> </span><span class="delimiter">(</span><span class="">intro</span><span class=""> </span><span class="">rel_funI</span><span class="delimiter">)</span><span class=""> </span><span class="delimiter">(</span><span class="">simp</span><span class=""> </span><span class="">add</span><span class="delimiter">:</span><span class=""> </span><span class="">rel_vset_def</span><span class="delimiter">)</span><span class="">
+</span><span class="">
+</span><span class="keyword1">lemma</span><span class=""> </span><span class="">diff_prs</span><span class="delimiter">[</span><span class="">quot_preserve</span><span class="delimiter">]</span><span class="delimiter">:</span><span class="">
+</span><span class="">  </span><span class="keyword2">assumes</span><span class=""> </span><span class="string">&quot;Quotient3 R Abs Rep&quot;</span><span class="">
+</span><span class="">  </span><span class="keyword2">shows</span><span class=""> </span><span class="string">&quot;(op -` Abs ---&gt; op -` Abs ---&gt; op -` Rep) op - = op -&quot;</span><span class="">
+</span><span class="">  </span><span class="keyword1">unfolding</span><span class=""> </span><span class="">fun_eq_iff</span><span class="">
+</span><span class="">  </span><span class="keyword1">by</span><span class=""> </span><span class="delimiter">(</span><span class="">simp</span><span class=""> </span><span class="">add</span><span class="delimiter">:</span><span class=""> </span><span class="">Quotient3_abs_rep</span><span class="delimiter">[</span><span class="">OF</span><span class=""> </span><span class="">set_quotient</span><span class="delimiter">[</span><span class="">OF</span><span class=""> </span><span class="">assms</span><span class="delimiter">]</span><span class="delimiter">]</span><span class=""> </span><span class="">vimage_Diff</span><span class="delimiter">)</span><span class="">
+</span><span class="">
+</span><span class="keyword1">lemma</span><span class=""> </span><span class="">inter_rsp</span><span class="delimiter">[</span><span class="">quot_respect</span><span class="delimiter">]</span><span class="delimiter">:</span><span class="">
+</span><span class="">  </span><span class="keyword2">assumes</span><span class=""> </span><span class="string">&quot;Quotient3 R Abs Rep&quot;</span><span class="">
+</span><span class="">  </span><span class="keyword2">shows</span><span class=""> </span><span class="string">&quot;(rel_vset R ===&gt; rel_vset R ===&gt; rel_vset R) op &#8745; op &#8745;&quot;</span><span class="">
+</span><span class="">  </span><span class="keyword1">by</span><span class=""> </span><span class="delimiter">(</span><span class="">intro</span><span class=""> </span><span class="">rel_funI</span><span class="delimiter">)</span><span class=""> </span><span class="delimiter">(</span><span class="">auto</span><span class=""> </span><span class="">simp</span><span class=""> </span><span class="">add</span><span class="delimiter">:</span><span class=""> </span><span class="">rel_vset_def</span><span class="delimiter">)</span><span class="">
+</span><span class="">
+</span><span class="keyword1">lemma</span><span class=""> </span><span class="">inter_prs</span><span class="delimiter">[</span><span class="">quot_preserve</span><span class="delimiter">]</span><span class="delimiter">:</span><span class="">
+</span><span class="">  </span><span class="keyword2">assumes</span><span class=""> </span><span class="string">&quot;Quotient3 R Abs Rep&quot;</span><span class="">
+</span><span class="">  </span><span class="keyword2">shows</span><span class=""> </span><span class="string">&quot;(op -` Abs ---&gt; op -` Abs ---&gt; op -` Rep) op &#8745; = op &#8745;&quot;</span><span class="">
+</span><span class="">  </span><span class="keyword1">unfolding</span><span class=""> </span><span class="">fun_eq_iff</span><span class="">
+</span><span class="">  </span><span class="keyword1">by</span><span class=""> </span><span class="delimiter">(</span><span class="">simp</span><span class=""> </span><span class="">add</span><span class="delimiter">:</span><span class=""> </span><span class="">Quotient3_abs_rep</span><span class="delimiter">[</span><span class="">OF</span><span class=""> </span><span class="">set_quotient</span><span class="delimiter">[</span><span class="">OF</span><span class=""> </span><span class="">assms</span><span class="delimiter">]</span><span class="delimiter">]</span><span class="delimiter">)</span><span class="">
+</span><span class="">
+</span><span class="keyword1">lemma</span><span class=""> </span><span class="">mem_prs</span><span class="delimiter">[</span><span class="">quot_preserve</span><span class="delimiter">]</span><span class="delimiter">:</span><span class="">
+</span><span class="">  </span><span class="keyword2">assumes</span><span class=""> </span><span class="string">&quot;Quotient3 R Abs Rep&quot;</span><span class="">
+</span><span class="">  </span><span class="keyword2">shows</span><span class=""> </span><span class="string">&quot;(Rep ---&gt; op -` Abs ---&gt; id) op &#8712; = op &#8712;&quot;</span><span class="">
+</span><span class="">  </span><span class="keyword1">by</span><span class=""> </span><span class="delimiter">(</span><span class="">simp</span><span class=""> </span><span class="">add</span><span class="delimiter">:</span><span class=""> </span><span class="">fun_eq_iff</span><span class=""> </span><span class="">Quotient3_abs_rep</span><span class="delimiter">[</span><span class="">OF</span><span class=""> </span><span class="">assms</span><span class="delimiter">]</span><span class="delimiter">)</span><span class="">
+</span><span class="">
+</span><span class="keyword1">lemma</span><span class=""> </span><span class="">mem_rsp</span><span class="delimiter">[</span><span class="">quot_respect</span><span class="delimiter">]</span><span class="delimiter">:</span><span class="">
+</span><span class="">  </span><span class="keyword2">shows</span><span class=""> </span><span class="string">&quot;(R ===&gt; rel_vset R ===&gt; op =) op &#8712; op &#8712;&quot;</span><span class="">
+</span><span class="">  </span><span class="keyword1">by</span><span class=""> </span><span class="delimiter">(</span><span class="">intro</span><span class=""> </span><span class="">rel_funI</span><span class="delimiter">)</span><span class=""> </span><span class="delimiter">(</span><span class="">simp</span><span class=""> </span><span class="">add</span><span class="delimiter">:</span><span class=""> </span><span class="">rel_vset_def</span><span class="delimiter">)</span><span class="">
+</span><span class="">
+</span><span class="keyword2">end</span><span class="">
+</span></pre>
+
+</div>
+</body>
+</html>

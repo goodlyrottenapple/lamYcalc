@@ -1,0 +1,566 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
+<title>Theory Cardinality (Isabelle2016: February 2016)</title>
+<link media="all" rel="stylesheet" type="text/css" href="isabelle.css"/>
+</head>
+
+<body>
+<div class="head"><h1>Theory Cardinality</h1>
+
+<span class="command">theory</span> <span class="name">Cardinality</span><br/>
+<span class="keyword">imports</span> <a href="Phantom_Type.html"><span class="name">Phantom_Type</span></a><br/>
+
+</div>
+<div class="source">
+<pre class="source"><span class="comment">(*  Title:      HOL/Library/Cardinality.thy
+    Author:     Brian Huffman, Andreas Lochbihler
+*)</span><span class="">
+</span><span class="">
+</span><span class="keyword1">section</span><span class=""> </span><span class="cartouche">&#8249;Cardinality of types&#8250;</span><span class="">
+</span><span class="">
+</span><span class="keyword1">theory</span><span class=""> </span><span class="">Cardinality</span><span class="">
+</span><span class="keyword2">imports</span><span class=""> </span><span class="">Phantom_Type</span><span class="">
+</span><span class="keyword2">begin</span><span class="">
+</span><span class="">
+</span><span class="keyword1">subsection</span><span class=""> </span><span class="cartouche">&#8249;Preliminary lemmas&#8250;</span><span class="">
+</span><span class="comment">(* These should be moved elsewhere *)</span><span class="">
+</span><span class="">
+</span><span class="keyword1">lemma</span><span class=""> </span><span class="delimiter">(</span><span class="keyword2">in</span><span class=""> </span><span class="">type_definition</span><span class="delimiter">)</span><span class=""> </span><span class="">univ</span><span class="delimiter">:</span><span class="">
+</span><span class="">  </span><span class="string">&quot;UNIV = Abs ` A&quot;</span><span class="">
+</span><span class="keyword1">proof</span><span class="">
+</span><span class="">  </span><span class="keyword3">show</span><span class=""> </span><span class="string">&quot;Abs ` A &#8838; UNIV&quot;</span><span class=""> </span><span class="keyword1">by</span><span class=""> </span><span class="delimiter">(</span><span class="">rule</span><span class=""> </span><span class="">subset_UNIV</span><span class="delimiter">)</span><span class="">
+</span><span class="">  </span><span class="keyword3">show</span><span class=""> </span><span class="string">&quot;UNIV &#8838; Abs ` A&quot;</span><span class="">
+</span><span class="">  </span><span class="keyword1">proof</span><span class="">
+</span><span class="">    </span><span class="keyword3">fix</span><span class=""> </span><span class="">x</span><span class=""> </span><span class="delimiter">::</span><span class=""> </span><span class="tfree">&#39;b</span><span class="">
+</span><span class="">    </span><span class="keyword1">have</span><span class=""> </span><span class="string">&quot;x = Abs (Rep x)&quot;</span><span class=""> </span><span class="keyword1">by</span><span class=""> </span><span class="delimiter">(</span><span class="">rule</span><span class=""> </span><span class="">Rep_inverse</span><span class=""> </span><span class="delimiter">[</span><span class="">symmetric</span><span class="delimiter">]</span><span class="delimiter">)</span><span class="">
+</span><span class="">    </span><span class="keyword1">moreover</span><span class=""> </span><span class="keyword1">have</span><span class=""> </span><span class="string">&quot;Rep x &#8712; A&quot;</span><span class=""> </span><span class="keyword1">by</span><span class=""> </span><span class="delimiter">(</span><span class="">rule</span><span class=""> </span><span class="">Rep</span><span class="delimiter">)</span><span class="">
+</span><span class="">    </span><span class="keyword1">ultimately</span><span class=""> </span><span class="keyword3">show</span><span class=""> </span><span class="string">&quot;x &#8712; Abs ` A&quot;</span><span class=""> </span><span class="keyword1">by</span><span class=""> </span><span class="delimiter">(</span><span class="">rule</span><span class=""> </span><span class="">image_eqI</span><span class="delimiter">)</span><span class="">
+</span><span class="">  </span><span class="keyword1">qed</span><span class="">
+</span><span class="keyword1">qed</span><span class="">
+</span><span class="">
+</span><span class="keyword1">lemma</span><span class=""> </span><span class="delimiter">(</span><span class="keyword2">in</span><span class=""> </span><span class="">type_definition</span><span class="delimiter">)</span><span class=""> </span><span class="">card</span><span class="delimiter">:</span><span class=""> </span><span class="string">&quot;card (UNIV :: &#39;b set) = card A&quot;</span><span class="">
+</span><span class="">  </span><span class="keyword1">by</span><span class=""> </span><span class="delimiter">(</span><span class="">simp</span><span class=""> </span><span class="">add</span><span class="delimiter">:</span><span class=""> </span><span class="">univ</span><span class=""> </span><span class="">card_image</span><span class=""> </span><span class="">inj_on_def</span><span class=""> </span><span class="">Abs_inject</span><span class="delimiter">)</span><span class="">
+</span><span class="">
+</span><span class="keyword1">lemma</span><span class=""> </span><span class="">finite_range_Some</span><span class="delimiter">:</span><span class=""> </span><span class="string">&quot;finite (range (Some :: &#39;a &#8658; &#39;a option)) = finite (UNIV :: &#39;a set)&quot;</span><span class="">
+</span><span class="keyword1">by</span><span class="delimiter">(</span><span class="">auto</span><span class=""> </span><span class="">dest</span><span class="delimiter">:</span><span class=""> </span><span class="">finite_imageD</span><span class=""> </span><span class="">intro</span><span class="delimiter">:</span><span class=""> </span><span class="">inj_Some</span><span class="delimiter">)</span><span class="">
+</span><span class="">
+</span><span class="keyword1">lemma</span><span class=""> </span><span class="">infinite_literal</span><span class="delimiter">:</span><span class=""> </span><span class="string">&quot;&#172; finite (UNIV :: String.literal set)&quot;</span><span class="">
+</span><span class="keyword1">proof</span><span class=""> </span><span class="">-</span><span class="">
+</span><span class="">  </span><span class="keyword1">have</span><span class=""> </span><span class="string">&quot;inj STR&quot;</span><span class=""> </span><span class="keyword1">by</span><span class="delimiter">(</span><span class="">auto</span><span class=""> </span><span class="">intro</span><span class="delimiter">:</span><span class=""> </span><span class="">injI</span><span class="delimiter">)</span><span class="">
+</span><span class="">  </span><span class="keyword3">thus</span><span class=""> </span><span class="var">?thesis</span><span class="">
+</span><span class="">    </span><span class="keyword1">by</span><span class="delimiter">(</span><span class="">auto</span><span class=""> </span><span class="">simp</span><span class=""> </span><span class="">add</span><span class="delimiter">:</span><span class=""> </span><span class="">type_definition.univ</span><span class="delimiter">[</span><span class="">OF</span><span class=""> </span><span class="">type_definition_literal</span><span class="delimiter">]</span><span class=""> </span><span class="">infinite_UNIV_listI</span><span class=""> </span><span class="">dest</span><span class="delimiter">:</span><span class=""> </span><span class="">finite_imageD</span><span class="delimiter">)</span><span class="">
+</span><span class="keyword1">qed</span><span class="">
+</span><span class="">
+</span><span class="keyword1">subsection</span><span class=""> </span><span class="cartouche">&#8249;Cardinalities of types&#8250;</span><span class="">
+</span><span class="">
+</span><span class="keyword1">syntax</span><span class=""> </span><span class="string">&quot;_type_card&quot;</span><span class=""> </span><span class="delimiter">::</span><span class=""> </span><span class="string">&quot;type =&gt; nat&quot;</span><span class=""> </span><span class="delimiter">(</span><span class="string">&quot;(1CARD/(1&#39;(_&#39;)))&quot;</span><span class="delimiter">)</span><span class="">
+</span><span class="">
+</span><span class="keyword1">translations</span><span class=""> </span><span class="string">&quot;CARD(&#39;t)&quot;</span><span class=""> </span><span class="delimiter">=&gt;</span><span class=""> </span><span class="string">&quot;CONST card (CONST UNIV :: &#39;t set)&quot;</span><span class="">
+</span><span class="">
+</span><span class="keyword1">print_translation</span><span class=""> </span><span class="cartouche">&#8249;
+  let
+    fun card_univ_tr&#39; ctxt [Const (@{const_syntax UNIV}, Type (_, [T]))] =
+      Syntax.const @{syntax_const &quot;_type_card&quot;} $ Syntax_Phases.term_of_typ ctxt T
+  in [(@{const_syntax card}, card_univ_tr&#39;)] end
+&#8250;</span><span class="">
+</span><span class="">
+</span><span class="keyword1">lemma</span><span class=""> </span><span class="">card_prod</span><span class=""> </span><span class="delimiter">[</span><span class="">simp</span><span class="delimiter">]</span><span class="delimiter">:</span><span class=""> </span><span class="string">&quot;CARD(&#39;a &#215; &#39;b) = CARD(&#39;a) * CARD(&#39;b)&quot;</span><span class="">
+</span><span class="">  </span><span class="keyword1">unfolding</span><span class=""> </span><span class="">UNIV_Times_UNIV</span><span class=""> </span><span class="delimiter">[</span><span class="">symmetric</span><span class="delimiter">]</span><span class=""> </span><span class="keyword1">by</span><span class=""> </span><span class="delimiter">(</span><span class="">simp</span><span class=""> </span><span class="">only</span><span class="delimiter">:</span><span class=""> </span><span class="">card_cartesian_product</span><span class="delimiter">)</span><span class="">
+</span><span class="">
+</span><span class="keyword1">lemma</span><span class=""> </span><span class="">card_UNIV_sum</span><span class="delimiter">:</span><span class=""> </span><span class="string">&quot;CARD(&#39;a + &#39;b) = (if CARD(&#39;a) &#8800; 0 &#8743; CARD(&#39;b) &#8800; 0 then CARD(&#39;a) + CARD(&#39;b) else 0)&quot;</span><span class="">
+</span><span class="keyword1">unfolding</span><span class=""> </span><span class="">UNIV_Plus_UNIV</span><span class="delimiter">[</span><span class="">symmetric</span><span class="delimiter">]</span><span class="">
+</span><span class="keyword1">by</span><span class="delimiter">(</span><span class="">auto</span><span class=""> </span><span class="">simp</span><span class=""> </span><span class="">add</span><span class="delimiter">:</span><span class=""> </span><span class="">card_eq_0_iff</span><span class=""> </span><span class="">card_Plus</span><span class=""> </span><span class="">simp</span><span class=""> </span><span class="">del</span><span class="delimiter">:</span><span class=""> </span><span class="">UNIV_Plus_UNIV</span><span class="delimiter">)</span><span class="">
+</span><span class="">
+</span><span class="keyword1">lemma</span><span class=""> </span><span class="">card_sum</span><span class=""> </span><span class="delimiter">[</span><span class="">simp</span><span class="delimiter">]</span><span class="delimiter">:</span><span class=""> </span><span class="string">&quot;CARD(&#39;a + &#39;b) = CARD(&#39;a::finite) + CARD(&#39;b::finite)&quot;</span><span class="">
+</span><span class="keyword1">by</span><span class="delimiter">(</span><span class="">simp</span><span class=""> </span><span class="">add</span><span class="delimiter">:</span><span class=""> </span><span class="">card_UNIV_sum</span><span class="delimiter">)</span><span class="">
+</span><span class="">
+</span><span class="keyword1">lemma</span><span class=""> </span><span class="">card_UNIV_option</span><span class="delimiter">:</span><span class=""> </span><span class="string">&quot;CARD(&#39;a option) = (if CARD(&#39;a) = 0 then 0 else CARD(&#39;a) + 1)&quot;</span><span class="">
+</span><span class="keyword1">proof</span><span class=""> </span><span class="">-</span><span class="">
+</span><span class="">  </span><span class="keyword1">have</span><span class=""> </span><span class="string">&quot;(None :: &#39;a option) &#8713; range Some&quot;</span><span class=""> </span><span class="keyword1">by</span><span class=""> </span><span class="">clarsimp</span><span class="">
+</span><span class="">  </span><span class="keyword3">thus</span><span class=""> </span><span class="var">?thesis</span><span class="">
+</span><span class="">    </span><span class="keyword1">by</span><span class=""> </span><span class="delimiter">(</span><span class="">simp</span><span class=""> </span><span class="">add</span><span class="delimiter">:</span><span class=""> </span><span class="">UNIV_option_conv</span><span class=""> </span><span class="">card_eq_0_iff</span><span class=""> </span><span class="">finite_range_Some</span><span class=""> </span><span class="">card_image</span><span class="delimiter">)</span><span class="">
+</span><span class="keyword1">qed</span><span class="">
+</span><span class="">
+</span><span class="keyword1">lemma</span><span class=""> </span><span class="">card_option</span><span class=""> </span><span class="delimiter">[</span><span class="">simp</span><span class="delimiter">]</span><span class="delimiter">:</span><span class=""> </span><span class="string">&quot;CARD(&#39;a option) = Suc CARD(&#39;a::finite)&quot;</span><span class="">
+</span><span class="keyword1">by</span><span class="delimiter">(</span><span class="">simp</span><span class=""> </span><span class="">add</span><span class="delimiter">:</span><span class=""> </span><span class="">card_UNIV_option</span><span class="delimiter">)</span><span class="">
+</span><span class="">
+</span><span class="keyword1">lemma</span><span class=""> </span><span class="">card_UNIV_set</span><span class="delimiter">:</span><span class=""> </span><span class="string">&quot;CARD(&#39;a set) = (if CARD(&#39;a) = 0 then 0 else 2 ^ CARD(&#39;a))&quot;</span><span class="">
+</span><span class="keyword1">by</span><span class="delimiter">(</span><span class="">simp</span><span class=""> </span><span class="">add</span><span class="delimiter">:</span><span class=""> </span><span class="">Pow_UNIV</span><span class="delimiter">[</span><span class="">symmetric</span><span class="delimiter">]</span><span class=""> </span><span class="">card_eq_0_iff</span><span class=""> </span><span class="">card_Pow</span><span class=""> </span><span class="">del</span><span class="delimiter">:</span><span class=""> </span><span class="">Pow_UNIV</span><span class="delimiter">)</span><span class="">
+</span><span class="">
+</span><span class="keyword1">lemma</span><span class=""> </span><span class="">card_set</span><span class=""> </span><span class="delimiter">[</span><span class="">simp</span><span class="delimiter">]</span><span class="delimiter">:</span><span class=""> </span><span class="string">&quot;CARD(&#39;a set) = 2 ^ CARD(&#39;a::finite)&quot;</span><span class="">
+</span><span class="keyword1">by</span><span class="delimiter">(</span><span class="">simp</span><span class=""> </span><span class="">add</span><span class="delimiter">:</span><span class=""> </span><span class="">card_UNIV_set</span><span class="delimiter">)</span><span class="">
+</span><span class="">
+</span><span class="keyword1">lemma</span><span class=""> </span><span class="">card_nat</span><span class=""> </span><span class="delimiter">[</span><span class="">simp</span><span class="delimiter">]</span><span class="delimiter">:</span><span class=""> </span><span class="string">&quot;CARD(nat) = 0&quot;</span><span class="">
+</span><span class="">  </span><span class="keyword1">by</span><span class=""> </span><span class="delimiter">(</span><span class="">simp</span><span class=""> </span><span class="">add</span><span class="delimiter">:</span><span class=""> </span><span class="">card_eq_0_iff</span><span class="delimiter">)</span><span class="">
+</span><span class="">
+</span><span class="keyword1">lemma</span><span class=""> </span><span class="">card_fun</span><span class="delimiter">:</span><span class=""> </span><span class="string">&quot;CARD(&#39;a &#8658; &#39;b) = (if CARD(&#39;a) &#8800; 0 &#8743; CARD(&#39;b) &#8800; 0 &#8744; CARD(&#39;b) = 1 then CARD(&#39;b) ^ CARD(&#39;a) else 0)&quot;</span><span class="">
+</span><span class="keyword1">proof</span><span class=""> </span><span class="">-</span><span class="">
+</span><span class="">  </span><span class="keyword1">{</span><span class="">  </span><span class="keyword3">assume</span><span class=""> </span><span class="string">&quot;0 &lt; CARD(&#39;a)&quot;</span><span class=""> </span><span class="keyword2">and</span><span class=""> </span><span class="string">&quot;0 &lt; CARD(&#39;b)&quot;</span><span class="">
+</span><span class="">    </span><span class="keyword1">hence</span><span class=""> </span><span class="">fina</span><span class="delimiter">:</span><span class=""> </span><span class="string">&quot;finite (UNIV :: &#39;a set)&quot;</span><span class=""> </span><span class="keyword2">and</span><span class=""> </span><span class="">finb</span><span class="delimiter">:</span><span class=""> </span><span class="string">&quot;finite (UNIV :: &#39;b set)&quot;</span><span class="">
+</span><span class="">      </span><span class="keyword1">by</span><span class="delimiter">(</span><span class="">simp_all</span><span class=""> </span><span class="">only</span><span class="delimiter">:</span><span class=""> </span><span class="">card_ge_0_finite</span><span class="delimiter">)</span><span class="">
+</span><span class="">    </span><span class="keyword1">from</span><span class=""> </span><span class="">finite_distinct_list</span><span class="delimiter">[</span><span class="">OF</span><span class=""> </span><span class="">finb</span><span class="delimiter">]</span><span class=""> </span><span class="keyword3">obtain</span><span class=""> </span><span class="">bs</span><span class=""> 
+</span><span class="">      </span><span class="keyword2">where</span><span class=""> </span><span class="">bs</span><span class="delimiter">:</span><span class=""> </span><span class="string">&quot;set bs = (UNIV :: &#39;b set)&quot;</span><span class=""> </span><span class="keyword2">and</span><span class=""> </span><span class="">distb</span><span class="delimiter">:</span><span class=""> </span><span class="string">&quot;distinct bs&quot;</span><span class=""> </span><span class="keyword1">by</span><span class=""> </span><span class="">blast</span><span class="">
+</span><span class="">    </span><span class="keyword1">from</span><span class=""> </span><span class="">finite_distinct_list</span><span class="delimiter">[</span><span class="">OF</span><span class=""> </span><span class="">fina</span><span class="delimiter">]</span><span class=""> </span><span class="keyword3">obtain</span><span class=""> </span><span class="">as</span><span class="">
+</span><span class="">      </span><span class="keyword2">where</span><span class=""> </span><span class="">as</span><span class="delimiter">:</span><span class=""> </span><span class="string">&quot;set as = (UNIV :: &#39;a set)&quot;</span><span class=""> </span><span class="keyword2">and</span><span class=""> </span><span class="">dista</span><span class="delimiter">:</span><span class=""> </span><span class="string">&quot;distinct as&quot;</span><span class=""> </span><span class="keyword1">by</span><span class=""> </span><span class="">blast</span><span class="">
+</span><span class="">    </span><span class="keyword1">have</span><span class=""> </span><span class="">cb</span><span class="delimiter">:</span><span class=""> </span><span class="string">&quot;CARD(&#39;b) = length bs&quot;</span><span class="">
+</span><span class="">      </span><span class="keyword1">unfolding</span><span class=""> </span><span class="">bs</span><span class="delimiter">[</span><span class="">symmetric</span><span class="delimiter">]</span><span class=""> </span><span class="">distinct_card</span><span class="delimiter">[</span><span class="">OF</span><span class=""> </span><span class="">distb</span><span class="delimiter">]</span><span class=""> </span><span class="keyword1">..</span><span class="">
+</span><span class="">    </span><span class="keyword1">have</span><span class=""> </span><span class="">ca</span><span class="delimiter">:</span><span class=""> </span><span class="string">&quot;CARD(&#39;a) = length as&quot;</span><span class="">
+</span><span class="">      </span><span class="keyword1">unfolding</span><span class=""> </span><span class="">as</span><span class="delimiter">[</span><span class="">symmetric</span><span class="delimiter">]</span><span class=""> </span><span class="">distinct_card</span><span class="delimiter">[</span><span class="">OF</span><span class=""> </span><span class="">dista</span><span class="delimiter">]</span><span class=""> </span><span class="keyword1">..</span><span class="">
+</span><span class="">    </span><span class="keyword1">let</span><span class=""> </span><span class="var">?xs</span><span class=""> </span><span class="delimiter">=</span><span class=""> </span><span class="string">&quot;map (&#955;ys. the o map_of (zip as ys)) (List.n_lists (length as) bs)&quot;</span><span class="">
+</span><span class="">    </span><span class="keyword1">have</span><span class=""> </span><span class="string">&quot;UNIV = set ?xs&quot;</span><span class="">
+</span><span class="">    </span><span class="keyword1">proof</span><span class="delimiter">(</span><span class="">rule</span><span class=""> </span><span class="">UNIV_eq_I</span><span class="delimiter">)</span><span class="">
+</span><span class="">      </span><span class="keyword3">fix</span><span class=""> </span><span class="">f</span><span class=""> </span><span class="delimiter">::</span><span class=""> </span><span class="string">&quot;&#39;a &#8658; &#39;b&quot;</span><span class="">
+</span><span class="">      </span><span class="keyword1">from</span><span class=""> </span><span class="">as</span><span class=""> </span><span class="keyword1">have</span><span class=""> </span><span class="string">&quot;f = the &#8728; map_of (zip as (map f as))&quot;</span><span class="">
+</span><span class="">        </span><span class="keyword1">by</span><span class="delimiter">(</span><span class="">auto</span><span class=""> </span><span class="">simp</span><span class=""> </span><span class="">add</span><span class="delimiter">:</span><span class=""> </span><span class="">map_of_zip_map</span><span class="delimiter">)</span><span class="">
+</span><span class="">      </span><span class="keyword3">thus</span><span class=""> </span><span class="string">&quot;f &#8712; set ?xs&quot;</span><span class=""> </span><span class="keyword1">using</span><span class=""> </span><span class="">bs</span><span class=""> </span><span class="keyword1">by</span><span class="delimiter">(</span><span class="">auto</span><span class=""> </span><span class="">simp</span><span class=""> </span><span class="">add</span><span class="delimiter">:</span><span class=""> </span><span class="">set_n_lists</span><span class="delimiter">)</span><span class="">
+</span><span class="">    </span><span class="keyword1">qed</span><span class="">
+</span><span class="">    </span><span class="keyword1">moreover</span><span class=""> </span><span class="keyword1">have</span><span class=""> </span><span class="string">&quot;distinct ?xs&quot;</span><span class=""> </span><span class="keyword1">unfolding</span><span class=""> </span><span class="">distinct_map</span><span class="">
+</span><span class="">    </span><span class="keyword1">proof</span><span class="delimiter">(</span><span class="">intro</span><span class=""> </span><span class="">conjI</span><span class=""> </span><span class="">distinct_n_lists</span><span class=""> </span><span class="">distb</span><span class=""> </span><span class="">inj_onI</span><span class="delimiter">)</span><span class="">
+</span><span class="">      </span><span class="keyword3">fix</span><span class=""> </span><span class="">xs</span><span class=""> </span><span class="">ys</span><span class=""> </span><span class="delimiter">::</span><span class=""> </span><span class="string">&quot;&#39;b list&quot;</span><span class="">
+</span><span class="">      </span><span class="keyword3">assume</span><span class=""> </span><span class="">xs</span><span class="delimiter">:</span><span class=""> </span><span class="string">&quot;xs &#8712; set (List.n_lists (length as) bs)&quot;</span><span class="">
+</span><span class="">        </span><span class="keyword2">and</span><span class=""> </span><span class="">ys</span><span class="delimiter">:</span><span class=""> </span><span class="string">&quot;ys &#8712; set (List.n_lists (length as) bs)&quot;</span><span class="">
+</span><span class="">        </span><span class="keyword2">and</span><span class=""> </span><span class="">eq</span><span class="delimiter">:</span><span class=""> </span><span class="string">&quot;the &#8728; map_of (zip as xs) = the &#8728; map_of (zip as ys)&quot;</span><span class="">
+</span><span class="">      </span><span class="keyword1">from</span><span class=""> </span><span class="">xs</span><span class=""> </span><span class="">ys</span><span class=""> </span><span class="keyword1">have</span><span class=""> </span><span class="delimiter">[</span><span class="">simp</span><span class="delimiter">]</span><span class="delimiter">:</span><span class=""> </span><span class="string">&quot;length xs = length as&quot;</span><span class=""> </span><span class="string">&quot;length ys = length as&quot;</span><span class="">
+</span><span class="">        </span><span class="keyword1">by</span><span class="delimiter">(</span><span class="">simp_all</span><span class=""> </span><span class="">add</span><span class="delimiter">:</span><span class=""> </span><span class="">length_n_lists_elem</span><span class="delimiter">)</span><span class="">
+</span><span class="">      </span><span class="keyword1">have</span><span class=""> </span><span class="string">&quot;map_of (zip as xs) = map_of (zip as ys)&quot;</span><span class="">
+</span><span class="">      </span><span class="keyword1">proof</span><span class="">
+</span><span class="">        </span><span class="keyword3">fix</span><span class=""> </span><span class="">x</span><span class="">
+</span><span class="">        </span><span class="keyword1">from</span><span class=""> </span><span class="">as</span><span class=""> </span><span class="">bs</span><span class=""> </span><span class="keyword1">have</span><span class=""> </span><span class="string">&quot;&#8707;y. map_of (zip as xs) x = Some y&quot;</span><span class=""> </span><span class="string">&quot;&#8707;y. map_of (zip as ys) x = Some y&quot;</span><span class="">
+</span><span class="">          </span><span class="keyword1">by</span><span class="delimiter">(</span><span class="">simp_all</span><span class=""> </span><span class="">add</span><span class="delimiter">:</span><span class=""> </span><span class="">map_of_zip_is_Some</span><span class="delimiter">[</span><span class="">symmetric</span><span class="delimiter">]</span><span class="delimiter">)</span><span class="">
+</span><span class="">        </span><span class="keyword1">with</span><span class=""> </span><span class="">eq</span><span class=""> </span><span class="keyword3">show</span><span class=""> </span><span class="string">&quot;map_of (zip as xs) x = map_of (zip as ys) x&quot;</span><span class="">
+</span><span class="">          </span><span class="keyword1">by</span><span class="delimiter">(</span><span class="">auto</span><span class=""> </span><span class="">dest</span><span class="delimiter">:</span><span class=""> </span><span class="">fun_cong</span><span class="delimiter">[</span><span class="keyword2">where</span><span class=""> </span><span class="">x</span><span class="delimiter">=</span><span class="">x</span><span class="delimiter">]</span><span class="delimiter">)</span><span class="">
+</span><span class="">      </span><span class="keyword1">qed</span><span class="">
+</span><span class="">      </span><span class="keyword1">with</span><span class=""> </span><span class="">dista</span><span class=""> </span><span class="keyword3">show</span><span class=""> </span><span class="string">&quot;xs = ys&quot;</span><span class=""> </span><span class="keyword1">by</span><span class="delimiter">(</span><span class="">simp</span><span class=""> </span><span class="">add</span><span class="delimiter">:</span><span class=""> </span><span class="">map_of_zip_inject</span><span class="delimiter">)</span><span class="">
+</span><span class="">    </span><span class="keyword1">qed</span><span class="">
+</span><span class="">    </span><span class="keyword1">hence</span><span class=""> </span><span class="string">&quot;card (set ?xs) = length ?xs&quot;</span><span class=""> </span><span class="keyword1">by</span><span class="delimiter">(</span><span class="">simp</span><span class=""> </span><span class="">only</span><span class="delimiter">:</span><span class=""> </span><span class="">distinct_card</span><span class="delimiter">)</span><span class="">
+</span><span class="">    </span><span class="keyword1">moreover</span><span class=""> </span><span class="keyword1">have</span><span class=""> </span><span class="string">&quot;length ?xs = length bs ^ length as&quot;</span><span class=""> </span><span class="keyword1">by</span><span class="delimiter">(</span><span class="">simp</span><span class=""> </span><span class="">add</span><span class="delimiter">:</span><span class=""> </span><span class="">length_n_lists</span><span class="delimiter">)</span><span class="">
+</span><span class="">    </span><span class="keyword1">ultimately</span><span class=""> </span><span class="keyword1">have</span><span class=""> </span><span class="string">&quot;CARD(&#39;a &#8658; &#39;b) = CARD(&#39;b) ^ CARD(&#39;a)&quot;</span><span class=""> </span><span class="keyword1">using</span><span class=""> </span><span class="">cb</span><span class=""> </span><span class="">ca</span><span class=""> </span><span class="keyword1">by</span><span class=""> </span><span class="">simp</span><span class=""> </span><span class="keyword1">}</span><span class="">
+</span><span class="">  </span><span class="keyword1">moreover</span><span class=""> </span><span class="keyword1">{</span><span class="">
+</span><span class="">    </span><span class="keyword3">assume</span><span class=""> </span><span class="">cb</span><span class="delimiter">:</span><span class=""> </span><span class="string">&quot;CARD(&#39;b) = 1&quot;</span><span class="">
+</span><span class="">    </span><span class="keyword1">then</span><span class=""> </span><span class="keyword3">obtain</span><span class=""> </span><span class="">b</span><span class=""> </span><span class="keyword2">where</span><span class=""> </span><span class="">b</span><span class="delimiter">:</span><span class=""> </span><span class="string">&quot;UNIV = {b :: &#39;b}&quot;</span><span class=""> </span><span class="keyword1">by</span><span class="delimiter">(</span><span class="">auto</span><span class=""> </span><span class="">simp</span><span class=""> </span><span class="">add</span><span class="delimiter">:</span><span class=""> </span><span class="">card_Suc_eq</span><span class="delimiter">)</span><span class="">
+</span><span class="">    </span><span class="keyword1">have</span><span class=""> </span><span class="">eq</span><span class="delimiter">:</span><span class=""> </span><span class="string">&quot;UNIV = {&#955;x :: &#39;a. b ::&#39;b}&quot;</span><span class="">
+</span><span class="">    </span><span class="keyword1">proof</span><span class="delimiter">(</span><span class="">rule</span><span class=""> </span><span class="">UNIV_eq_I</span><span class="delimiter">)</span><span class="">
+</span><span class="">      </span><span class="keyword3">fix</span><span class=""> </span><span class="">x</span><span class=""> </span><span class="delimiter">::</span><span class=""> </span><span class="string">&quot;&#39;a &#8658; &#39;b&quot;</span><span class="">
+</span><span class="">      </span><span class="keyword1">{</span><span class=""> </span><span class="keyword3">fix</span><span class=""> </span><span class="">y</span><span class="">
+</span><span class="">        </span><span class="keyword1">have</span><span class=""> </span><span class="string">&quot;x y &#8712; UNIV&quot;</span><span class=""> </span><span class="keyword1">..</span><span class="">
+</span><span class="">        </span><span class="keyword1">hence</span><span class=""> </span><span class="string">&quot;x y = b&quot;</span><span class=""> </span><span class="keyword1">unfolding</span><span class=""> </span><span class="">b</span><span class=""> </span><span class="keyword1">by</span><span class=""> </span><span class="">simp</span><span class=""> </span><span class="keyword1">}</span><span class="">
+</span><span class="">      </span><span class="keyword3">thus</span><span class=""> </span><span class="string">&quot;x &#8712; {&#955;x. b}&quot;</span><span class=""> </span><span class="keyword1">by</span><span class="delimiter">(</span><span class="">auto</span><span class="delimiter">)</span><span class="">
+</span><span class="">    </span><span class="keyword1">qed</span><span class="">
+</span><span class="">    </span><span class="keyword1">have</span><span class=""> </span><span class="string">&quot;CARD(&#39;a &#8658; &#39;b) = 1&quot;</span><span class=""> </span><span class="keyword1">unfolding</span><span class=""> </span><span class="">eq</span><span class=""> </span><span class="keyword1">by</span><span class=""> </span><span class="">simp</span><span class=""> </span><span class="keyword1">}</span><span class="">
+</span><span class="">  </span><span class="keyword1">ultimately</span><span class=""> </span><span class="keyword3">show</span><span class=""> </span><span class="var">?thesis</span><span class="">
+</span><span class="">    </span><span class="keyword1">by</span><span class="delimiter">(</span><span class="">auto</span><span class=""> </span><span class="">simp</span><span class=""> </span><span class="">del</span><span class="delimiter">:</span><span class=""> </span><span class="">One_nat_def</span><span class="delimiter">)</span><span class="delimiter">(</span><span class="">auto</span><span class=""> </span><span class="">simp</span><span class=""> </span><span class="">add</span><span class="delimiter">:</span><span class=""> </span><span class="">card_eq_0_iff</span><span class=""> </span><span class="">dest</span><span class="delimiter">:</span><span class=""> </span><span class="">finite_fun_UNIVD2</span><span class=""> </span><span class="">finite_fun_UNIVD1</span><span class="delimiter">)</span><span class="">
+</span><span class="keyword1">qed</span><span class="">
+</span><span class="">
+</span><span class="keyword1">corollary</span><span class=""> </span><span class="">finite_UNIV_fun</span><span class="delimiter">:</span><span class="">
+</span><span class="">  </span><span class="string">&quot;finite (UNIV :: (&#39;a &#8658; &#39;b) set) &#10231;
+   finite (UNIV :: &#39;a set) &#8743; finite (UNIV :: &#39;b set) &#8744; CARD(&#39;b) = 1&quot;</span><span class="">
+</span><span class="">  </span><span class="delimiter">(</span><span class="keyword2">is</span><span class=""> </span><span class="string">&quot;?lhs &#10231; ?rhs&quot;</span><span class="delimiter">)</span><span class="">
+</span><span class="keyword1">proof</span><span class=""> </span><span class="">-</span><span class="">
+</span><span class="">  </span><span class="keyword1">have</span><span class=""> </span><span class="string">&quot;?lhs &#10231; CARD(&#39;a &#8658; &#39;b) &gt; 0&quot;</span><span class=""> </span><span class="keyword1">by</span><span class="delimiter">(</span><span class="">simp</span><span class=""> </span><span class="">add</span><span class="delimiter">:</span><span class=""> </span><span class="">card_gt_0_iff</span><span class="delimiter">)</span><span class="">
+</span><span class="">  </span><span class="keyword1">also</span><span class=""> </span><span class="keyword1">have</span><span class=""> </span><span class="string">&quot;&#8230; &#10231; CARD(&#39;a) &gt; 0 &#8743; CARD(&#39;b) &gt; 0 &#8744; CARD(&#39;b) = 1&quot;</span><span class="">
+</span><span class="">    </span><span class="keyword1">by</span><span class="delimiter">(</span><span class="">simp</span><span class=""> </span><span class="">add</span><span class="delimiter">:</span><span class=""> </span><span class="">card_fun</span><span class="delimiter">)</span><span class="">
+</span><span class="">  </span><span class="keyword1">also</span><span class=""> </span><span class="keyword1">have</span><span class=""> </span><span class="string">&quot;&#8230; = ?rhs&quot;</span><span class=""> </span><span class="keyword1">by</span><span class="delimiter">(</span><span class="">simp</span><span class=""> </span><span class="">add</span><span class="delimiter">:</span><span class=""> </span><span class="">card_gt_0_iff</span><span class="delimiter">)</span><span class="">
+</span><span class="">  </span><span class="keyword1">finally</span><span class=""> </span><span class="keyword3">show</span><span class=""> </span><span class="var">?thesis</span><span class=""> </span><span class="keyword1">.</span><span class="">
+</span><span class="keyword1">qed</span><span class="">
+</span><span class="">
+</span><span class="keyword1">lemma</span><span class=""> </span><span class="">card_nibble</span><span class="delimiter">:</span><span class=""> </span><span class="string">&quot;CARD(nibble) = 16&quot;</span><span class="">
+</span><span class="keyword1">unfolding</span><span class=""> </span><span class="">UNIV_nibble</span><span class=""> </span><span class="keyword1">by</span><span class=""> </span><span class="">simp</span><span class="">
+</span><span class="">
+</span><span class="keyword1">lemma</span><span class=""> </span><span class="">card_UNIV_char</span><span class="delimiter">:</span><span class=""> </span><span class="string">&quot;CARD(char) = 256&quot;</span><span class="">
+</span><span class="keyword1">proof</span><span class=""> </span><span class="">-</span><span class="">
+</span><span class="">  </span><span class="keyword1">have</span><span class=""> </span><span class="string">&quot;inj (&#955;(x, y). Char x y)&quot;</span><span class=""> </span><span class="keyword1">by</span><span class="delimiter">(</span><span class="">auto</span><span class=""> </span><span class="">intro</span><span class="delimiter">:</span><span class=""> </span><span class="">injI</span><span class="delimiter">)</span><span class="">
+</span><span class="">  </span><span class="keyword3">thus</span><span class=""> </span><span class="var">?thesis</span><span class=""> </span><span class="keyword1">unfolding</span><span class=""> </span><span class="">UNIV_char</span><span class=""> </span><span class="keyword1">by</span><span class="delimiter">(</span><span class="">simp</span><span class=""> </span><span class="">add</span><span class="delimiter">:</span><span class=""> </span><span class="">card_image</span><span class=""> </span><span class="">card_nibble</span><span class="delimiter">)</span><span class="">
+</span><span class="keyword1">qed</span><span class="">
+</span><span class="">
+</span><span class="keyword1">lemma</span><span class=""> </span><span class="">card_literal</span><span class="delimiter">:</span><span class=""> </span><span class="string">&quot;CARD(String.literal) = 0&quot;</span><span class="">
+</span><span class="keyword1">by</span><span class="delimiter">(</span><span class="">simp</span><span class=""> </span><span class="">add</span><span class="delimiter">:</span><span class=""> </span><span class="">card_eq_0_iff</span><span class=""> </span><span class="">infinite_literal</span><span class="delimiter">)</span><span class="">
+</span><span class="">
+</span><span class="keyword1">subsection</span><span class=""> </span><span class="cartouche">&#8249;Classes with at least 1 and 2&#8250;</span><span class="">
+</span><span class="">
+</span><span class="keyword1">text</span><span class=""> </span><span class="cartouche">&#8249;Class finite already captures &quot;at least 1&quot;&#8250;</span><span class="">
+</span><span class="">
+</span><span class="keyword1">lemma</span><span class=""> </span><span class="">zero_less_card_finite</span><span class=""> </span><span class="delimiter">[</span><span class="">simp</span><span class="delimiter">]</span><span class="delimiter">:</span><span class=""> </span><span class="string">&quot;0 &lt; CARD(&#39;a::finite)&quot;</span><span class="">
+</span><span class="">  </span><span class="keyword1">unfolding</span><span class=""> </span><span class="">neq0_conv</span><span class=""> </span><span class="delimiter">[</span><span class="">symmetric</span><span class="delimiter">]</span><span class=""> </span><span class="keyword1">by</span><span class=""> </span><span class="">simp</span><span class="">
+</span><span class="">
+</span><span class="keyword1">lemma</span><span class=""> </span><span class="">one_le_card_finite</span><span class=""> </span><span class="delimiter">[</span><span class="">simp</span><span class="delimiter">]</span><span class="delimiter">:</span><span class=""> </span><span class="string">&quot;Suc 0 &#8804; CARD(&#39;a::finite)&quot;</span><span class="">
+</span><span class="">  </span><span class="keyword1">by</span><span class=""> </span><span class="delimiter">(</span><span class="">simp</span><span class=""> </span><span class="">add</span><span class="delimiter">:</span><span class=""> </span><span class="">less_Suc_eq_le</span><span class=""> </span><span class="delimiter">[</span><span class="">symmetric</span><span class="delimiter">]</span><span class="delimiter">)</span><span class="">
+</span><span class="">
+</span><span class="keyword1">text</span><span class=""> </span><span class="cartouche">&#8249;Class for cardinality &quot;at least 2&quot;&#8250;</span><span class="">
+</span><span class="">
+</span><span class="keyword1">class</span><span class=""> </span><span class="">card2</span><span class=""> </span><span class="delimiter">=</span><span class=""> </span><span class="">finite</span><span class=""> </span><span class="delimiter">+</span><span class=""> 
+</span><span class="">  </span><span class="keyword2">assumes</span><span class=""> </span><span class="">two_le_card</span><span class="delimiter">:</span><span class=""> </span><span class="string">&quot;2 &#8804; CARD(&#39;a)&quot;</span><span class="">
+</span><span class="">
+</span><span class="keyword1">lemma</span><span class=""> </span><span class="">one_less_card</span><span class="delimiter">:</span><span class=""> </span><span class="string">&quot;Suc 0 &lt; CARD(&#39;a::card2)&quot;</span><span class="">
+</span><span class="">  </span><span class="keyword1">using</span><span class=""> </span><span class="">two_le_card</span><span class=""> </span><span class="delimiter">[</span><span class="keyword2">where</span><span class=""> </span><span class="tfree">&#39;a</span><span class="delimiter">=</span><span class="tfree">&#39;a</span><span class="delimiter">]</span><span class=""> </span><span class="keyword1">by</span><span class=""> </span><span class="">simp</span><span class="">
+</span><span class="">
+</span><span class="keyword1">lemma</span><span class=""> </span><span class="">one_less_int_card</span><span class="delimiter">:</span><span class=""> </span><span class="string">&quot;1 &lt; int CARD(&#39;a::card2)&quot;</span><span class="">
+</span><span class="">  </span><span class="keyword1">using</span><span class=""> </span><span class="">one_less_card</span><span class=""> </span><span class="delimiter">[</span><span class="keyword2">where</span><span class=""> </span><span class="tfree">&#39;a</span><span class="delimiter">=</span><span class="tfree">&#39;a</span><span class="delimiter">]</span><span class=""> </span><span class="keyword1">by</span><span class=""> </span><span class="">simp</span><span class="">
+</span><span class="">
+</span><span class="">
+</span><span class="keyword1">subsection</span><span class=""> </span><span class="cartouche">&#8249;A type class for deciding finiteness of types&#8250;</span><span class="">
+</span><span class="">
+</span><span class="keyword1">type_synonym</span><span class=""> </span><span class="tfree">&#39;a</span><span class=""> </span><span class="">finite_UNIV</span><span class=""> </span><span class="delimiter">=</span><span class=""> </span><span class="string">&quot;(&#39;a, bool) phantom&quot;</span><span class="">
+</span><span class="">
+</span><span class="keyword1">class</span><span class=""> </span><span class="">finite_UNIV</span><span class=""> </span><span class="delimiter">=</span><span class=""> 
+</span><span class="">  </span><span class="keyword2">fixes</span><span class=""> </span><span class="">finite_UNIV</span><span class=""> </span><span class="delimiter">::</span><span class=""> </span><span class="string">&quot;(&#39;a, bool) phantom&quot;</span><span class="">
+</span><span class="">  </span><span class="keyword2">assumes</span><span class=""> </span><span class="">finite_UNIV</span><span class="delimiter">:</span><span class=""> </span><span class="string">&quot;finite_UNIV = Phantom(&#39;a) (finite (UNIV :: &#39;a set))&quot;</span><span class="">
+</span><span class="">
+</span><span class="keyword1">lemma</span><span class=""> </span><span class="">finite_UNIV_code</span><span class=""> </span><span class="delimiter">[</span><span class="">code_unfold</span><span class="delimiter">]</span><span class="delimiter">:</span><span class="">
+</span><span class="">  </span><span class="string">&quot;finite (UNIV :: &#39;a :: finite_UNIV set)
+  &#10231; of_phantom (finite_UNIV :: &#39;a finite_UNIV)&quot;</span><span class="">
+</span><span class="keyword1">by</span><span class="delimiter">(</span><span class="">simp</span><span class=""> </span><span class="">add</span><span class="delimiter">:</span><span class=""> </span><span class="">finite_UNIV</span><span class="delimiter">)</span><span class="">
+</span><span class="">
+</span><span class="keyword1">subsection</span><span class=""> </span><span class="cartouche">&#8249;A type class for computing the cardinality of types&#8250;</span><span class="">
+</span><span class="">
+</span><span class="keyword1">definition</span><span class=""> </span><span class="">is_list_UNIV</span><span class=""> </span><span class="delimiter">::</span><span class=""> </span><span class="string">&quot;&#39;a list &#8658; bool&quot;</span><span class="">
+</span><span class="keyword2">where</span><span class=""> </span><span class="string">&quot;is_list_UNIV xs = (let c = CARD(&#39;a) in if c = 0 then False else size (remdups xs) = c)&quot;</span><span class="">
+</span><span class="">
+</span><span class="keyword1">lemma</span><span class=""> </span><span class="">is_list_UNIV_iff</span><span class="delimiter">:</span><span class=""> </span><span class="string">&quot;is_list_UNIV xs &#10231; set xs = UNIV&quot;</span><span class="">
+</span><span class="keyword1">by</span><span class="delimiter">(</span><span class="">auto</span><span class=""> </span><span class="">simp</span><span class=""> </span><span class="">add</span><span class="delimiter">:</span><span class=""> </span><span class="">is_list_UNIV_def</span><span class=""> </span><span class="">Let_def</span><span class=""> </span><span class="">card_eq_0_iff</span><span class=""> </span><span class="">List.card_set</span><span class="delimiter">[</span><span class="">symmetric</span><span class="delimiter">]</span><span class=""> 
+</span><span class="">   </span><span class="">dest</span><span class="delimiter">:</span><span class=""> </span><span class="">subst</span><span class="delimiter">[</span><span class="keyword2">where</span><span class=""> </span><span class="">P</span><span class="delimiter">=</span><span class="string">&quot;finite&quot;</span><span class="delimiter">,</span><span class=""> </span><span class="">OF</span><span class=""> </span><span class="">_</span><span class=""> </span><span class="">finite_set</span><span class="delimiter">]</span><span class=""> </span><span class="">card_eq_UNIV_imp_eq_UNIV</span><span class="delimiter">)</span><span class="">
+</span><span class="">
+</span><span class="keyword1">type_synonym</span><span class=""> </span><span class="tfree">&#39;a</span><span class=""> </span><span class="">card_UNIV</span><span class=""> </span><span class="delimiter">=</span><span class=""> </span><span class="string">&quot;(&#39;a, nat) phantom&quot;</span><span class="">
+</span><span class="">
+</span><span class="keyword1">class</span><span class=""> </span><span class="">card_UNIV</span><span class=""> </span><span class="delimiter">=</span><span class=""> </span><span class="">finite_UNIV</span><span class=""> </span><span class="delimiter">+</span><span class="">
+</span><span class="">  </span><span class="keyword2">fixes</span><span class=""> </span><span class="">card_UNIV</span><span class=""> </span><span class="delimiter">::</span><span class=""> </span><span class="string">&quot;&#39;a card_UNIV&quot;</span><span class="">
+</span><span class="">  </span><span class="keyword2">assumes</span><span class=""> </span><span class="">card_UNIV</span><span class="delimiter">:</span><span class=""> </span><span class="string">&quot;card_UNIV = Phantom(&#39;a) CARD(&#39;a)&quot;</span><span class="">
+</span><span class="">
+</span><span class="keyword1">subsection</span><span class=""> </span><span class="cartouche">&#8249;Instantiations for &#8249;card_UNIV&#8250;&#8250;</span><span class="">
+</span><span class="">
+</span><span class="keyword1">instantiation</span><span class=""> </span><span class="">nat</span><span class=""> </span><span class="delimiter">::</span><span class=""> </span><span class="">card_UNIV</span><span class=""> </span><span class="keyword2">begin</span><span class="">
+</span><span class="keyword1">definition</span><span class=""> </span><span class="string">&quot;finite_UNIV = Phantom(nat) False&quot;</span><span class="">
+</span><span class="keyword1">definition</span><span class=""> </span><span class="string">&quot;card_UNIV = Phantom(nat) 0&quot;</span><span class="">
+</span><span class="keyword1">instance</span><span class=""> </span><span class="keyword1">by</span><span class=""> </span><span class="">intro_classes</span><span class=""> </span><span class="delimiter">(</span><span class="">simp_all</span><span class=""> </span><span class="">add</span><span class="delimiter">:</span><span class=""> </span><span class="">finite_UNIV_nat_def</span><span class=""> </span><span class="">card_UNIV_nat_def</span><span class="delimiter">)</span><span class="">
+</span><span class="keyword2">end</span><span class="">
+</span><span class="">
+</span><span class="keyword1">instantiation</span><span class=""> </span><span class="">int</span><span class=""> </span><span class="delimiter">::</span><span class=""> </span><span class="">card_UNIV</span><span class=""> </span><span class="keyword2">begin</span><span class="">
+</span><span class="keyword1">definition</span><span class=""> </span><span class="string">&quot;finite_UNIV = Phantom(int) False&quot;</span><span class="">
+</span><span class="keyword1">definition</span><span class=""> </span><span class="string">&quot;card_UNIV = Phantom(int) 0&quot;</span><span class="">
+</span><span class="keyword1">instance</span><span class=""> </span><span class="keyword1">by</span><span class=""> </span><span class="">intro_classes</span><span class=""> </span><span class="delimiter">(</span><span class="">simp_all</span><span class=""> </span><span class="">add</span><span class="delimiter">:</span><span class=""> </span><span class="">card_UNIV_int_def</span><span class=""> </span><span class="">finite_UNIV_int_def</span><span class=""> </span><span class="">infinite_UNIV_int</span><span class="delimiter">)</span><span class="">
+</span><span class="keyword2">end</span><span class="">
+</span><span class="">
+</span><span class="keyword1">instantiation</span><span class=""> </span><span class="">natural</span><span class=""> </span><span class="delimiter">::</span><span class=""> </span><span class="">card_UNIV</span><span class=""> </span><span class="keyword2">begin</span><span class="">
+</span><span class="keyword1">definition</span><span class=""> </span><span class="string">&quot;finite_UNIV = Phantom(natural) False&quot;</span><span class="">
+</span><span class="keyword1">definition</span><span class=""> </span><span class="string">&quot;card_UNIV = Phantom(natural) 0&quot;</span><span class="">
+</span><span class="keyword1">instance</span><span class="">
+</span><span class="">  </span><span class="keyword1">by</span><span class=""> </span><span class="">standard</span><span class="">
+</span><span class="">    </span><span class="delimiter">(</span><span class="">auto</span><span class=""> </span><span class="">simp</span><span class=""> </span><span class="">add</span><span class="delimiter">:</span><span class=""> </span><span class="">finite_UNIV_natural_def</span><span class=""> </span><span class="">card_UNIV_natural_def</span><span class=""> </span><span class="">card_eq_0_iff</span><span class="">
+</span><span class="">      </span><span class="">type_definition.univ</span><span class=""> </span><span class="delimiter">[</span><span class="">OF</span><span class=""> </span><span class="">type_definition_natural</span><span class="delimiter">]</span><span class=""> </span><span class="">natural_eq_iff</span><span class="">
+</span><span class="">      </span><span class="">dest</span><span class="delimiter">!</span><span class="delimiter">:</span><span class=""> </span><span class="">finite_imageD</span><span class=""> </span><span class="">intro</span><span class="delimiter">:</span><span class=""> </span><span class="">inj_onI</span><span class="delimiter">)</span><span class="">
+</span><span class="keyword2">end</span><span class="">
+</span><span class="">
+</span><span class="keyword1">instantiation</span><span class=""> </span><span class="">integer</span><span class=""> </span><span class="delimiter">::</span><span class=""> </span><span class="">card_UNIV</span><span class=""> </span><span class="keyword2">begin</span><span class="">
+</span><span class="keyword1">definition</span><span class=""> </span><span class="string">&quot;finite_UNIV = Phantom(integer) False&quot;</span><span class="">
+</span><span class="keyword1">definition</span><span class=""> </span><span class="string">&quot;card_UNIV = Phantom(integer) 0&quot;</span><span class="">
+</span><span class="keyword1">instance</span><span class="">
+</span><span class="">  </span><span class="keyword1">by</span><span class=""> </span><span class="">standard</span><span class="">
+</span><span class="">    </span><span class="delimiter">(</span><span class="">auto</span><span class=""> </span><span class="">simp</span><span class=""> </span><span class="">add</span><span class="delimiter">:</span><span class=""> </span><span class="">finite_UNIV_integer_def</span><span class=""> </span><span class="">card_UNIV_integer_def</span><span class=""> </span><span class="">card_eq_0_iff</span><span class="">
+</span><span class="">      </span><span class="">type_definition.univ</span><span class=""> </span><span class="delimiter">[</span><span class="">OF</span><span class=""> </span><span class="">type_definition_integer</span><span class="delimiter">]</span><span class=""> </span><span class="">infinite_UNIV_int</span><span class="">
+</span><span class="">      </span><span class="">dest</span><span class="delimiter">!</span><span class="delimiter">:</span><span class=""> </span><span class="">finite_imageD</span><span class=""> </span><span class="">intro</span><span class="delimiter">:</span><span class=""> </span><span class="">inj_onI</span><span class="delimiter">)</span><span class="">
+</span><span class="keyword2">end</span><span class="">
+</span><span class="">
+</span><span class="keyword1">instantiation</span><span class=""> </span><span class="">list</span><span class=""> </span><span class="delimiter">::</span><span class=""> </span><span class="delimiter">(</span><span class="">type</span><span class="delimiter">)</span><span class=""> </span><span class="">card_UNIV</span><span class=""> </span><span class="keyword2">begin</span><span class="">
+</span><span class="keyword1">definition</span><span class=""> </span><span class="string">&quot;finite_UNIV = Phantom(&#39;a list) False&quot;</span><span class="">
+</span><span class="keyword1">definition</span><span class=""> </span><span class="string">&quot;card_UNIV = Phantom(&#39;a list) 0&quot;</span><span class="">
+</span><span class="keyword1">instance</span><span class=""> </span><span class="keyword1">by</span><span class=""> </span><span class="">intro_classes</span><span class=""> </span><span class="delimiter">(</span><span class="">simp_all</span><span class=""> </span><span class="">add</span><span class="delimiter">:</span><span class=""> </span><span class="">card_UNIV_list_def</span><span class=""> </span><span class="">finite_UNIV_list_def</span><span class=""> </span><span class="">infinite_UNIV_listI</span><span class="delimiter">)</span><span class="">
+</span><span class="keyword2">end</span><span class="">
+</span><span class="">
+</span><span class="keyword1">instantiation</span><span class=""> </span><span class="">unit</span><span class=""> </span><span class="delimiter">::</span><span class=""> </span><span class="">card_UNIV</span><span class=""> </span><span class="keyword2">begin</span><span class="">
+</span><span class="keyword1">definition</span><span class=""> </span><span class="string">&quot;finite_UNIV = Phantom(unit) True&quot;</span><span class="">
+</span><span class="keyword1">definition</span><span class=""> </span><span class="string">&quot;card_UNIV = Phantom(unit) 1&quot;</span><span class="">
+</span><span class="keyword1">instance</span><span class=""> </span><span class="keyword1">by</span><span class=""> </span><span class="">intro_classes</span><span class=""> </span><span class="delimiter">(</span><span class="">simp_all</span><span class=""> </span><span class="">add</span><span class="delimiter">:</span><span class=""> </span><span class="">card_UNIV_unit_def</span><span class=""> </span><span class="">finite_UNIV_unit_def</span><span class="delimiter">)</span><span class="">
+</span><span class="keyword2">end</span><span class="">
+</span><span class="">
+</span><span class="keyword1">instantiation</span><span class=""> </span><span class="">bool</span><span class=""> </span><span class="delimiter">::</span><span class=""> </span><span class="">card_UNIV</span><span class=""> </span><span class="keyword2">begin</span><span class="">
+</span><span class="keyword1">definition</span><span class=""> </span><span class="string">&quot;finite_UNIV = Phantom(bool) True&quot;</span><span class="">
+</span><span class="keyword1">definition</span><span class=""> </span><span class="string">&quot;card_UNIV = Phantom(bool) 2&quot;</span><span class="">
+</span><span class="keyword1">instance</span><span class=""> </span><span class="keyword1">by</span><span class="delimiter">(</span><span class="">intro_classes</span><span class="delimiter">)</span><span class="delimiter">(</span><span class="">simp_all</span><span class=""> </span><span class="">add</span><span class="delimiter">:</span><span class=""> </span><span class="">card_UNIV_bool_def</span><span class=""> </span><span class="">finite_UNIV_bool_def</span><span class="delimiter">)</span><span class="">
+</span><span class="keyword2">end</span><span class="">
+</span><span class="">
+</span><span class="keyword1">instantiation</span><span class=""> </span><span class="">nibble</span><span class=""> </span><span class="delimiter">::</span><span class=""> </span><span class="">card_UNIV</span><span class=""> </span><span class="keyword2">begin</span><span class="">
+</span><span class="keyword1">definition</span><span class=""> </span><span class="string">&quot;finite_UNIV = Phantom(nibble) True&quot;</span><span class="">
+</span><span class="keyword1">definition</span><span class=""> </span><span class="string">&quot;card_UNIV = Phantom(nibble) 16&quot;</span><span class="">
+</span><span class="keyword1">instance</span><span class=""> </span><span class="keyword1">by</span><span class="delimiter">(</span><span class="">intro_classes</span><span class="delimiter">)</span><span class="delimiter">(</span><span class="">simp_all</span><span class=""> </span><span class="">add</span><span class="delimiter">:</span><span class=""> </span><span class="">card_UNIV_nibble_def</span><span class=""> </span><span class="">card_nibble</span><span class=""> </span><span class="">finite_UNIV_nibble_def</span><span class="delimiter">)</span><span class="">
+</span><span class="keyword2">end</span><span class="">
+</span><span class="">
+</span><span class="keyword1">instantiation</span><span class=""> </span><span class="">char</span><span class=""> </span><span class="delimiter">::</span><span class=""> </span><span class="">card_UNIV</span><span class=""> </span><span class="keyword2">begin</span><span class="">
+</span><span class="keyword1">definition</span><span class=""> </span><span class="string">&quot;finite_UNIV = Phantom(char) True&quot;</span><span class="">
+</span><span class="keyword1">definition</span><span class=""> </span><span class="string">&quot;card_UNIV = Phantom(char) 256&quot;</span><span class="">
+</span><span class="keyword1">instance</span><span class=""> </span><span class="keyword1">by</span><span class=""> </span><span class="">intro_classes</span><span class=""> </span><span class="delimiter">(</span><span class="">simp_all</span><span class=""> </span><span class="">add</span><span class="delimiter">:</span><span class=""> </span><span class="">card_UNIV_char_def</span><span class=""> </span><span class="">card_UNIV_char</span><span class=""> </span><span class="">finite_UNIV_char_def</span><span class="delimiter">)</span><span class="">
+</span><span class="keyword2">end</span><span class="">
+</span><span class="">
+</span><span class="keyword1">instantiation</span><span class=""> </span><span class="">prod</span><span class=""> </span><span class="delimiter">::</span><span class=""> </span><span class="delimiter">(</span><span class="">finite_UNIV</span><span class="delimiter">,</span><span class=""> </span><span class="">finite_UNIV</span><span class="delimiter">)</span><span class=""> </span><span class="">finite_UNIV</span><span class=""> </span><span class="keyword2">begin</span><span class="">
+</span><span class="keyword1">definition</span><span class=""> </span><span class="string">&quot;finite_UNIV = Phantom(&#39;a &#215; &#39;b) 
+  (of_phantom (finite_UNIV :: &#39;a finite_UNIV) &#8743; of_phantom (finite_UNIV :: &#39;b finite_UNIV))&quot;</span><span class="">
+</span><span class="keyword1">instance</span><span class=""> </span><span class="keyword1">by</span><span class=""> </span><span class="">intro_classes</span><span class=""> </span><span class="delimiter">(</span><span class="">simp</span><span class=""> </span><span class="">add</span><span class="delimiter">:</span><span class=""> </span><span class="">finite_UNIV_prod_def</span><span class=""> </span><span class="">finite_UNIV</span><span class=""> </span><span class="">finite_prod</span><span class="delimiter">)</span><span class="">
+</span><span class="keyword2">end</span><span class="">
+</span><span class="">
+</span><span class="keyword1">instantiation</span><span class=""> </span><span class="">prod</span><span class=""> </span><span class="delimiter">::</span><span class=""> </span><span class="delimiter">(</span><span class="">card_UNIV</span><span class="delimiter">,</span><span class=""> </span><span class="">card_UNIV</span><span class="delimiter">)</span><span class=""> </span><span class="">card_UNIV</span><span class=""> </span><span class="keyword2">begin</span><span class="">
+</span><span class="keyword1">definition</span><span class=""> </span><span class="string">&quot;card_UNIV = Phantom(&#39;a &#215; &#39;b) 
+  (of_phantom (card_UNIV :: &#39;a card_UNIV) * of_phantom (card_UNIV :: &#39;b card_UNIV))&quot;</span><span class="">
+</span><span class="keyword1">instance</span><span class=""> </span><span class="keyword1">by</span><span class=""> </span><span class="">intro_classes</span><span class=""> </span><span class="delimiter">(</span><span class="">simp</span><span class=""> </span><span class="">add</span><span class="delimiter">:</span><span class=""> </span><span class="">card_UNIV_prod_def</span><span class=""> </span><span class="">card_UNIV</span><span class="delimiter">)</span><span class="">
+</span><span class="keyword2">end</span><span class="">
+</span><span class="">
+</span><span class="keyword1">instantiation</span><span class=""> </span><span class="">sum</span><span class=""> </span><span class="delimiter">::</span><span class=""> </span><span class="delimiter">(</span><span class="">finite_UNIV</span><span class="delimiter">,</span><span class=""> </span><span class="">finite_UNIV</span><span class="delimiter">)</span><span class=""> </span><span class="">finite_UNIV</span><span class=""> </span><span class="keyword2">begin</span><span class="">
+</span><span class="keyword1">definition</span><span class=""> </span><span class="string">&quot;finite_UNIV = Phantom(&#39;a + &#39;b)
+  (of_phantom (finite_UNIV :: &#39;a finite_UNIV) &#8743; of_phantom (finite_UNIV :: &#39;b finite_UNIV))&quot;</span><span class="">
+</span><span class="keyword1">instance</span><span class="">
+</span><span class="">  </span><span class="keyword1">by</span><span class=""> </span><span class="">intro_classes</span><span class=""> </span><span class="delimiter">(</span><span class="">simp</span><span class=""> </span><span class="">add</span><span class="delimiter">:</span><span class=""> </span><span class="">UNIV_Plus_UNIV</span><span class="delimiter">[</span><span class="">symmetric</span><span class="delimiter">]</span><span class=""> </span><span class="">finite_UNIV_sum_def</span><span class=""> </span><span class="">finite_UNIV</span><span class=""> </span><span class="">del</span><span class="delimiter">:</span><span class=""> </span><span class="">UNIV_Plus_UNIV</span><span class="delimiter">)</span><span class="">
+</span><span class="keyword2">end</span><span class="">
+</span><span class="">
+</span><span class="keyword1">instantiation</span><span class=""> </span><span class="">sum</span><span class=""> </span><span class="delimiter">::</span><span class=""> </span><span class="delimiter">(</span><span class="">card_UNIV</span><span class="delimiter">,</span><span class=""> </span><span class="">card_UNIV</span><span class="delimiter">)</span><span class=""> </span><span class="">card_UNIV</span><span class=""> </span><span class="keyword2">begin</span><span class="">
+</span><span class="keyword1">definition</span><span class=""> </span><span class="string">&quot;card_UNIV = Phantom(&#39;a + &#39;b)
+  (let ca = of_phantom (card_UNIV :: &#39;a card_UNIV); 
+       cb = of_phantom (card_UNIV :: &#39;b card_UNIV)
+   in if ca &#8800; 0 &#8743; cb &#8800; 0 then ca + cb else 0)&quot;</span><span class="">
+</span><span class="keyword1">instance</span><span class=""> </span><span class="keyword1">by</span><span class=""> </span><span class="">intro_classes</span><span class=""> </span><span class="delimiter">(</span><span class="">auto</span><span class=""> </span><span class="">simp</span><span class=""> </span><span class="">add</span><span class="delimiter">:</span><span class=""> </span><span class="">card_UNIV_sum_def</span><span class=""> </span><span class="">card_UNIV</span><span class=""> </span><span class="">card_UNIV_sum</span><span class="delimiter">)</span><span class="">
+</span><span class="keyword2">end</span><span class="">
+</span><span class="">
+</span><span class="keyword1">instantiation</span><span class=""> </span><span class="string">&quot;fun&quot;</span><span class=""> </span><span class="delimiter">::</span><span class=""> </span><span class="delimiter">(</span><span class="">finite_UNIV</span><span class="delimiter">,</span><span class=""> </span><span class="">card_UNIV</span><span class="delimiter">)</span><span class=""> </span><span class="">finite_UNIV</span><span class=""> </span><span class="keyword2">begin</span><span class="">
+</span><span class="keyword1">definition</span><span class=""> </span><span class="string">&quot;finite_UNIV = Phantom(&#39;a &#8658; &#39;b)
+  (let cb = of_phantom (card_UNIV :: &#39;b card_UNIV)
+   in cb = 1 &#8744; of_phantom (finite_UNIV :: &#39;a finite_UNIV) &#8743; cb &#8800; 0)&quot;</span><span class="">
+</span><span class="keyword1">instance</span><span class="">
+</span><span class="">  </span><span class="keyword1">by</span><span class=""> </span><span class="">intro_classes</span><span class=""> </span><span class="delimiter">(</span><span class="">auto</span><span class=""> </span><span class="">simp</span><span class=""> </span><span class="">add</span><span class="delimiter">:</span><span class=""> </span><span class="">finite_UNIV_fun_def</span><span class=""> </span><span class="">Let_def</span><span class=""> </span><span class="">card_UNIV</span><span class=""> </span><span class="">finite_UNIV</span><span class=""> </span><span class="">finite_UNIV_fun</span><span class=""> </span><span class="">card_gt_0_iff</span><span class="delimiter">)</span><span class="">
+</span><span class="keyword2">end</span><span class="">
+</span><span class="">
+</span><span class="keyword1">instantiation</span><span class=""> </span><span class="string">&quot;fun&quot;</span><span class=""> </span><span class="delimiter">::</span><span class=""> </span><span class="delimiter">(</span><span class="">card_UNIV</span><span class="delimiter">,</span><span class=""> </span><span class="">card_UNIV</span><span class="delimiter">)</span><span class=""> </span><span class="">card_UNIV</span><span class=""> </span><span class="keyword2">begin</span><span class="">
+</span><span class="keyword1">definition</span><span class=""> </span><span class="string">&quot;card_UNIV = Phantom(&#39;a &#8658; &#39;b)
+  (let ca = of_phantom (card_UNIV :: &#39;a card_UNIV);
+       cb = of_phantom (card_UNIV :: &#39;b card_UNIV)
+   in if ca &#8800; 0 &#8743; cb &#8800; 0 &#8744; cb = 1 then cb ^ ca else 0)&quot;</span><span class="">
+</span><span class="keyword1">instance</span><span class=""> </span><span class="keyword1">by</span><span class=""> </span><span class="">intro_classes</span><span class=""> </span><span class="delimiter">(</span><span class="">simp</span><span class=""> </span><span class="">add</span><span class="delimiter">:</span><span class=""> </span><span class="">card_UNIV_fun_def</span><span class=""> </span><span class="">card_UNIV</span><span class=""> </span><span class="">Let_def</span><span class=""> </span><span class="">card_fun</span><span class="delimiter">)</span><span class="">
+</span><span class="keyword2">end</span><span class="">
+</span><span class="">
+</span><span class="keyword1">instantiation</span><span class=""> </span><span class="">option</span><span class=""> </span><span class="delimiter">::</span><span class=""> </span><span class="delimiter">(</span><span class="">finite_UNIV</span><span class="delimiter">)</span><span class=""> </span><span class="">finite_UNIV</span><span class=""> </span><span class="keyword2">begin</span><span class="">
+</span><span class="keyword1">definition</span><span class=""> </span><span class="string">&quot;finite_UNIV = Phantom(&#39;a option) (of_phantom (finite_UNIV :: &#39;a finite_UNIV))&quot;</span><span class="">
+</span><span class="keyword1">instance</span><span class=""> </span><span class="keyword1">by</span><span class=""> </span><span class="">intro_classes</span><span class=""> </span><span class="delimiter">(</span><span class="">simp</span><span class=""> </span><span class="">add</span><span class="delimiter">:</span><span class=""> </span><span class="">finite_UNIV_option_def</span><span class=""> </span><span class="">finite_UNIV</span><span class="delimiter">)</span><span class="">
+</span><span class="keyword2">end</span><span class="">
+</span><span class="">
+</span><span class="keyword1">instantiation</span><span class=""> </span><span class="">option</span><span class=""> </span><span class="delimiter">::</span><span class=""> </span><span class="delimiter">(</span><span class="">card_UNIV</span><span class="delimiter">)</span><span class=""> </span><span class="">card_UNIV</span><span class=""> </span><span class="keyword2">begin</span><span class="">
+</span><span class="keyword1">definition</span><span class=""> </span><span class="string">&quot;card_UNIV = Phantom(&#39;a option)
+  (let c = of_phantom (card_UNIV :: &#39;a card_UNIV) in if c &#8800; 0 then Suc c else 0)&quot;</span><span class="">
+</span><span class="keyword1">instance</span><span class=""> </span><span class="keyword1">by</span><span class=""> </span><span class="">intro_classes</span><span class=""> </span><span class="delimiter">(</span><span class="">simp</span><span class=""> </span><span class="">add</span><span class="delimiter">:</span><span class=""> </span><span class="">card_UNIV_option_def</span><span class=""> </span><span class="">card_UNIV</span><span class=""> </span><span class="">card_UNIV_option</span><span class="delimiter">)</span><span class="">
+</span><span class="keyword2">end</span><span class="">
+</span><span class="">
+</span><span class="keyword1">instantiation</span><span class=""> </span><span class="">String.literal</span><span class=""> </span><span class="delimiter">::</span><span class=""> </span><span class="">card_UNIV</span><span class=""> </span><span class="keyword2">begin</span><span class="">
+</span><span class="keyword1">definition</span><span class=""> </span><span class="string">&quot;finite_UNIV = Phantom(String.literal) False&quot;</span><span class="">
+</span><span class="keyword1">definition</span><span class=""> </span><span class="string">&quot;card_UNIV = Phantom(String.literal) 0&quot;</span><span class="">
+</span><span class="keyword1">instance</span><span class="">
+</span><span class="">  </span><span class="keyword1">by</span><span class=""> </span><span class="">intro_classes</span><span class=""> </span><span class="delimiter">(</span><span class="">simp_all</span><span class=""> </span><span class="">add</span><span class="delimiter">:</span><span class=""> </span><span class="">card_UNIV_literal_def</span><span class=""> </span><span class="">finite_UNIV_literal_def</span><span class=""> </span><span class="">infinite_literal</span><span class=""> </span><span class="">card_literal</span><span class="delimiter">)</span><span class="">
+</span><span class="keyword2">end</span><span class="">
+</span><span class="">
+</span><span class="keyword1">instantiation</span><span class=""> </span><span class="">set</span><span class=""> </span><span class="delimiter">::</span><span class=""> </span><span class="delimiter">(</span><span class="">finite_UNIV</span><span class="delimiter">)</span><span class=""> </span><span class="">finite_UNIV</span><span class=""> </span><span class="keyword2">begin</span><span class="">
+</span><span class="keyword1">definition</span><span class=""> </span><span class="string">&quot;finite_UNIV = Phantom(&#39;a set) (of_phantom (finite_UNIV :: &#39;a finite_UNIV))&quot;</span><span class="">
+</span><span class="keyword1">instance</span><span class=""> </span><span class="keyword1">by</span><span class=""> </span><span class="">intro_classes</span><span class=""> </span><span class="delimiter">(</span><span class="">simp</span><span class=""> </span><span class="">add</span><span class="delimiter">:</span><span class=""> </span><span class="">finite_UNIV_set_def</span><span class=""> </span><span class="">finite_UNIV</span><span class=""> </span><span class="">Finite_Set.finite_set</span><span class="delimiter">)</span><span class="">
+</span><span class="keyword2">end</span><span class="">
+</span><span class="">
+</span><span class="keyword1">instantiation</span><span class=""> </span><span class="">set</span><span class=""> </span><span class="delimiter">::</span><span class=""> </span><span class="delimiter">(</span><span class="">card_UNIV</span><span class="delimiter">)</span><span class=""> </span><span class="">card_UNIV</span><span class=""> </span><span class="keyword2">begin</span><span class="">
+</span><span class="keyword1">definition</span><span class=""> </span><span class="string">&quot;card_UNIV = Phantom(&#39;a set)
+  (let c = of_phantom (card_UNIV :: &#39;a card_UNIV) in if c = 0 then 0 else 2 ^ c)&quot;</span><span class="">
+</span><span class="keyword1">instance</span><span class=""> </span><span class="keyword1">by</span><span class=""> </span><span class="">intro_classes</span><span class=""> </span><span class="delimiter">(</span><span class="">simp</span><span class=""> </span><span class="">add</span><span class="delimiter">:</span><span class=""> </span><span class="">card_UNIV_set_def</span><span class=""> </span><span class="">card_UNIV_set</span><span class=""> </span><span class="">card_UNIV</span><span class="delimiter">)</span><span class="">
+</span><span class="keyword2">end</span><span class="">
+</span><span class="">
+</span><span class="keyword1">lemma</span><span class=""> </span><span class="">UNIV_finite_1</span><span class="delimiter">:</span><span class=""> </span><span class="string">&quot;UNIV = set [finite_1.a<span class="hidden">&#8681;</span><sub>1</sub>]&quot;</span><span class="">
+</span><span class="keyword1">by</span><span class="delimiter">(</span><span class="">auto</span><span class=""> </span><span class="">intro</span><span class="delimiter">:</span><span class=""> </span><span class="">finite_1.exhaust</span><span class="delimiter">)</span><span class="">
+</span><span class="">
+</span><span class="keyword1">lemma</span><span class=""> </span><span class="">UNIV_finite_2</span><span class="delimiter">:</span><span class=""> </span><span class="string">&quot;UNIV = set [finite_2.a<span class="hidden">&#8681;</span><sub>1</sub>, finite_2.a<span class="hidden">&#8681;</span><sub>2</sub>]&quot;</span><span class="">
+</span><span class="keyword1">by</span><span class="delimiter">(</span><span class="">auto</span><span class=""> </span><span class="">intro</span><span class="delimiter">:</span><span class=""> </span><span class="">finite_2.exhaust</span><span class="delimiter">)</span><span class="">
+</span><span class="">
+</span><span class="keyword1">lemma</span><span class=""> </span><span class="">UNIV_finite_3</span><span class="delimiter">:</span><span class=""> </span><span class="string">&quot;UNIV = set [finite_3.a<span class="hidden">&#8681;</span><sub>1</sub>, finite_3.a<span class="hidden">&#8681;</span><sub>2</sub>, finite_3.a<span class="hidden">&#8681;</span><sub>3</sub>]&quot;</span><span class="">
+</span><span class="keyword1">by</span><span class="delimiter">(</span><span class="">auto</span><span class=""> </span><span class="">intro</span><span class="delimiter">:</span><span class=""> </span><span class="">finite_3.exhaust</span><span class="delimiter">)</span><span class="">
+</span><span class="">
+</span><span class="keyword1">lemma</span><span class=""> </span><span class="">UNIV_finite_4</span><span class="delimiter">:</span><span class=""> </span><span class="string">&quot;UNIV = set [finite_4.a<span class="hidden">&#8681;</span><sub>1</sub>, finite_4.a<span class="hidden">&#8681;</span><sub>2</sub>, finite_4.a<span class="hidden">&#8681;</span><sub>3</sub>, finite_4.a<span class="hidden">&#8681;</span><sub>4</sub>]&quot;</span><span class="">
+</span><span class="keyword1">by</span><span class="delimiter">(</span><span class="">auto</span><span class=""> </span><span class="">intro</span><span class="delimiter">:</span><span class=""> </span><span class="">finite_4.exhaust</span><span class="delimiter">)</span><span class="">
+</span><span class="">
+</span><span class="keyword1">lemma</span><span class=""> </span><span class="">UNIV_finite_5</span><span class="delimiter">:</span><span class="">
+</span><span class="">  </span><span class="string">&quot;UNIV = set [finite_5.a<span class="hidden">&#8681;</span><sub>1</sub>, finite_5.a<span class="hidden">&#8681;</span><sub>2</sub>, finite_5.a<span class="hidden">&#8681;</span><sub>3</sub>, finite_5.a<span class="hidden">&#8681;</span><sub>4</sub>, finite_5.a<span class="hidden">&#8681;</span><sub>5</sub>]&quot;</span><span class="">
+</span><span class="keyword1">by</span><span class="delimiter">(</span><span class="">auto</span><span class=""> </span><span class="">intro</span><span class="delimiter">:</span><span class=""> </span><span class="">finite_5.exhaust</span><span class="delimiter">)</span><span class="">
+</span><span class="">
+</span><span class="keyword1">instantiation</span><span class=""> </span><span class="">Enum.finite_1</span><span class=""> </span><span class="delimiter">::</span><span class=""> </span><span class="">card_UNIV</span><span class=""> </span><span class="keyword2">begin</span><span class="">
+</span><span class="keyword1">definition</span><span class=""> </span><span class="string">&quot;finite_UNIV = Phantom(Enum.finite_1) True&quot;</span><span class="">
+</span><span class="keyword1">definition</span><span class=""> </span><span class="string">&quot;card_UNIV = Phantom(Enum.finite_1) 1&quot;</span><span class="">
+</span><span class="keyword1">instance</span><span class="">
+</span><span class="">  </span><span class="keyword1">by</span><span class=""> </span><span class="">intro_classes</span><span class=""> </span><span class="delimiter">(</span><span class="">simp_all</span><span class=""> </span><span class="">add</span><span class="delimiter">:</span><span class=""> </span><span class="">UNIV_finite_1</span><span class=""> </span><span class="">card_UNIV_finite_1_def</span><span class=""> </span><span class="">finite_UNIV_finite_1_def</span><span class="delimiter">)</span><span class="">
+</span><span class="keyword2">end</span><span class="">
+</span><span class="">
+</span><span class="keyword1">instantiation</span><span class=""> </span><span class="">Enum.finite_2</span><span class=""> </span><span class="delimiter">::</span><span class=""> </span><span class="">card_UNIV</span><span class=""> </span><span class="keyword2">begin</span><span class="">
+</span><span class="keyword1">definition</span><span class=""> </span><span class="string">&quot;finite_UNIV = Phantom(Enum.finite_2) True&quot;</span><span class="">
+</span><span class="keyword1">definition</span><span class=""> </span><span class="string">&quot;card_UNIV = Phantom(Enum.finite_2) 2&quot;</span><span class="">
+</span><span class="keyword1">instance</span><span class="">
+</span><span class="">  </span><span class="keyword1">by</span><span class=""> </span><span class="">intro_classes</span><span class=""> </span><span class="delimiter">(</span><span class="">simp_all</span><span class=""> </span><span class="">add</span><span class="delimiter">:</span><span class=""> </span><span class="">UNIV_finite_2</span><span class=""> </span><span class="">card_UNIV_finite_2_def</span><span class=""> </span><span class="">finite_UNIV_finite_2_def</span><span class="delimiter">)</span><span class="">
+</span><span class="keyword2">end</span><span class="">
+</span><span class="">
+</span><span class="keyword1">instantiation</span><span class=""> </span><span class="">Enum.finite_3</span><span class=""> </span><span class="delimiter">::</span><span class=""> </span><span class="">card_UNIV</span><span class=""> </span><span class="keyword2">begin</span><span class="">
+</span><span class="keyword1">definition</span><span class=""> </span><span class="string">&quot;finite_UNIV = Phantom(Enum.finite_3) True&quot;</span><span class="">
+</span><span class="keyword1">definition</span><span class=""> </span><span class="string">&quot;card_UNIV = Phantom(Enum.finite_3) 3&quot;</span><span class="">
+</span><span class="keyword1">instance</span><span class="">
+</span><span class="">  </span><span class="keyword1">by</span><span class=""> </span><span class="">intro_classes</span><span class=""> </span><span class="delimiter">(</span><span class="">simp_all</span><span class=""> </span><span class="">add</span><span class="delimiter">:</span><span class=""> </span><span class="">UNIV_finite_3</span><span class=""> </span><span class="">card_UNIV_finite_3_def</span><span class=""> </span><span class="">finite_UNIV_finite_3_def</span><span class="delimiter">)</span><span class="">
+</span><span class="keyword2">end</span><span class="">
+</span><span class="">
+</span><span class="keyword1">instantiation</span><span class=""> </span><span class="">Enum.finite_4</span><span class=""> </span><span class="delimiter">::</span><span class=""> </span><span class="">card_UNIV</span><span class=""> </span><span class="keyword2">begin</span><span class="">
+</span><span class="keyword1">definition</span><span class=""> </span><span class="string">&quot;finite_UNIV = Phantom(Enum.finite_4) True&quot;</span><span class="">
+</span><span class="keyword1">definition</span><span class=""> </span><span class="string">&quot;card_UNIV = Phantom(Enum.finite_4) 4&quot;</span><span class="">
+</span><span class="keyword1">instance</span><span class="">
+</span><span class="">  </span><span class="keyword1">by</span><span class=""> </span><span class="">intro_classes</span><span class=""> </span><span class="delimiter">(</span><span class="">simp_all</span><span class=""> </span><span class="">add</span><span class="delimiter">:</span><span class=""> </span><span class="">UNIV_finite_4</span><span class=""> </span><span class="">card_UNIV_finite_4_def</span><span class=""> </span><span class="">finite_UNIV_finite_4_def</span><span class="delimiter">)</span><span class="">
+</span><span class="keyword2">end</span><span class="">
+</span><span class="">
+</span><span class="keyword1">instantiation</span><span class=""> </span><span class="">Enum.finite_5</span><span class=""> </span><span class="delimiter">::</span><span class=""> </span><span class="">card_UNIV</span><span class=""> </span><span class="keyword2">begin</span><span class="">
+</span><span class="keyword1">definition</span><span class=""> </span><span class="string">&quot;finite_UNIV = Phantom(Enum.finite_5) True&quot;</span><span class="">
+</span><span class="keyword1">definition</span><span class=""> </span><span class="string">&quot;card_UNIV = Phantom(Enum.finite_5) 5&quot;</span><span class="">
+</span><span class="keyword1">instance</span><span class="">
+</span><span class="">  </span><span class="keyword1">by</span><span class=""> </span><span class="">intro_classes</span><span class=""> </span><span class="delimiter">(</span><span class="">simp_all</span><span class=""> </span><span class="">add</span><span class="delimiter">:</span><span class=""> </span><span class="">UNIV_finite_5</span><span class=""> </span><span class="">card_UNIV_finite_5_def</span><span class=""> </span><span class="">finite_UNIV_finite_5_def</span><span class="delimiter">)</span><span class="">
+</span><span class="keyword2">end</span><span class="">
+</span><span class="">
+</span><span class="keyword1">subsection</span><span class=""> </span><span class="cartouche">&#8249;Code setup for sets&#8250;</span><span class="">
+</span><span class="">
+</span><span class="keyword1">text</span><span class=""> </span><span class="cartouche">&#8249;
+  Implement @{term &quot;CARD(&#39;a)&quot;} via @{term card_UNIV} and provide
+  implementations for @{term &quot;finite&quot;}, @{term &quot;card&quot;}, @{term &quot;op &#8838;&quot;}, 
+  and @{term &quot;op =&quot;}if the calling context already provides @{class finite_UNIV}
+  and @{class card_UNIV} instances. If we implemented the latter
+  always via @{term card_UNIV}, we would require instances of essentially all 
+  element types, i.e., a lot of instantiation proofs and -- at run time --
+  possibly slow dictionary constructions.
+&#8250;</span><span class="">
+</span><span class="">
+</span><span class="keyword1">context</span><span class="">
+</span><span class="keyword2">begin</span><span class="">
+</span><span class="">
+</span><span class="keyword2">qualified</span><span class=""> </span><span class="keyword1">definition</span><span class=""> </span><span class="">card_UNIV&#39;</span><span class=""> </span><span class="delimiter">::</span><span class=""> </span><span class="string">&quot;&#39;a card_UNIV&quot;</span><span class="">
+</span><span class="keyword2">where</span><span class=""> </span><span class="delimiter">[</span><span class="">code</span><span class=""> </span><span class="">del</span><span class="delimiter">]</span><span class="delimiter">:</span><span class=""> </span><span class="string">&quot;card_UNIV&#39; = Phantom(&#39;a) CARD(&#39;a)&quot;</span><span class="">
+</span><span class="">
+</span><span class="keyword1">lemma</span><span class=""> </span><span class="">CARD_code</span><span class=""> </span><span class="delimiter">[</span><span class="">code_unfold</span><span class="delimiter">]</span><span class="delimiter">:</span><span class="">
+</span><span class="">  </span><span class="string">&quot;CARD(&#39;a) = of_phantom (card_UNIV&#39; :: &#39;a card_UNIV)&quot;</span><span class="">
+</span><span class="keyword1">by</span><span class="delimiter">(</span><span class="">simp</span><span class=""> </span><span class="">add</span><span class="delimiter">:</span><span class=""> </span><span class="">card_UNIV&#39;_def</span><span class="delimiter">)</span><span class="">
+</span><span class="">
+</span><span class="keyword1">lemma</span><span class=""> </span><span class="">card_UNIV&#39;_code</span><span class=""> </span><span class="delimiter">[</span><span class="">code</span><span class="delimiter">]</span><span class="delimiter">:</span><span class="">
+</span><span class="">  </span><span class="string">&quot;card_UNIV&#39; = card_UNIV&quot;</span><span class="">
+</span><span class="keyword1">by</span><span class="delimiter">(</span><span class="">simp</span><span class=""> </span><span class="">add</span><span class="delimiter">:</span><span class=""> </span><span class="">card_UNIV</span><span class=""> </span><span class="">card_UNIV&#39;_def</span><span class="delimiter">)</span><span class="">
+</span><span class="">
+</span><span class="keyword2">end</span><span class="">
+</span><span class="">
+</span><span class="keyword1">lemma</span><span class=""> </span><span class="">card_Compl</span><span class="delimiter">:</span><span class="">
+</span><span class="">  </span><span class="string">&quot;finite A &#10233; card (- A) = card (UNIV :: &#39;a set) - card (A :: &#39;a set)&quot;</span><span class="">
+</span><span class="keyword1">by</span><span class=""> </span><span class="delimiter">(</span><span class="">metis</span><span class=""> </span><span class="">Compl_eq_Diff_UNIV</span><span class=""> </span><span class="">card_Diff_subset</span><span class=""> </span><span class="">top_greatest</span><span class="delimiter">)</span><span class="">
+</span><span class="">
+</span><span class="keyword1">context</span><span class=""> </span><span class="keyword2">fixes</span><span class=""> </span><span class="">xs</span><span class=""> </span><span class="delimiter">::</span><span class=""> </span><span class="string">&quot;&#39;a :: finite_UNIV list&quot;</span><span class="">
+</span><span class="keyword2">begin</span><span class="">
+</span><span class="">
+</span><span class="keyword2">qualified</span><span class=""> </span><span class="keyword1">definition</span><span class=""> </span><span class="">finite&#39;</span><span class=""> </span><span class="delimiter">::</span><span class=""> </span><span class="string">&quot;&#39;a set &#8658; bool&quot;</span><span class="">
+</span><span class="keyword2">where</span><span class=""> </span><span class="delimiter">[</span><span class="">simp</span><span class="delimiter">,</span><span class=""> </span><span class="">code</span><span class=""> </span><span class="">del</span><span class="delimiter">,</span><span class=""> </span><span class="">code_abbrev</span><span class="delimiter">]</span><span class="delimiter">:</span><span class=""> </span><span class="string">&quot;finite&#39; = finite&quot;</span><span class="">
+</span><span class="">
+</span><span class="keyword1">lemma</span><span class=""> </span><span class="">finite&#39;_code</span><span class=""> </span><span class="delimiter">[</span><span class="">code</span><span class="delimiter">]</span><span class="delimiter">:</span><span class="">
+</span><span class="">  </span><span class="string">&quot;finite&#39; (set xs) &#10231; True&quot;</span><span class="">
+</span><span class="">  </span><span class="string">&quot;finite&#39; (List.coset xs) &#10231; of_phantom (finite_UNIV :: &#39;a finite_UNIV)&quot;</span><span class="">
+</span><span class="keyword1">by</span><span class="delimiter">(</span><span class="">simp_all</span><span class=""> </span><span class="">add</span><span class="delimiter">:</span><span class=""> </span><span class="">card_gt_0_iff</span><span class=""> </span><span class="">finite_UNIV</span><span class="delimiter">)</span><span class="">
+</span><span class="">
+</span><span class="keyword2">end</span><span class="">
+</span><span class="">
+</span><span class="keyword1">context</span><span class=""> </span><span class="keyword2">fixes</span><span class=""> </span><span class="">xs</span><span class=""> </span><span class="delimiter">::</span><span class=""> </span><span class="string">&quot;&#39;a :: card_UNIV list&quot;</span><span class="">
+</span><span class="keyword2">begin</span><span class="">
+</span><span class="">
+</span><span class="keyword2">qualified</span><span class=""> </span><span class="keyword1">definition</span><span class=""> </span><span class="">card&#39;</span><span class=""> </span><span class="delimiter">::</span><span class=""> </span><span class="string">&quot;&#39;a set &#8658; nat&quot;</span><span class=""> 
+</span><span class="keyword2">where</span><span class=""> </span><span class="delimiter">[</span><span class="">simp</span><span class="delimiter">,</span><span class=""> </span><span class="">code</span><span class=""> </span><span class="">del</span><span class="delimiter">,</span><span class=""> </span><span class="">code_abbrev</span><span class="delimiter">]</span><span class="delimiter">:</span><span class=""> </span><span class="string">&quot;card&#39; = card&quot;</span><span class="">
+</span><span class=""> 
+</span><span class="keyword1">lemma</span><span class=""> </span><span class="">card&#39;_code</span><span class=""> </span><span class="delimiter">[</span><span class="">code</span><span class="delimiter">]</span><span class="delimiter">:</span><span class="">
+</span><span class="">  </span><span class="string">&quot;card&#39; (set xs) = length (remdups xs)&quot;</span><span class="">
+</span><span class="">  </span><span class="string">&quot;card&#39; (List.coset xs) = of_phantom (card_UNIV :: &#39;a card_UNIV) - length (remdups xs)&quot;</span><span class="">
+</span><span class="keyword1">by</span><span class="delimiter">(</span><span class="">simp_all</span><span class=""> </span><span class="">add</span><span class="delimiter">:</span><span class=""> </span><span class="">List.card_set</span><span class=""> </span><span class="">card_Compl</span><span class=""> </span><span class="">card_UNIV</span><span class="delimiter">)</span><span class="">
+</span><span class="">
+</span><span class="">
+</span><span class="keyword2">qualified</span><span class=""> </span><span class="keyword1">definition</span><span class=""> </span><span class="">subset&#39;</span><span class=""> </span><span class="delimiter">::</span><span class=""> </span><span class="string">&quot;&#39;a set &#8658; &#39;a set &#8658; bool&quot;</span><span class="">
+</span><span class="keyword2">where</span><span class=""> </span><span class="delimiter">[</span><span class="">simp</span><span class="delimiter">,</span><span class=""> </span><span class="">code</span><span class=""> </span><span class="">del</span><span class="delimiter">,</span><span class=""> </span><span class="">code_abbrev</span><span class="delimiter">]</span><span class="delimiter">:</span><span class=""> </span><span class="string">&quot;subset&#39; = op &#8838;&quot;</span><span class="">
+</span><span class="">
+</span><span class="keyword1">lemma</span><span class=""> </span><span class="">subset&#39;_code</span><span class=""> </span><span class="delimiter">[</span><span class="">code</span><span class="delimiter">]</span><span class="delimiter">:</span><span class="">
+</span><span class="">  </span><span class="string">&quot;subset&#39; A (List.coset ys) &#10231; (&#8704;y &#8712; set ys. y &#8713; A)&quot;</span><span class="">
+</span><span class="">  </span><span class="string">&quot;subset&#39; (set ys) B &#10231; (&#8704;y &#8712; set ys. y &#8712; B)&quot;</span><span class="">
+</span><span class="">  </span><span class="string">&quot;subset&#39; (List.coset xs) (set ys) &#10231; (let n = CARD(&#39;a) in n &gt; 0 &#8743; card(set (xs @ ys)) = n)&quot;</span><span class="">
+</span><span class="keyword1">by</span><span class="delimiter">(</span><span class="">auto</span><span class=""> </span><span class="">simp</span><span class=""> </span><span class="">add</span><span class="delimiter">:</span><span class=""> </span><span class="">Let_def</span><span class=""> </span><span class="">card_gt_0_iff</span><span class=""> </span><span class="">dest</span><span class="delimiter">:</span><span class=""> </span><span class="">card_eq_UNIV_imp_eq_UNIV</span><span class=""> </span><span class="">intro</span><span class="delimiter">:</span><span class=""> </span><span class="">arg_cong</span><span class="delimiter">[</span><span class="keyword2">where</span><span class=""> </span><span class="">f</span><span class="delimiter">=</span><span class="">card</span><span class="delimiter">]</span><span class="delimiter">)</span><span class="">
+</span><span class="">  </span><span class="delimiter">(</span><span class="">metis</span><span class=""> </span><span class="">finite_compl</span><span class=""> </span><span class="">finite_set</span><span class=""> </span><span class="">rev_finite_subset</span><span class="delimiter">)</span><span class="">
+</span><span class="">
+</span><span class="keyword2">qualified</span><span class=""> </span><span class="keyword1">definition</span><span class=""> </span><span class="">eq_set</span><span class=""> </span><span class="delimiter">::</span><span class=""> </span><span class="string">&quot;&#39;a set &#8658; &#39;a set &#8658; bool&quot;</span><span class="">
+</span><span class="keyword2">where</span><span class=""> </span><span class="delimiter">[</span><span class="">simp</span><span class="delimiter">,</span><span class=""> </span><span class="">code</span><span class=""> </span><span class="">del</span><span class="delimiter">,</span><span class=""> </span><span class="">code_abbrev</span><span class="delimiter">]</span><span class="delimiter">:</span><span class=""> </span><span class="string">&quot;eq_set = op =&quot;</span><span class="">
+</span><span class="">
+</span><span class="keyword1">lemma</span><span class=""> </span><span class="">eq_set_code</span><span class=""> </span><span class="delimiter">[</span><span class="">code</span><span class="delimiter">]</span><span class="delimiter">:</span><span class="">
+</span><span class="">  </span><span class="keyword2">fixes</span><span class=""> </span><span class="">ys</span><span class="">
+</span><span class="">  </span><span class="keyword2">defines</span><span class=""> </span><span class="string">&quot;rhs &#8801; 
+  let n = CARD(&#39;a)
+  in if n = 0 then False else 
+        let xs&#39; = remdups xs; ys&#39; = remdups ys 
+        in length xs&#39; + length ys&#39; = n &#8743; (&#8704;x &#8712; set xs&#39;. x &#8713; set ys&#39;) &#8743; (&#8704;y &#8712; set ys&#39;. y &#8713; set xs&#39;)&quot;</span><span class="">
+</span><span class="">  </span><span class="keyword2">shows</span><span class=""> </span><span class="string">&quot;eq_set (List.coset xs) (set ys) &#10231; rhs&quot;</span><span class="">
+</span><span class="">  </span><span class="keyword2">and</span><span class=""> </span><span class="string">&quot;eq_set (set ys) (List.coset xs) &#10231; rhs&quot;</span><span class="">
+</span><span class="">  </span><span class="keyword2">and</span><span class=""> </span><span class="string">&quot;eq_set (set xs) (set ys) &#10231; (&#8704;x &#8712; set xs. x &#8712; set ys) &#8743; (&#8704;y &#8712; set ys. y &#8712; set xs)&quot;</span><span class="">
+</span><span class="">  </span><span class="keyword2">and</span><span class=""> </span><span class="string">&quot;eq_set (List.coset xs) (List.coset ys) &#10231; (&#8704;x &#8712; set xs. x &#8712; set ys) &#8743; (&#8704;y &#8712; set ys. y &#8712; set xs)&quot;</span><span class="">
+</span><span class="keyword1">proof</span><span class=""> </span><span class="">goal_cases</span><span class="">
+</span><span class="">  </span><span class="keyword1">{</span><span class="">
+</span><span class="">    </span><span class="keyword3">case</span><span class=""> </span><span class="">1</span><span class="">
+</span><span class="">    </span><span class="keyword3">show</span><span class=""> </span><span class="var">?case</span><span class=""> </span><span class="delimiter">(</span><span class="keyword2">is</span><span class=""> </span><span class="string">&quot;?lhs &#10231; ?rhs&quot;</span><span class="delimiter">)</span><span class="">
+</span><span class="">    </span><span class="keyword1">proof</span><span class="">
+</span><span class="">      </span><span class="keyword3">show</span><span class=""> </span><span class="var">?rhs</span><span class=""> </span><span class="keyword2">if</span><span class=""> </span><span class="var">?lhs</span><span class="">
+</span><span class="">        </span><span class="keyword1">using</span><span class=""> </span><span class="">that</span><span class="">
+</span><span class="">        </span><span class="keyword1">by</span><span class=""> </span><span class="delimiter">(</span><span class="">auto</span><span class=""> </span><span class="">simp</span><span class=""> </span><span class="">add</span><span class="delimiter">:</span><span class=""> </span><span class="">rhs_def</span><span class=""> </span><span class="">Let_def</span><span class=""> </span><span class="">List.card_set</span><span class="delimiter">[</span><span class="">symmetric</span><span class="delimiter">]</span><span class="">
+</span><span class="">          </span><span class="">card_Un_Int</span><span class="delimiter">[</span><span class="keyword2">where</span><span class=""> </span><span class="">A</span><span class="delimiter">=</span><span class="string">&quot;set xs&quot;</span><span class=""> </span><span class="keyword2">and</span><span class=""> </span><span class="">B</span><span class="delimiter">=</span><span class="string">&quot;- set xs&quot;</span><span class="delimiter">]</span><span class=""> </span><span class="">card_UNIV</span><span class="">
+</span><span class="">          </span><span class="">Compl_partition</span><span class=""> </span><span class="">card_gt_0_iff</span><span class=""> </span><span class="">dest</span><span class="delimiter">:</span><span class=""> </span><span class="">sym</span><span class="delimiter">)</span><span class="delimiter">(</span><span class="">metis</span><span class=""> </span><span class="">finite_compl</span><span class=""> </span><span class="">finite_set</span><span class="delimiter">)</span><span class="">
+</span><span class="">      </span><span class="keyword3">show</span><span class=""> </span><span class="var">?lhs</span><span class=""> </span><span class="keyword2">if</span><span class=""> </span><span class="var">?rhs</span><span class="">
+</span><span class="">      </span><span class="keyword1">proof</span><span class=""> </span><span class="">-</span><span class=""> 
+</span><span class="">        </span><span class="keyword1">have</span><span class=""> </span><span class="string">&quot;&#10214; &#8704;y&#8712;set xs. y &#8713; set ys; &#8704;x&#8712;set ys. x &#8713; set xs &#10215; &#10233; set xs &#8745; set ys = {}&quot;</span><span class=""> </span><span class="keyword1">by</span><span class=""> </span><span class="">blast</span><span class="">
+</span><span class="">        </span><span class="keyword1">with</span><span class=""> </span><span class="">that</span><span class=""> </span><span class="keyword3">show</span><span class=""> </span><span class="var">?thesis</span><span class="">
+</span><span class="">          </span><span class="keyword1">by</span><span class=""> </span><span class="delimiter">(</span><span class="">auto</span><span class=""> </span><span class="">simp</span><span class=""> </span><span class="">add</span><span class="delimiter">:</span><span class=""> </span><span class="">rhs_def</span><span class=""> </span><span class="">Let_def</span><span class=""> </span><span class="">List.card_set</span><span class="delimiter">[</span><span class="">symmetric</span><span class="delimiter">]</span><span class="">
+</span><span class="">            </span><span class="">card_UNIV</span><span class=""> </span><span class="">card_gt_0_iff</span><span class=""> </span><span class="">card_Un_Int</span><span class="delimiter">[</span><span class="keyword2">where</span><span class=""> </span><span class="">A</span><span class="delimiter">=</span><span class="string">&quot;set xs&quot;</span><span class=""> </span><span class="keyword2">and</span><span class=""> </span><span class="">B</span><span class="delimiter">=</span><span class="string">&quot;set ys&quot;</span><span class="delimiter">]</span><span class="">
+</span><span class="">            </span><span class="">dest</span><span class="delimiter">:</span><span class=""> </span><span class="">card_eq_UNIV_imp_eq_UNIV</span><span class=""> </span><span class="">split</span><span class="delimiter">:</span><span class=""> </span><span class="">split_if_asm</span><span class="delimiter">)</span><span class="">
+</span><span class="">      </span><span class="keyword1">qed</span><span class="">
+</span><span class="">    </span><span class="keyword1">qed</span><span class="">
+</span><span class="">  </span><span class="keyword1">}</span><span class="">
+</span><span class="">  </span><span class="keyword1">moreover</span><span class="">
+</span><span class="">  </span><span class="keyword3">case</span><span class=""> </span><span class="">2</span><span class="">
+</span><span class="">  </span><span class="keyword1">ultimately</span><span class=""> </span><span class="keyword3">show</span><span class=""> </span><span class="var">?case</span><span class=""> </span><span class="keyword1">unfolding</span><span class=""> </span><span class="">eq_set_def</span><span class=""> </span><span class="keyword1">by</span><span class=""> </span><span class="">blast</span><span class="">
+</span><span class="keyword1">next</span><span class="">
+</span><span class="">  </span><span class="keyword3">case</span><span class=""> </span><span class="">3</span><span class="">
+</span><span class="">  </span><span class="keyword3">show</span><span class=""> </span><span class="var">?case</span><span class=""> </span><span class="keyword1">unfolding</span><span class=""> </span><span class="">eq_set_def</span><span class=""> </span><span class="">List.coset_def</span><span class=""> </span><span class="keyword1">by</span><span class=""> </span><span class="">blast</span><span class="">
+</span><span class="keyword1">next</span><span class="">
+</span><span class="">  </span><span class="keyword3">case</span><span class=""> </span><span class="">4</span><span class="">
+</span><span class="">  </span><span class="keyword3">show</span><span class=""> </span><span class="var">?case</span><span class=""> </span><span class="keyword1">unfolding</span><span class=""> </span><span class="">eq_set_def</span><span class=""> </span><span class="">List.coset_def</span><span class=""> </span><span class="keyword1">by</span><span class=""> </span><span class="">blast</span><span class="">
+</span><span class="keyword1">qed</span><span class="">
+</span><span class="">
+</span><span class="keyword2">end</span><span class="">
+</span><span class="">
+</span><span class="keyword1">text</span><span class=""> </span><span class="cartouche">&#8249;
+  Provide more informative exceptions than Match for non-rewritten cases.
+  If generated code raises one these exceptions, then a code equation calls
+  the mentioned operator for an element type that is not an instance of
+  @{class card_UNIV} and is therefore not implemented via @{term card_UNIV}.
+  Constrain the element type with sort @{class card_UNIV} to change this.
+&#8250;</span><span class="">
+</span><span class="">
+</span><span class="keyword1">lemma</span><span class=""> </span><span class="">card_coset_error</span><span class=""> </span><span class="delimiter">[</span><span class="">code</span><span class="delimiter">]</span><span class="delimiter">:</span><span class="">
+</span><span class="">  </span><span class="string">&quot;card (List.coset xs) = 
+   Code.abort (STR &#39;&#39;card (List.coset _) requires type class instance card_UNIV&#39;&#39;)
+     (&#955;_. card (List.coset xs))&quot;</span><span class="">
+</span><span class="keyword1">by</span><span class="delimiter">(</span><span class="">simp</span><span class="delimiter">)</span><span class="">
+</span><span class="">
+</span><span class="keyword1">lemma</span><span class=""> </span><span class="">coset_subseteq_set_code</span><span class=""> </span><span class="delimiter">[</span><span class="">code</span><span class="delimiter">]</span><span class="delimiter">:</span><span class="">
+</span><span class="">  </span><span class="string">&quot;List.coset xs &#8838; set ys &#10231; 
+  (if xs = [] &#8743; ys = [] then False 
+   else Code.abort
+     (STR &#39;&#39;subset_eq (List.coset _) (List.set _) requires type class instance card_UNIV&#39;&#39;)
+     (&#955;_. List.coset xs &#8838; set ys))&quot;</span><span class="">
+</span><span class="keyword1">by</span><span class=""> </span><span class="">simp</span><span class="">
+</span><span class="">
+</span><span class="keyword1">notepad</span><span class=""> </span><span class="keyword2">begin</span><span class=""> </span><span class="delimiter">&#8213;</span><span class=""> </span><span class="string">&quot;test code setup&quot;</span><span class="">
+</span><span class="keyword1">have</span><span class=""> </span><span class="string">&quot;List.coset [True] = set [False] &#8743; 
+      List.coset [] &#8838; List.set [True, False] &#8743; 
+      finite (List.coset [True])&quot;</span><span class="">
+</span><span class="">  </span><span class="keyword1">by</span><span class=""> </span><span class="">eval</span><span class="">
+</span><span class="keyword2">end</span><span class="">
+</span><span class="">
+</span><span class="keyword2">end</span><span class="">
+</span></pre>
+
+</div>
+</body>
+</html>

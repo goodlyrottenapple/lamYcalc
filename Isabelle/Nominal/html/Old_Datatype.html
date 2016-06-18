@@ -1,0 +1,539 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
+<title>Theory Old_Datatype (Isabelle2016: February 2016)</title>
+<link media="all" rel="stylesheet" type="text/css" href="isabelle.css"/>
+</head>
+
+<body>
+<div class="head"><h1>Theory Old_Datatype</h1>
+
+<span class="command">theory</span> <span class="name">Old_Datatype</span><br/>
+<span class="keyword">imports</span> <a href="../../HOL/HOL/Main.html"><span class="name">Main</span></a><br/>
+
+</div>
+<div class="source">
+<pre class="source"><span class="comment">(*  Title:      HOL/Library/Old_Datatype.thy
+    Author:     Lawrence C Paulson, Cambridge University Computer Laboratory
+    Author:     Stefan Berghofer and Markus Wenzel, TU Muenchen
+*)</span><span class="">
+</span><span class="">
+</span><span class="keyword1">section</span><span class=""> </span><span class="cartouche">&#8249;Old Datatype package: constructing datatypes from Cartesian Products and Disjoint Sums&#8250;</span><span class="">
+</span><span class="">
+</span><span class="keyword1">theory</span><span class=""> </span><span class="">Old_Datatype</span><span class="">
+</span><span class="keyword2">imports</span><span class=""> </span><span class="string">&quot;../Main&quot;</span><span class="">
+</span><span class="keyword2">keywords</span><span class=""> </span><span class="string">&quot;old_datatype&quot;</span><span class=""> </span><span class="delimiter">::</span><span class=""> </span><span class="">thy_decl</span><span class="">
+</span><span class="keyword2">begin</span><span class="">
+</span><span class="">
+</span><span class="keyword1">ML_file</span><span class=""> </span><span class="string">&quot;~~/src/HOL/Tools/datatype_realizer.ML&quot;</span><span class="">
+</span><span class="">
+</span><span class="">
+</span><span class="keyword1">subsection</span><span class=""> </span><span class="cartouche">&#8249;The datatype universe&#8250;</span><span class="">
+</span><span class="">
+</span><span class="keyword1">definition</span><span class=""> </span><span class="string">&quot;Node = {p. EX f x k. p = (f :: nat =&gt; &#39;b + nat, x ::&#39;a + nat) &amp; f k = Inr 0}&quot;</span><span class="">
+</span><span class="">
+</span><span class="keyword1">typedef</span><span class=""> </span><span class="delimiter">(</span><span class="tfree">&#39;a</span><span class="delimiter">,</span><span class=""> </span><span class="tfree">&#39;b</span><span class="delimiter">)</span><span class=""> </span><span class="">node</span><span class=""> </span><span class="delimiter">=</span><span class=""> </span><span class="string">&quot;Node :: ((nat =&gt; &#39;b + nat) * (&#39;a + nat)) set&quot;</span><span class="">
+</span><span class="">  </span><span class="keyword2">morphisms</span><span class=""> </span><span class="">Rep_Node</span><span class=""> </span><span class="">Abs_Node</span><span class="">
+</span><span class="">  </span><span class="keyword1">unfolding</span><span class=""> </span><span class="">Node_def</span><span class=""> </span><span class="keyword1">by</span><span class=""> </span><span class="">auto</span><span class="">
+</span><span class="">
+</span><span class="keyword1">text</span><span class="cartouche">&#8249;Datatypes will be represented by sets of type &#8249;node&#8250;&#8250;</span><span class="">
+</span><span class="">
+</span><span class="keyword1">type_synonym</span><span class=""> </span><span class="tfree">&#39;a</span><span class=""> </span><span class="">item</span><span class="">        </span><span class="delimiter">=</span><span class=""> </span><span class="string">&quot;(&#39;a, unit) node set&quot;</span><span class="">
+</span><span class="keyword1">type_synonym</span><span class=""> </span><span class="delimiter">(</span><span class="tfree">&#39;a</span><span class="delimiter">,</span><span class=""> </span><span class="tfree">&#39;b</span><span class="delimiter">)</span><span class=""> </span><span class="">dtree</span><span class=""> </span><span class="delimiter">=</span><span class=""> </span><span class="string">&quot;(&#39;a, &#39;b) node set&quot;</span><span class="">
+</span><span class="">
+</span><span class="keyword1">definition</span><span class=""> </span><span class="">Push</span><span class=""> </span><span class="delimiter">::</span><span class=""> </span><span class="string">&quot;[(&#39;b + nat), nat =&gt; (&#39;b + nat)] =&gt; (nat =&gt; (&#39;b + nat))&quot;</span><span class="">
+</span><span class="">  </span><span class="comment">(*crude &quot;lists&quot; of nats -- needed for the constructions*)</span><span class="">
+</span><span class="">  </span><span class="keyword2">where</span><span class=""> </span><span class="string">&quot;Push == (%b h. case_nat b h)&quot;</span><span class="">
+</span><span class="">
+</span><span class="keyword1">definition</span><span class=""> </span><span class="">Push_Node</span><span class=""> </span><span class="delimiter">::</span><span class=""> </span><span class="string">&quot;[(&#39;b + nat), (&#39;a, &#39;b) node] =&gt; (&#39;a, &#39;b) node&quot;</span><span class="">
+</span><span class="">  </span><span class="keyword2">where</span><span class=""> </span><span class="string">&quot;Push_Node == (%n x. Abs_Node (apfst (Push n) (Rep_Node x)))&quot;</span><span class="">
+</span><span class="">
+</span><span class="">
+</span><span class="comment">(** operations on S-expressions -- sets of nodes **)</span><span class="">
+</span><span class="">
+</span><span class="comment">(*S-expression constructors*)</span><span class="">
+</span><span class="keyword1">definition</span><span class=""> </span><span class="">Atom</span><span class=""> </span><span class="delimiter">::</span><span class=""> </span><span class="string">&quot;(&#39;a + nat) =&gt; (&#39;a, &#39;b) dtree&quot;</span><span class="">
+</span><span class="">  </span><span class="keyword2">where</span><span class=""> </span><span class="string">&quot;Atom == (%x. {Abs_Node((%k. Inr 0, x))})&quot;</span><span class="">
+</span><span class="keyword1">definition</span><span class=""> </span><span class="">Scons</span><span class=""> </span><span class="delimiter">::</span><span class=""> </span><span class="string">&quot;[(&#39;a, &#39;b) dtree, (&#39;a, &#39;b) dtree] =&gt; (&#39;a, &#39;b) dtree&quot;</span><span class="">
+</span><span class="">  </span><span class="keyword2">where</span><span class=""> </span><span class="string">&quot;Scons M N == (Push_Node (Inr 1) ` M) Un (Push_Node (Inr (Suc 1)) ` N)&quot;</span><span class="">
+</span><span class="">
+</span><span class="comment">(*Leaf nodes, with arbitrary or nat labels*)</span><span class="">
+</span><span class="keyword1">definition</span><span class=""> </span><span class="">Leaf</span><span class=""> </span><span class="delimiter">::</span><span class=""> </span><span class="string">&quot;&#39;a =&gt; (&#39;a, &#39;b) dtree&quot;</span><span class="">
+</span><span class="">  </span><span class="keyword2">where</span><span class=""> </span><span class="string">&quot;Leaf == Atom o Inl&quot;</span><span class="">
+</span><span class="keyword1">definition</span><span class=""> </span><span class="">Numb</span><span class=""> </span><span class="delimiter">::</span><span class=""> </span><span class="string">&quot;nat =&gt; (&#39;a, &#39;b) dtree&quot;</span><span class="">
+</span><span class="">  </span><span class="keyword2">where</span><span class=""> </span><span class="string">&quot;Numb == Atom o Inr&quot;</span><span class="">
+</span><span class="">
+</span><span class="comment">(*Injections of the &quot;disjoint sum&quot;*)</span><span class="">
+</span><span class="keyword1">definition</span><span class=""> </span><span class="">In0</span><span class=""> </span><span class="delimiter">::</span><span class=""> </span><span class="string">&quot;(&#39;a, &#39;b) dtree =&gt; (&#39;a, &#39;b) dtree&quot;</span><span class="">
+</span><span class="">  </span><span class="keyword2">where</span><span class=""> </span><span class="string">&quot;In0(M) == Scons (Numb 0) M&quot;</span><span class="">
+</span><span class="keyword1">definition</span><span class=""> </span><span class="">In1</span><span class=""> </span><span class="delimiter">::</span><span class=""> </span><span class="string">&quot;(&#39;a, &#39;b) dtree =&gt; (&#39;a, &#39;b) dtree&quot;</span><span class="">
+</span><span class="">  </span><span class="keyword2">where</span><span class=""> </span><span class="string">&quot;In1(M) == Scons (Numb 1) M&quot;</span><span class="">
+</span><span class="">
+</span><span class="comment">(*Function spaces*)</span><span class="">
+</span><span class="keyword1">definition</span><span class=""> </span><span class="">Lim</span><span class=""> </span><span class="delimiter">::</span><span class=""> </span><span class="string">&quot;(&#39;b =&gt; (&#39;a, &#39;b) dtree) =&gt; (&#39;a, &#39;b) dtree&quot;</span><span class="">
+</span><span class="">  </span><span class="keyword2">where</span><span class=""> </span><span class="string">&quot;Lim f == &#8899;{z. ? x. z = Push_Node (Inl x) ` (f x)}&quot;</span><span class="">
+</span><span class="">
+</span><span class="comment">(*the set of nodes with depth less than k*)</span><span class="">
+</span><span class="keyword1">definition</span><span class=""> </span><span class="">ndepth</span><span class=""> </span><span class="delimiter">::</span><span class=""> </span><span class="string">&quot;(&#39;a, &#39;b) node =&gt; nat&quot;</span><span class="">
+</span><span class="">  </span><span class="keyword2">where</span><span class=""> </span><span class="string">&quot;ndepth(n) == (%(f,x). LEAST k. f k = Inr 0) (Rep_Node n)&quot;</span><span class="">
+</span><span class="keyword1">definition</span><span class=""> </span><span class="">ntrunc</span><span class=""> </span><span class="delimiter">::</span><span class=""> </span><span class="string">&quot;[nat, (&#39;a, &#39;b) dtree] =&gt; (&#39;a, &#39;b) dtree&quot;</span><span class="">
+</span><span class="">  </span><span class="keyword2">where</span><span class=""> </span><span class="string">&quot;ntrunc k N == {n. n:N &amp; ndepth(n)&lt;k}&quot;</span><span class="">
+</span><span class="">
+</span><span class="comment">(*products and sums for the &quot;universe&quot;*)</span><span class="">
+</span><span class="keyword1">definition</span><span class=""> </span><span class="">uprod</span><span class=""> </span><span class="delimiter">::</span><span class=""> </span><span class="string">&quot;[(&#39;a, &#39;b) dtree set, (&#39;a, &#39;b) dtree set]=&gt; (&#39;a, &#39;b) dtree set&quot;</span><span class="">
+</span><span class="">  </span><span class="keyword2">where</span><span class=""> </span><span class="string">&quot;uprod A B == UN x:A. UN y:B. { Scons x y }&quot;</span><span class="">
+</span><span class="keyword1">definition</span><span class=""> </span><span class="">usum</span><span class=""> </span><span class="delimiter">::</span><span class=""> </span><span class="string">&quot;[(&#39;a, &#39;b) dtree set, (&#39;a, &#39;b) dtree set]=&gt; (&#39;a, &#39;b) dtree set&quot;</span><span class="">
+</span><span class="">  </span><span class="keyword2">where</span><span class=""> </span><span class="string">&quot;usum A B == In0`A Un In1`B&quot;</span><span class="">
+</span><span class="">
+</span><span class="comment">(*the corresponding eliminators*)</span><span class="">
+</span><span class="keyword1">definition</span><span class=""> </span><span class="">Split</span><span class=""> </span><span class="delimiter">::</span><span class=""> </span><span class="string">&quot;[[(&#39;a, &#39;b) dtree, (&#39;a, &#39;b) dtree]=&gt;&#39;c, (&#39;a, &#39;b) dtree] =&gt; &#39;c&quot;</span><span class="">
+</span><span class="">  </span><span class="keyword2">where</span><span class=""> </span><span class="string">&quot;Split c M == THE u. EX x y. M = Scons x y &amp; u = c x y&quot;</span><span class="">
+</span><span class="">
+</span><span class="keyword1">definition</span><span class=""> </span><span class="">Case</span><span class=""> </span><span class="delimiter">::</span><span class=""> </span><span class="string">&quot;[[(&#39;a, &#39;b) dtree]=&gt;&#39;c, [(&#39;a, &#39;b) dtree]=&gt;&#39;c, (&#39;a, &#39;b) dtree] =&gt; &#39;c&quot;</span><span class="">
+</span><span class="">  </span><span class="keyword2">where</span><span class=""> </span><span class="string">&quot;Case c d M == THE u. (EX x . M = In0(x) &amp; u = c(x)) | (EX y . M = In1(y) &amp; u = d(y))&quot;</span><span class="">
+</span><span class="">
+</span><span class="">
+</span><span class="comment">(** equality for the &quot;universe&quot; **)</span><span class="">
+</span><span class="">
+</span><span class="keyword1">definition</span><span class=""> </span><span class="">dprod</span><span class=""> </span><span class="delimiter">::</span><span class=""> </span><span class="string">&quot;[((&#39;a, &#39;b) dtree * (&#39;a, &#39;b) dtree)set, ((&#39;a, &#39;b) dtree * (&#39;a, &#39;b) dtree)set]
+      =&gt; ((&#39;a, &#39;b) dtree * (&#39;a, &#39;b) dtree)set&quot;</span><span class="">
+</span><span class="">  </span><span class="keyword2">where</span><span class=""> </span><span class="string">&quot;dprod r s == UN (x,x&#39;):r. UN (y,y&#39;):s. {(Scons x y, Scons x&#39; y&#39;)}&quot;</span><span class="">
+</span><span class="">
+</span><span class="keyword1">definition</span><span class=""> </span><span class="">dsum</span><span class=""> </span><span class="delimiter">::</span><span class=""> </span><span class="string">&quot;[((&#39;a, &#39;b) dtree * (&#39;a, &#39;b) dtree)set, ((&#39;a, &#39;b) dtree * (&#39;a, &#39;b) dtree)set]
+      =&gt; ((&#39;a, &#39;b) dtree * (&#39;a, &#39;b) dtree)set&quot;</span><span class="">
+</span><span class="">  </span><span class="keyword2">where</span><span class=""> </span><span class="string">&quot;dsum r s == (UN (x,x&#39;):r. {(In0(x),In0(x&#39;))}) Un (UN (y,y&#39;):s. {(In1(y),In1(y&#39;))})&quot;</span><span class="">
+</span><span class="">
+</span><span class="">
+</span><span class="keyword1">lemma</span><span class=""> </span><span class="">apfst_convE</span><span class="delimiter">:</span><span class=""> 
+</span><span class="">    </span><span class="string">&quot;[| q = apfst f p;  !!x y. [| p = (x,y);  q = (f(x),y) |] ==&gt; R  
+     |] ==&gt; R&quot;</span><span class="">
+</span><span class="keyword1">by</span><span class=""> </span><span class="delimiter">(</span><span class="">force</span><span class=""> </span><span class="">simp</span><span class=""> </span><span class="">add</span><span class="delimiter">:</span><span class=""> </span><span class="">apfst_def</span><span class="delimiter">)</span><span class="">
+</span><span class="">
+</span><span class="comment">(** Push -- an injection, analogous to Cons on lists **)</span><span class="">
+</span><span class="">
+</span><span class="keyword1">lemma</span><span class=""> </span><span class="">Push_inject1</span><span class="delimiter">:</span><span class=""> </span><span class="string">&quot;Push i f = Push j g  ==&gt; i=j&quot;</span><span class="">
+</span><span class="keyword1"><span class="improper">apply</span></span><span class=""> </span><span class="delimiter">(</span><span class="">simp</span><span class=""> </span><span class="">add</span><span class="delimiter">:</span><span class=""> </span><span class="">Push_def</span><span class=""> </span><span class="">fun_eq_iff</span><span class="delimiter">)</span><span class=""> 
+</span><span class="keyword1"><span class="improper">apply</span></span><span class=""> </span><span class="delimiter">(</span><span class="">drule_tac</span><span class=""> </span><span class="">x</span><span class="delimiter">=</span><span class="">0</span><span class=""> </span><span class="keyword2">in</span><span class=""> </span><span class="">spec</span><span class="delimiter">,</span><span class=""> </span><span class="">simp</span><span class="delimiter">)</span><span class=""> 
+</span><span class="keyword1"><span class="improper">done</span></span><span class="">
+</span><span class="">
+</span><span class="keyword1">lemma</span><span class=""> </span><span class="">Push_inject2</span><span class="delimiter">:</span><span class=""> </span><span class="string">&quot;Push i f = Push j g  ==&gt; f=g&quot;</span><span class="">
+</span><span class="keyword1"><span class="improper">apply</span></span><span class=""> </span><span class="delimiter">(</span><span class="">auto</span><span class=""> </span><span class="">simp</span><span class=""> </span><span class="">add</span><span class="delimiter">:</span><span class=""> </span><span class="">Push_def</span><span class=""> </span><span class="">fun_eq_iff</span><span class="delimiter">)</span><span class=""> 
+</span><span class="keyword1"><span class="improper">apply</span></span><span class=""> </span><span class="delimiter">(</span><span class="">drule_tac</span><span class=""> </span><span class="">x</span><span class="delimiter">=</span><span class="string">&quot;Suc x&quot;</span><span class=""> </span><span class="keyword2">in</span><span class=""> </span><span class="">spec</span><span class="delimiter">,</span><span class=""> </span><span class="">simp</span><span class="delimiter">)</span><span class=""> 
+</span><span class="keyword1"><span class="improper">done</span></span><span class="">
+</span><span class="">
+</span><span class="keyword1">lemma</span><span class=""> </span><span class="">Push_inject</span><span class="delimiter">:</span><span class="">
+</span><span class="">    </span><span class="string">&quot;[| Push i f =Push j g;  [| i=j;  f=g |] ==&gt; P |] ==&gt; P&quot;</span><span class="">
+</span><span class="keyword1">by</span><span class=""> </span><span class="delimiter">(</span><span class="">blast</span><span class=""> </span><span class="">dest</span><span class="delimiter">:</span><span class=""> </span><span class="">Push_inject1</span><span class=""> </span><span class="">Push_inject2</span><span class="delimiter">)</span><span class=""> 
+</span><span class="">
+</span><span class="keyword1">lemma</span><span class=""> </span><span class="">Push_neq_K0</span><span class="delimiter">:</span><span class=""> </span><span class="string">&quot;Push (Inr (Suc k)) f = (%z. Inr 0) ==&gt; P&quot;</span><span class="">
+</span><span class="keyword1">by</span><span class=""> </span><span class="delimiter">(</span><span class="">auto</span><span class=""> </span><span class="">simp</span><span class=""> </span><span class="">add</span><span class="delimiter">:</span><span class=""> </span><span class="">Push_def</span><span class=""> </span><span class="">fun_eq_iff</span><span class=""> </span><span class="">split</span><span class="delimiter">:</span><span class=""> </span><span class="">nat.split_asm</span><span class="delimiter">)</span><span class="">
+</span><span class="">
+</span><span class="keyword1">lemmas</span><span class=""> </span><span class="">Abs_Node_inj</span><span class=""> </span><span class="delimiter">=</span><span class=""> </span><span class="">Abs_Node_inject</span><span class=""> </span><span class="delimiter">[</span><span class="">THEN</span><span class=""> </span><span class="delimiter">[</span><span class="">2</span><span class="delimiter">]</span><span class=""> </span><span class="">rev_iffD1</span><span class="delimiter">]</span><span class="">
+</span><span class="">
+</span><span class="">
+</span><span class="comment">(*** Introduction rules for Node ***)</span><span class="">
+</span><span class="">
+</span><span class="keyword1">lemma</span><span class=""> </span><span class="">Node_K0_I</span><span class="delimiter">:</span><span class=""> </span><span class="string">&quot;(%k. Inr 0, a) : Node&quot;</span><span class="">
+</span><span class="keyword1">by</span><span class=""> </span><span class="delimiter">(</span><span class="">simp</span><span class=""> </span><span class="">add</span><span class="delimiter">:</span><span class=""> </span><span class="">Node_def</span><span class="delimiter">)</span><span class="">
+</span><span class="">
+</span><span class="keyword1">lemma</span><span class=""> </span><span class="">Node_Push_I</span><span class="delimiter">:</span><span class=""> </span><span class="string">&quot;p: Node ==&gt; apfst (Push i) p : Node&quot;</span><span class="">
+</span><span class="keyword1"><span class="improper">apply</span></span><span class=""> </span><span class="delimiter">(</span><span class="">simp</span><span class=""> </span><span class="">add</span><span class="delimiter">:</span><span class=""> </span><span class="">Node_def</span><span class=""> </span><span class="">Push_def</span><span class="delimiter">)</span><span class=""> 
+</span><span class="keyword1"><span class="improper">apply</span></span><span class=""> </span><span class="delimiter">(</span><span class="">fast</span><span class=""> </span><span class="">intro</span><span class="delimiter">!</span><span class="delimiter">:</span><span class=""> </span><span class="">apfst_conv</span><span class=""> </span><span class="">nat.case</span><span class="delimiter">(</span><span class="">2</span><span class="delimiter">)</span><span class="delimiter">[</span><span class="">THEN</span><span class=""> </span><span class="">trans</span><span class="delimiter">]</span><span class="delimiter">)</span><span class="">
+</span><span class="keyword1"><span class="improper">done</span></span><span class="">
+</span><span class="">
+</span><span class="">
+</span><span class="keyword1">subsection</span><span class="cartouche">&#8249;Freeness: Distinctness of Constructors&#8250;</span><span class="">
+</span><span class="">
+</span><span class="comment">(** Scons vs Atom **)</span><span class="">
+</span><span class="">
+</span><span class="keyword1">lemma</span><span class=""> </span><span class="">Scons_not_Atom</span><span class=""> </span><span class="delimiter">[</span><span class="">iff</span><span class="delimiter">]</span><span class="delimiter">:</span><span class=""> </span><span class="string">&quot;Scons M N &#8800; Atom(a)&quot;</span><span class="">
+</span><span class="keyword1">unfolding</span><span class=""> </span><span class="">Atom_def</span><span class=""> </span><span class="">Scons_def</span><span class=""> </span><span class="">Push_Node_def</span><span class=""> </span><span class="">One_nat_def</span><span class="">
+</span><span class="keyword1">by</span><span class=""> </span><span class="delimiter">(</span><span class="">blast</span><span class=""> </span><span class="">intro</span><span class="delimiter">:</span><span class=""> </span><span class="">Node_K0_I</span><span class=""> </span><span class="">Rep_Node</span><span class=""> </span><span class="delimiter">[</span><span class="">THEN</span><span class=""> </span><span class="">Node_Push_I</span><span class="delimiter">]</span><span class=""> 
+</span><span class="">         </span><span class="">dest</span><span class="delimiter">!</span><span class="delimiter">:</span><span class=""> </span><span class="">Abs_Node_inj</span><span class=""> 
+</span><span class="">         </span><span class="">elim</span><span class="delimiter">!</span><span class="delimiter">:</span><span class=""> </span><span class="">apfst_convE</span><span class=""> </span><span class="">sym</span><span class=""> </span><span class="delimiter">[</span><span class="">THEN</span><span class=""> </span><span class="">Push_neq_K0</span><span class="delimiter">]</span><span class="delimiter">)</span><span class="">  
+</span><span class="">
+</span><span class="keyword1">lemmas</span><span class=""> </span><span class="">Atom_not_Scons</span><span class=""> </span><span class="delimiter">[</span><span class="">iff</span><span class="delimiter">]</span><span class=""> </span><span class="delimiter">=</span><span class=""> </span><span class="">Scons_not_Atom</span><span class=""> </span><span class="delimiter">[</span><span class="">THEN</span><span class=""> </span><span class="">not_sym</span><span class="delimiter">]</span><span class="">
+</span><span class="">
+</span><span class="">
+</span><span class="comment">(*** Injectiveness ***)</span><span class="">
+</span><span class="">
+</span><span class="comment">(** Atomic nodes **)</span><span class="">
+</span><span class="">
+</span><span class="keyword1">lemma</span><span class=""> </span><span class="">inj_Atom</span><span class="delimiter">:</span><span class=""> </span><span class="string">&quot;inj(Atom)&quot;</span><span class="">
+</span><span class="keyword1"><span class="improper">apply</span></span><span class=""> </span><span class="delimiter">(</span><span class="">simp</span><span class=""> </span><span class="">add</span><span class="delimiter">:</span><span class=""> </span><span class="">Atom_def</span><span class="delimiter">)</span><span class="">
+</span><span class="keyword1"><span class="improper">apply</span></span><span class=""> </span><span class="delimiter">(</span><span class="">blast</span><span class=""> </span><span class="">intro</span><span class="delimiter">!</span><span class="delimiter">:</span><span class=""> </span><span class="">inj_onI</span><span class=""> </span><span class="">Node_K0_I</span><span class=""> </span><span class="">dest</span><span class="delimiter">!</span><span class="delimiter">:</span><span class=""> </span><span class="">Abs_Node_inj</span><span class="delimiter">)</span><span class="">
+</span><span class="keyword1"><span class="improper">done</span></span><span class="">
+</span><span class="keyword1">lemmas</span><span class=""> </span><span class="">Atom_inject</span><span class=""> </span><span class="delimiter">=</span><span class=""> </span><span class="">inj_Atom</span><span class=""> </span><span class="delimiter">[</span><span class="">THEN</span><span class=""> </span><span class="">injD</span><span class="delimiter">]</span><span class="">
+</span><span class="">
+</span><span class="keyword1">lemma</span><span class=""> </span><span class="">Atom_Atom_eq</span><span class=""> </span><span class="delimiter">[</span><span class="">iff</span><span class="delimiter">]</span><span class="delimiter">:</span><span class=""> </span><span class="string">&quot;(Atom(a)=Atom(b)) = (a=b)&quot;</span><span class="">
+</span><span class="keyword1">by</span><span class=""> </span><span class="delimiter">(</span><span class="">blast</span><span class=""> </span><span class="">dest</span><span class="delimiter">!</span><span class="delimiter">:</span><span class=""> </span><span class="">Atom_inject</span><span class="delimiter">)</span><span class="">
+</span><span class="">
+</span><span class="keyword1">lemma</span><span class=""> </span><span class="">inj_Leaf</span><span class="delimiter">:</span><span class=""> </span><span class="string">&quot;inj(Leaf)&quot;</span><span class="">
+</span><span class="keyword1"><span class="improper">apply</span></span><span class=""> </span><span class="delimiter">(</span><span class="">simp</span><span class=""> </span><span class="">add</span><span class="delimiter">:</span><span class=""> </span><span class="">Leaf_def</span><span class=""> </span><span class="">o_def</span><span class="delimiter">)</span><span class="">
+</span><span class="keyword1"><span class="improper">apply</span></span><span class=""> </span><span class="delimiter">(</span><span class="">rule</span><span class=""> </span><span class="">inj_onI</span><span class="delimiter">)</span><span class="">
+</span><span class="keyword1"><span class="improper">apply</span></span><span class=""> </span><span class="delimiter">(</span><span class="">erule</span><span class=""> </span><span class="">Atom_inject</span><span class=""> </span><span class="delimiter">[</span><span class="">THEN</span><span class=""> </span><span class="">Inl_inject</span><span class="delimiter">]</span><span class="delimiter">)</span><span class="">
+</span><span class="keyword1"><span class="improper">done</span></span><span class="">
+</span><span class="">
+</span><span class="keyword1">lemmas</span><span class=""> </span><span class="">Leaf_inject</span><span class=""> </span><span class="delimiter">[</span><span class="">dest</span><span class="delimiter">!</span><span class="delimiter">]</span><span class=""> </span><span class="delimiter">=</span><span class=""> </span><span class="">inj_Leaf</span><span class=""> </span><span class="delimiter">[</span><span class="">THEN</span><span class=""> </span><span class="">injD</span><span class="delimiter">]</span><span class="">
+</span><span class="">
+</span><span class="keyword1">lemma</span><span class=""> </span><span class="">inj_Numb</span><span class="delimiter">:</span><span class=""> </span><span class="string">&quot;inj(Numb)&quot;</span><span class="">
+</span><span class="keyword1"><span class="improper">apply</span></span><span class=""> </span><span class="delimiter">(</span><span class="">simp</span><span class=""> </span><span class="">add</span><span class="delimiter">:</span><span class=""> </span><span class="">Numb_def</span><span class=""> </span><span class="">o_def</span><span class="delimiter">)</span><span class="">
+</span><span class="keyword1"><span class="improper">apply</span></span><span class=""> </span><span class="delimiter">(</span><span class="">rule</span><span class=""> </span><span class="">inj_onI</span><span class="delimiter">)</span><span class="">
+</span><span class="keyword1"><span class="improper">apply</span></span><span class=""> </span><span class="delimiter">(</span><span class="">erule</span><span class=""> </span><span class="">Atom_inject</span><span class=""> </span><span class="delimiter">[</span><span class="">THEN</span><span class=""> </span><span class="">Inr_inject</span><span class="delimiter">]</span><span class="delimiter">)</span><span class="">
+</span><span class="keyword1"><span class="improper">done</span></span><span class="">
+</span><span class="">
+</span><span class="keyword1">lemmas</span><span class=""> </span><span class="">Numb_inject</span><span class=""> </span><span class="delimiter">[</span><span class="">dest</span><span class="delimiter">!</span><span class="delimiter">]</span><span class=""> </span><span class="delimiter">=</span><span class=""> </span><span class="">inj_Numb</span><span class=""> </span><span class="delimiter">[</span><span class="">THEN</span><span class=""> </span><span class="">injD</span><span class="delimiter">]</span><span class="">
+</span><span class="">
+</span><span class="">
+</span><span class="comment">(** Injectiveness of Push_Node **)</span><span class="">
+</span><span class="">
+</span><span class="keyword1">lemma</span><span class=""> </span><span class="">Push_Node_inject</span><span class="delimiter">:</span><span class="">
+</span><span class="">    </span><span class="string">&quot;[| Push_Node i m =Push_Node j n;  [| i=j;  m=n |] ==&gt; P  
+     |] ==&gt; P&quot;</span><span class="">
+</span><span class="keyword1"><span class="improper">apply</span></span><span class=""> </span><span class="delimiter">(</span><span class="">simp</span><span class=""> </span><span class="">add</span><span class="delimiter">:</span><span class=""> </span><span class="">Push_Node_def</span><span class="delimiter">)</span><span class="">
+</span><span class="keyword1"><span class="improper">apply</span></span><span class=""> </span><span class="delimiter">(</span><span class="">erule</span><span class=""> </span><span class="">Abs_Node_inj</span><span class=""> </span><span class="delimiter">[</span><span class="">THEN</span><span class=""> </span><span class="">apfst_convE</span><span class="delimiter">]</span><span class="delimiter">)</span><span class="">
+</span><span class="keyword1"><span class="improper">apply</span></span><span class=""> </span><span class="delimiter">(</span><span class="">rule</span><span class=""> </span><span class="">Rep_Node</span><span class=""> </span><span class="delimiter">[</span><span class="">THEN</span><span class=""> </span><span class="">Node_Push_I</span><span class="delimiter">]</span><span class="delimiter">)</span><span class="delimiter">+</span><span class="">
+</span><span class="keyword1"><span class="improper">apply</span></span><span class=""> </span><span class="delimiter">(</span><span class="">erule</span><span class=""> </span><span class="">sym</span><span class=""> </span><span class="delimiter">[</span><span class="">THEN</span><span class=""> </span><span class="">apfst_convE</span><span class="delimiter">]</span><span class="delimiter">)</span><span class=""> 
+</span><span class="keyword1"><span class="improper">apply</span></span><span class=""> </span><span class="delimiter">(</span><span class="">blast</span><span class=""> </span><span class="">intro</span><span class="delimiter">:</span><span class=""> </span><span class="">Rep_Node_inject</span><span class=""> </span><span class="delimiter">[</span><span class="">THEN</span><span class=""> </span><span class="">iffD1</span><span class="delimiter">]</span><span class=""> </span><span class="">trans</span><span class=""> </span><span class="">sym</span><span class=""> </span><span class="">elim</span><span class="delimiter">!</span><span class="delimiter">:</span><span class=""> </span><span class="">Push_inject</span><span class="delimiter">)</span><span class="">
+</span><span class="keyword1"><span class="improper">done</span></span><span class="">
+</span><span class="">
+</span><span class="">
+</span><span class="comment">(** Injectiveness of Scons **)</span><span class="">
+</span><span class="">
+</span><span class="keyword1">lemma</span><span class=""> </span><span class="">Scons_inject_lemma1</span><span class="delimiter">:</span><span class=""> </span><span class="string">&quot;Scons M N &lt;= Scons M&#39; N&#39; ==&gt; M&lt;=M&#39;&quot;</span><span class="">
+</span><span class="keyword1">unfolding</span><span class=""> </span><span class="">Scons_def</span><span class=""> </span><span class="">One_nat_def</span><span class="">
+</span><span class="keyword1">by</span><span class=""> </span><span class="delimiter">(</span><span class="">blast</span><span class=""> </span><span class="">dest</span><span class="delimiter">!</span><span class="delimiter">:</span><span class=""> </span><span class="">Push_Node_inject</span><span class="delimiter">)</span><span class="">
+</span><span class="">
+</span><span class="keyword1">lemma</span><span class=""> </span><span class="">Scons_inject_lemma2</span><span class="delimiter">:</span><span class=""> </span><span class="string">&quot;Scons M N &lt;= Scons M&#39; N&#39; ==&gt; N&lt;=N&#39;&quot;</span><span class="">
+</span><span class="keyword1">unfolding</span><span class=""> </span><span class="">Scons_def</span><span class=""> </span><span class="">One_nat_def</span><span class="">
+</span><span class="keyword1">by</span><span class=""> </span><span class="delimiter">(</span><span class="">blast</span><span class=""> </span><span class="">dest</span><span class="delimiter">!</span><span class="delimiter">:</span><span class=""> </span><span class="">Push_Node_inject</span><span class="delimiter">)</span><span class="">
+</span><span class="">
+</span><span class="keyword1">lemma</span><span class=""> </span><span class="">Scons_inject1</span><span class="delimiter">:</span><span class=""> </span><span class="string">&quot;Scons M N = Scons M&#39; N&#39; ==&gt; M=M&#39;&quot;</span><span class="">
+</span><span class="keyword1"><span class="improper">apply</span></span><span class=""> </span><span class="delimiter">(</span><span class="">erule</span><span class=""> </span><span class="">equalityE</span><span class="delimiter">)</span><span class="">
+</span><span class="keyword1"><span class="improper">apply</span></span><span class=""> </span><span class="delimiter">(</span><span class="">iprover</span><span class=""> </span><span class="">intro</span><span class="delimiter">:</span><span class=""> </span><span class="">equalityI</span><span class=""> </span><span class="">Scons_inject_lemma1</span><span class="delimiter">)</span><span class="">
+</span><span class="keyword1"><span class="improper">done</span></span><span class="">
+</span><span class="">
+</span><span class="keyword1">lemma</span><span class=""> </span><span class="">Scons_inject2</span><span class="delimiter">:</span><span class=""> </span><span class="string">&quot;Scons M N = Scons M&#39; N&#39; ==&gt; N=N&#39;&quot;</span><span class="">
+</span><span class="keyword1"><span class="improper">apply</span></span><span class=""> </span><span class="delimiter">(</span><span class="">erule</span><span class=""> </span><span class="">equalityE</span><span class="delimiter">)</span><span class="">
+</span><span class="keyword1"><span class="improper">apply</span></span><span class=""> </span><span class="delimiter">(</span><span class="">iprover</span><span class=""> </span><span class="">intro</span><span class="delimiter">:</span><span class=""> </span><span class="">equalityI</span><span class=""> </span><span class="">Scons_inject_lemma2</span><span class="delimiter">)</span><span class="">
+</span><span class="keyword1"><span class="improper">done</span></span><span class="">
+</span><span class="">
+</span><span class="keyword1">lemma</span><span class=""> </span><span class="">Scons_inject</span><span class="delimiter">:</span><span class="">
+</span><span class="">    </span><span class="string">&quot;[| Scons M N = Scons M&#39; N&#39;;  [| M=M&#39;;  N=N&#39; |] ==&gt; P |] ==&gt; P&quot;</span><span class="">
+</span><span class="keyword1">by</span><span class=""> </span><span class="delimiter">(</span><span class="">iprover</span><span class=""> </span><span class="">dest</span><span class="delimiter">:</span><span class=""> </span><span class="">Scons_inject1</span><span class=""> </span><span class="">Scons_inject2</span><span class="delimiter">)</span><span class="">
+</span><span class="">
+</span><span class="keyword1">lemma</span><span class=""> </span><span class="">Scons_Scons_eq</span><span class=""> </span><span class="delimiter">[</span><span class="">iff</span><span class="delimiter">]</span><span class="delimiter">:</span><span class=""> </span><span class="string">&quot;(Scons M N = Scons M&#39; N&#39;) = (M=M&#39; &amp; N=N&#39;)&quot;</span><span class="">
+</span><span class="keyword1">by</span><span class=""> </span><span class="delimiter">(</span><span class="">blast</span><span class=""> </span><span class="">elim</span><span class="delimiter">!</span><span class="delimiter">:</span><span class=""> </span><span class="">Scons_inject</span><span class="delimiter">)</span><span class="">
+</span><span class="">
+</span><span class="comment">(*** Distinctness involving Leaf and Numb ***)</span><span class="">
+</span><span class="">
+</span><span class="comment">(** Scons vs Leaf **)</span><span class="">
+</span><span class="">
+</span><span class="keyword1">lemma</span><span class=""> </span><span class="">Scons_not_Leaf</span><span class=""> </span><span class="delimiter">[</span><span class="">iff</span><span class="delimiter">]</span><span class="delimiter">:</span><span class=""> </span><span class="string">&quot;Scons M N &#8800; Leaf(a)&quot;</span><span class="">
+</span><span class="keyword1">unfolding</span><span class=""> </span><span class="">Leaf_def</span><span class=""> </span><span class="">o_def</span><span class=""> </span><span class="keyword1">by</span><span class=""> </span><span class="delimiter">(</span><span class="">rule</span><span class=""> </span><span class="">Scons_not_Atom</span><span class="delimiter">)</span><span class="">
+</span><span class="">
+</span><span class="keyword1">lemmas</span><span class=""> </span><span class="">Leaf_not_Scons</span><span class="">  </span><span class="delimiter">[</span><span class="">iff</span><span class="delimiter">]</span><span class=""> </span><span class="delimiter">=</span><span class=""> </span><span class="">Scons_not_Leaf</span><span class=""> </span><span class="delimiter">[</span><span class="">THEN</span><span class=""> </span><span class="">not_sym</span><span class="delimiter">]</span><span class="">
+</span><span class="">
+</span><span class="comment">(** Scons vs Numb **)</span><span class="">
+</span><span class="">
+</span><span class="keyword1">lemma</span><span class=""> </span><span class="">Scons_not_Numb</span><span class=""> </span><span class="delimiter">[</span><span class="">iff</span><span class="delimiter">]</span><span class="delimiter">:</span><span class=""> </span><span class="string">&quot;Scons M N &#8800; Numb(k)&quot;</span><span class="">
+</span><span class="keyword1">unfolding</span><span class=""> </span><span class="">Numb_def</span><span class=""> </span><span class="">o_def</span><span class=""> </span><span class="keyword1">by</span><span class=""> </span><span class="delimiter">(</span><span class="">rule</span><span class=""> </span><span class="">Scons_not_Atom</span><span class="delimiter">)</span><span class="">
+</span><span class="">
+</span><span class="keyword1">lemmas</span><span class=""> </span><span class="">Numb_not_Scons</span><span class=""> </span><span class="delimiter">[</span><span class="">iff</span><span class="delimiter">]</span><span class=""> </span><span class="delimiter">=</span><span class=""> </span><span class="">Scons_not_Numb</span><span class=""> </span><span class="delimiter">[</span><span class="">THEN</span><span class=""> </span><span class="">not_sym</span><span class="delimiter">]</span><span class="">
+</span><span class="">
+</span><span class="">
+</span><span class="comment">(** Leaf vs Numb **)</span><span class="">
+</span><span class="">
+</span><span class="keyword1">lemma</span><span class=""> </span><span class="">Leaf_not_Numb</span><span class=""> </span><span class="delimiter">[</span><span class="">iff</span><span class="delimiter">]</span><span class="delimiter">:</span><span class=""> </span><span class="string">&quot;Leaf(a) &#8800; Numb(k)&quot;</span><span class="">
+</span><span class="keyword1">by</span><span class=""> </span><span class="delimiter">(</span><span class="">simp</span><span class=""> </span><span class="">add</span><span class="delimiter">:</span><span class=""> </span><span class="">Leaf_def</span><span class=""> </span><span class="">Numb_def</span><span class="delimiter">)</span><span class="">
+</span><span class="">
+</span><span class="keyword1">lemmas</span><span class=""> </span><span class="">Numb_not_Leaf</span><span class=""> </span><span class="delimiter">[</span><span class="">iff</span><span class="delimiter">]</span><span class=""> </span><span class="delimiter">=</span><span class=""> </span><span class="">Leaf_not_Numb</span><span class=""> </span><span class="delimiter">[</span><span class="">THEN</span><span class=""> </span><span class="">not_sym</span><span class="delimiter">]</span><span class="">
+</span><span class="">
+</span><span class="">
+</span><span class="comment">(*** ndepth -- the depth of a node ***)</span><span class="">
+</span><span class="">
+</span><span class="keyword1">lemma</span><span class=""> </span><span class="">ndepth_K0</span><span class="delimiter">:</span><span class=""> </span><span class="string">&quot;ndepth (Abs_Node(%k. Inr 0, x)) = 0&quot;</span><span class="">
+</span><span class="keyword1">by</span><span class=""> </span><span class="delimiter">(</span><span class="">simp</span><span class=""> </span><span class="">add</span><span class="delimiter">:</span><span class=""> </span><span class="">ndepth_def</span><span class="">  </span><span class="">Node_K0_I</span><span class=""> </span><span class="delimiter">[</span><span class="">THEN</span><span class=""> </span><span class="">Abs_Node_inverse</span><span class="delimiter">]</span><span class=""> </span><span class="">Least_equality</span><span class="delimiter">)</span><span class="">
+</span><span class="">
+</span><span class="keyword1">lemma</span><span class=""> </span><span class="">ndepth_Push_Node_aux</span><span class="delimiter">:</span><span class="">
+</span><span class="">     </span><span class="string">&quot;case_nat (Inr (Suc i)) f k = Inr 0 --&gt; Suc(LEAST x. f x = Inr 0) &lt;= k&quot;</span><span class="">
+</span><span class="keyword1"><span class="improper">apply</span></span><span class=""> </span><span class="delimiter">(</span><span class="">induct_tac</span><span class=""> </span><span class="string">&quot;k&quot;</span><span class="delimiter">,</span><span class=""> </span><span class="">auto</span><span class="delimiter">)</span><span class="">
+</span><span class="keyword1"><span class="improper">apply</span></span><span class=""> </span><span class="delimiter">(</span><span class="">erule</span><span class=""> </span><span class="">Least_le</span><span class="delimiter">)</span><span class="">
+</span><span class="keyword1"><span class="improper">done</span></span><span class="">
+</span><span class="">
+</span><span class="keyword1">lemma</span><span class=""> </span><span class="">ndepth_Push_Node</span><span class="delimiter">:</span><span class=""> 
+</span><span class="">    </span><span class="string">&quot;ndepth (Push_Node (Inr (Suc i)) n) = Suc(ndepth(n))&quot;</span><span class="">
+</span><span class="keyword1"><span class="improper">apply</span></span><span class=""> </span><span class="delimiter">(</span><span class="">insert</span><span class=""> </span><span class="">Rep_Node</span><span class=""> </span><span class="delimiter">[</span><span class="">of</span><span class=""> </span><span class="">n</span><span class="delimiter">,</span><span class=""> </span><span class="">unfolded</span><span class=""> </span><span class="">Node_def</span><span class="delimiter">]</span><span class="delimiter">)</span><span class="">
+</span><span class="keyword1"><span class="improper">apply</span></span><span class=""> </span><span class="delimiter">(</span><span class="">auto</span><span class=""> </span><span class="">simp</span><span class=""> </span><span class="">add</span><span class="delimiter">:</span><span class=""> </span><span class="">ndepth_def</span><span class=""> </span><span class="">Push_Node_def</span><span class="">
+</span><span class="">                 </span><span class="">Rep_Node</span><span class=""> </span><span class="delimiter">[</span><span class="">THEN</span><span class=""> </span><span class="">Node_Push_I</span><span class="delimiter">,</span><span class=""> </span><span class="">THEN</span><span class=""> </span><span class="">Abs_Node_inverse</span><span class="delimiter">]</span><span class="delimiter">)</span><span class="">
+</span><span class="keyword1"><span class="improper">apply</span></span><span class=""> </span><span class="delimiter">(</span><span class="">rule</span><span class=""> </span><span class="">Least_equality</span><span class="delimiter">)</span><span class="">
+</span><span class="keyword1"><span class="improper">apply</span></span><span class=""> </span><span class="delimiter">(</span><span class="">auto</span><span class=""> </span><span class="">simp</span><span class=""> </span><span class="">add</span><span class="delimiter">:</span><span class=""> </span><span class="">Push_def</span><span class=""> </span><span class="">ndepth_Push_Node_aux</span><span class="delimiter">)</span><span class="">
+</span><span class="keyword1"><span class="improper">apply</span></span><span class=""> </span><span class="delimiter">(</span><span class="">erule</span><span class=""> </span><span class="">LeastI</span><span class="delimiter">)</span><span class="">
+</span><span class="keyword1"><span class="improper">done</span></span><span class="">
+</span><span class="">
+</span><span class="">
+</span><span class="comment">(*** ntrunc applied to the various node sets ***)</span><span class="">
+</span><span class="">
+</span><span class="keyword1">lemma</span><span class=""> </span><span class="">ntrunc_0</span><span class=""> </span><span class="delimiter">[</span><span class="">simp</span><span class="delimiter">]</span><span class="delimiter">:</span><span class=""> </span><span class="string">&quot;ntrunc 0 M = {}&quot;</span><span class="">
+</span><span class="keyword1">by</span><span class=""> </span><span class="delimiter">(</span><span class="">simp</span><span class=""> </span><span class="">add</span><span class="delimiter">:</span><span class=""> </span><span class="">ntrunc_def</span><span class="delimiter">)</span><span class="">
+</span><span class="">
+</span><span class="keyword1">lemma</span><span class=""> </span><span class="">ntrunc_Atom</span><span class=""> </span><span class="delimiter">[</span><span class="">simp</span><span class="delimiter">]</span><span class="delimiter">:</span><span class=""> </span><span class="string">&quot;ntrunc (Suc k) (Atom a) = Atom(a)&quot;</span><span class="">
+</span><span class="keyword1">by</span><span class=""> </span><span class="delimiter">(</span><span class="">auto</span><span class=""> </span><span class="">simp</span><span class=""> </span><span class="">add</span><span class="delimiter">:</span><span class=""> </span><span class="">Atom_def</span><span class=""> </span><span class="">ntrunc_def</span><span class=""> </span><span class="">ndepth_K0</span><span class="delimiter">)</span><span class="">
+</span><span class="">
+</span><span class="keyword1">lemma</span><span class=""> </span><span class="">ntrunc_Leaf</span><span class=""> </span><span class="delimiter">[</span><span class="">simp</span><span class="delimiter">]</span><span class="delimiter">:</span><span class=""> </span><span class="string">&quot;ntrunc (Suc k) (Leaf a) = Leaf(a)&quot;</span><span class="">
+</span><span class="keyword1">unfolding</span><span class=""> </span><span class="">Leaf_def</span><span class=""> </span><span class="">o_def</span><span class=""> </span><span class="keyword1">by</span><span class=""> </span><span class="delimiter">(</span><span class="">rule</span><span class=""> </span><span class="">ntrunc_Atom</span><span class="delimiter">)</span><span class="">
+</span><span class="">
+</span><span class="keyword1">lemma</span><span class=""> </span><span class="">ntrunc_Numb</span><span class=""> </span><span class="delimiter">[</span><span class="">simp</span><span class="delimiter">]</span><span class="delimiter">:</span><span class=""> </span><span class="string">&quot;ntrunc (Suc k) (Numb i) = Numb(i)&quot;</span><span class="">
+</span><span class="keyword1">unfolding</span><span class=""> </span><span class="">Numb_def</span><span class=""> </span><span class="">o_def</span><span class=""> </span><span class="keyword1">by</span><span class=""> </span><span class="delimiter">(</span><span class="">rule</span><span class=""> </span><span class="">ntrunc_Atom</span><span class="delimiter">)</span><span class="">
+</span><span class="">
+</span><span class="keyword1">lemma</span><span class=""> </span><span class="">ntrunc_Scons</span><span class=""> </span><span class="delimiter">[</span><span class="">simp</span><span class="delimiter">]</span><span class="delimiter">:</span><span class=""> 
+</span><span class="">    </span><span class="string">&quot;ntrunc (Suc k) (Scons M N) = Scons (ntrunc k M) (ntrunc k N)&quot;</span><span class="">
+</span><span class="keyword1">unfolding</span><span class=""> </span><span class="">Scons_def</span><span class=""> </span><span class="">ntrunc_def</span><span class=""> </span><span class="">One_nat_def</span><span class="">
+</span><span class="keyword1">by</span><span class=""> </span><span class="delimiter">(</span><span class="">auto</span><span class=""> </span><span class="">simp</span><span class=""> </span><span class="">add</span><span class="delimiter">:</span><span class=""> </span><span class="">ndepth_Push_Node</span><span class="delimiter">)</span><span class="">
+</span><span class="">
+</span><span class="">
+</span><span class="">
+</span><span class="comment">(** Injection nodes **)</span><span class="">
+</span><span class="">
+</span><span class="keyword1">lemma</span><span class=""> </span><span class="">ntrunc_one_In0</span><span class=""> </span><span class="delimiter">[</span><span class="">simp</span><span class="delimiter">]</span><span class="delimiter">:</span><span class=""> </span><span class="string">&quot;ntrunc (Suc 0) (In0 M) = {}&quot;</span><span class="">
+</span><span class="keyword1"><span class="improper">apply</span></span><span class=""> </span><span class="delimiter">(</span><span class="">simp</span><span class=""> </span><span class="">add</span><span class="delimiter">:</span><span class=""> </span><span class="">In0_def</span><span class="delimiter">)</span><span class="">
+</span><span class="keyword1"><span class="improper">apply</span></span><span class=""> </span><span class="delimiter">(</span><span class="">simp</span><span class=""> </span><span class="">add</span><span class="delimiter">:</span><span class=""> </span><span class="">Scons_def</span><span class="delimiter">)</span><span class="">
+</span><span class="keyword1"><span class="improper">done</span></span><span class="">
+</span><span class="">
+</span><span class="keyword1">lemma</span><span class=""> </span><span class="">ntrunc_In0</span><span class=""> </span><span class="delimiter">[</span><span class="">simp</span><span class="delimiter">]</span><span class="delimiter">:</span><span class=""> </span><span class="string">&quot;ntrunc (Suc(Suc k)) (In0 M) = In0 (ntrunc (Suc k) M)&quot;</span><span class="">
+</span><span class="keyword1">by</span><span class=""> </span><span class="delimiter">(</span><span class="">simp</span><span class=""> </span><span class="">add</span><span class="delimiter">:</span><span class=""> </span><span class="">In0_def</span><span class="delimiter">)</span><span class="">
+</span><span class="">
+</span><span class="keyword1">lemma</span><span class=""> </span><span class="">ntrunc_one_In1</span><span class=""> </span><span class="delimiter">[</span><span class="">simp</span><span class="delimiter">]</span><span class="delimiter">:</span><span class=""> </span><span class="string">&quot;ntrunc (Suc 0) (In1 M) = {}&quot;</span><span class="">
+</span><span class="keyword1"><span class="improper">apply</span></span><span class=""> </span><span class="delimiter">(</span><span class="">simp</span><span class=""> </span><span class="">add</span><span class="delimiter">:</span><span class=""> </span><span class="">In1_def</span><span class="delimiter">)</span><span class="">
+</span><span class="keyword1"><span class="improper">apply</span></span><span class=""> </span><span class="delimiter">(</span><span class="">simp</span><span class=""> </span><span class="">add</span><span class="delimiter">:</span><span class=""> </span><span class="">Scons_def</span><span class="delimiter">)</span><span class="">
+</span><span class="keyword1"><span class="improper">done</span></span><span class="">
+</span><span class="">
+</span><span class="keyword1">lemma</span><span class=""> </span><span class="">ntrunc_In1</span><span class=""> </span><span class="delimiter">[</span><span class="">simp</span><span class="delimiter">]</span><span class="delimiter">:</span><span class=""> </span><span class="string">&quot;ntrunc (Suc(Suc k)) (In1 M) = In1 (ntrunc (Suc k) M)&quot;</span><span class="">
+</span><span class="keyword1">by</span><span class=""> </span><span class="delimiter">(</span><span class="">simp</span><span class=""> </span><span class="">add</span><span class="delimiter">:</span><span class=""> </span><span class="">In1_def</span><span class="delimiter">)</span><span class="">
+</span><span class="">
+</span><span class="">
+</span><span class="keyword1">subsection</span><span class="cartouche">&#8249;Set Constructions&#8250;</span><span class="">
+</span><span class="">
+</span><span class="">
+</span><span class="comment">(*** Cartesian Product ***)</span><span class="">
+</span><span class="">
+</span><span class="keyword1">lemma</span><span class=""> </span><span class="">uprodI</span><span class=""> </span><span class="delimiter">[</span><span class="">intro</span><span class="delimiter">!</span><span class="delimiter">]</span><span class="delimiter">:</span><span class=""> </span><span class="string">&quot;[| M:A;  N:B |] ==&gt; Scons M N : uprod A B&quot;</span><span class="">
+</span><span class="keyword1">by</span><span class=""> </span><span class="delimiter">(</span><span class="">simp</span><span class=""> </span><span class="">add</span><span class="delimiter">:</span><span class=""> </span><span class="">uprod_def</span><span class="delimiter">)</span><span class="">
+</span><span class="">
+</span><span class="comment">(*The general elimination rule*)</span><span class="">
+</span><span class="keyword1">lemma</span><span class=""> </span><span class="">uprodE</span><span class=""> </span><span class="delimiter">[</span><span class="">elim</span><span class="delimiter">!</span><span class="delimiter">]</span><span class="delimiter">:</span><span class="">
+</span><span class="">    </span><span class="string">&quot;[| c : uprod A B;   
+        !!x y. [| x:A;  y:B;  c = Scons x y |] ==&gt; P  
+     |] ==&gt; P&quot;</span><span class="">
+</span><span class="keyword1">by</span><span class=""> </span><span class="delimiter">(</span><span class="">auto</span><span class=""> </span><span class="">simp</span><span class=""> </span><span class="">add</span><span class="delimiter">:</span><span class=""> </span><span class="">uprod_def</span><span class="delimiter">)</span><span class=""> 
+</span><span class="">
+</span><span class="">
+</span><span class="comment">(*Elimination of a pair -- introduces no eigenvariables*)</span><span class="">
+</span><span class="keyword1">lemma</span><span class=""> </span><span class="">uprodE2</span><span class="delimiter">:</span><span class=""> </span><span class="string">&quot;[| Scons M N : uprod A B;  [| M:A;  N:B |] ==&gt; P |] ==&gt; P&quot;</span><span class="">
+</span><span class="keyword1">by</span><span class=""> </span><span class="delimiter">(</span><span class="">auto</span><span class=""> </span><span class="">simp</span><span class=""> </span><span class="">add</span><span class="delimiter">:</span><span class=""> </span><span class="">uprod_def</span><span class="delimiter">)</span><span class="">
+</span><span class="">
+</span><span class="">
+</span><span class="comment">(*** Disjoint Sum ***)</span><span class="">
+</span><span class="">
+</span><span class="keyword1">lemma</span><span class=""> </span><span class="">usum_In0I</span><span class=""> </span><span class="delimiter">[</span><span class="">intro</span><span class="delimiter">]</span><span class="delimiter">:</span><span class=""> </span><span class="string">&quot;M:A ==&gt; In0(M) : usum A B&quot;</span><span class="">
+</span><span class="keyword1">by</span><span class=""> </span><span class="delimiter">(</span><span class="">simp</span><span class=""> </span><span class="">add</span><span class="delimiter">:</span><span class=""> </span><span class="">usum_def</span><span class="delimiter">)</span><span class="">
+</span><span class="">
+</span><span class="keyword1">lemma</span><span class=""> </span><span class="">usum_In1I</span><span class=""> </span><span class="delimiter">[</span><span class="">intro</span><span class="delimiter">]</span><span class="delimiter">:</span><span class=""> </span><span class="string">&quot;N:B ==&gt; In1(N) : usum A B&quot;</span><span class="">
+</span><span class="keyword1">by</span><span class=""> </span><span class="delimiter">(</span><span class="">simp</span><span class=""> </span><span class="">add</span><span class="delimiter">:</span><span class=""> </span><span class="">usum_def</span><span class="delimiter">)</span><span class="">
+</span><span class="">
+</span><span class="keyword1">lemma</span><span class=""> </span><span class="">usumE</span><span class=""> </span><span class="delimiter">[</span><span class="">elim</span><span class="delimiter">!</span><span class="delimiter">]</span><span class="delimiter">:</span><span class=""> 
+</span><span class="">    </span><span class="string">&quot;[| u : usum A B;   
+        !!x. [| x:A;  u=In0(x) |] ==&gt; P;  
+        !!y. [| y:B;  u=In1(y) |] ==&gt; P  
+     |] ==&gt; P&quot;</span><span class="">
+</span><span class="keyword1">by</span><span class=""> </span><span class="delimiter">(</span><span class="">auto</span><span class=""> </span><span class="">simp</span><span class=""> </span><span class="">add</span><span class="delimiter">:</span><span class=""> </span><span class="">usum_def</span><span class="delimiter">)</span><span class="">
+</span><span class="">
+</span><span class="">
+</span><span class="comment">(** Injection **)</span><span class="">
+</span><span class="">
+</span><span class="keyword1">lemma</span><span class=""> </span><span class="">In0_not_In1</span><span class=""> </span><span class="delimiter">[</span><span class="">iff</span><span class="delimiter">]</span><span class="delimiter">:</span><span class=""> </span><span class="string">&quot;In0(M) &#8800; In1(N)&quot;</span><span class="">
+</span><span class="keyword1">unfolding</span><span class=""> </span><span class="">In0_def</span><span class=""> </span><span class="">In1_def</span><span class=""> </span><span class="">One_nat_def</span><span class=""> </span><span class="keyword1">by</span><span class=""> </span><span class="">auto</span><span class="">
+</span><span class="">
+</span><span class="keyword1">lemmas</span><span class=""> </span><span class="">In1_not_In0</span><span class=""> </span><span class="delimiter">[</span><span class="">iff</span><span class="delimiter">]</span><span class=""> </span><span class="delimiter">=</span><span class=""> </span><span class="">In0_not_In1</span><span class=""> </span><span class="delimiter">[</span><span class="">THEN</span><span class=""> </span><span class="">not_sym</span><span class="delimiter">]</span><span class="">
+</span><span class="">
+</span><span class="keyword1">lemma</span><span class=""> </span><span class="">In0_inject</span><span class="delimiter">:</span><span class=""> </span><span class="string">&quot;In0(M) = In0(N) ==&gt;  M=N&quot;</span><span class="">
+</span><span class="keyword1">by</span><span class=""> </span><span class="delimiter">(</span><span class="">simp</span><span class=""> </span><span class="">add</span><span class="delimiter">:</span><span class=""> </span><span class="">In0_def</span><span class="delimiter">)</span><span class="">
+</span><span class="">
+</span><span class="keyword1">lemma</span><span class=""> </span><span class="">In1_inject</span><span class="delimiter">:</span><span class=""> </span><span class="string">&quot;In1(M) = In1(N) ==&gt;  M=N&quot;</span><span class="">
+</span><span class="keyword1">by</span><span class=""> </span><span class="delimiter">(</span><span class="">simp</span><span class=""> </span><span class="">add</span><span class="delimiter">:</span><span class=""> </span><span class="">In1_def</span><span class="delimiter">)</span><span class="">
+</span><span class="">
+</span><span class="keyword1">lemma</span><span class=""> </span><span class="">In0_eq</span><span class=""> </span><span class="delimiter">[</span><span class="">iff</span><span class="delimiter">]</span><span class="delimiter">:</span><span class=""> </span><span class="string">&quot;(In0 M = In0 N) = (M=N)&quot;</span><span class="">
+</span><span class="keyword1">by</span><span class=""> </span><span class="delimiter">(</span><span class="">blast</span><span class=""> </span><span class="">dest</span><span class="delimiter">!</span><span class="delimiter">:</span><span class=""> </span><span class="">In0_inject</span><span class="delimiter">)</span><span class="">
+</span><span class="">
+</span><span class="keyword1">lemma</span><span class=""> </span><span class="">In1_eq</span><span class=""> </span><span class="delimiter">[</span><span class="">iff</span><span class="delimiter">]</span><span class="delimiter">:</span><span class=""> </span><span class="string">&quot;(In1 M = In1 N) = (M=N)&quot;</span><span class="">
+</span><span class="keyword1">by</span><span class=""> </span><span class="delimiter">(</span><span class="">blast</span><span class=""> </span><span class="">dest</span><span class="delimiter">!</span><span class="delimiter">:</span><span class=""> </span><span class="">In1_inject</span><span class="delimiter">)</span><span class="">
+</span><span class="">
+</span><span class="keyword1">lemma</span><span class=""> </span><span class="">inj_In0</span><span class="delimiter">:</span><span class=""> </span><span class="string">&quot;inj In0&quot;</span><span class="">
+</span><span class="keyword1">by</span><span class=""> </span><span class="delimiter">(</span><span class="">blast</span><span class=""> </span><span class="">intro</span><span class="delimiter">!</span><span class="delimiter">:</span><span class=""> </span><span class="">inj_onI</span><span class="delimiter">)</span><span class="">
+</span><span class="">
+</span><span class="keyword1">lemma</span><span class=""> </span><span class="">inj_In1</span><span class="delimiter">:</span><span class=""> </span><span class="string">&quot;inj In1&quot;</span><span class="">
+</span><span class="keyword1">by</span><span class=""> </span><span class="delimiter">(</span><span class="">blast</span><span class=""> </span><span class="">intro</span><span class="delimiter">!</span><span class="delimiter">:</span><span class=""> </span><span class="">inj_onI</span><span class="delimiter">)</span><span class="">
+</span><span class="">
+</span><span class="">
+</span><span class="comment">(*** Function spaces ***)</span><span class="">
+</span><span class="">
+</span><span class="keyword1">lemma</span><span class=""> </span><span class="">Lim_inject</span><span class="delimiter">:</span><span class=""> </span><span class="string">&quot;Lim f = Lim g ==&gt; f = g&quot;</span><span class="">
+</span><span class="keyword1"><span class="improper">apply</span></span><span class=""> </span><span class="delimiter">(</span><span class="">simp</span><span class=""> </span><span class="">add</span><span class="delimiter">:</span><span class=""> </span><span class="">Lim_def</span><span class="delimiter">)</span><span class="">
+</span><span class="keyword1"><span class="improper">apply</span></span><span class=""> </span><span class="delimiter">(</span><span class="">rule</span><span class=""> </span><span class="">ext</span><span class="delimiter">)</span><span class="">
+</span><span class="keyword1"><span class="improper">apply</span></span><span class=""> </span><span class="delimiter">(</span><span class="">blast</span><span class=""> </span><span class="">elim</span><span class="delimiter">!</span><span class="delimiter">:</span><span class=""> </span><span class="">Push_Node_inject</span><span class="delimiter">)</span><span class="">
+</span><span class="keyword1"><span class="improper">done</span></span><span class="">
+</span><span class="">
+</span><span class="">
+</span><span class="comment">(*** proving equality of sets and functions using ntrunc ***)</span><span class="">
+</span><span class="">
+</span><span class="keyword1">lemma</span><span class=""> </span><span class="">ntrunc_subsetI</span><span class="delimiter">:</span><span class=""> </span><span class="string">&quot;ntrunc k M &lt;= M&quot;</span><span class="">
+</span><span class="keyword1">by</span><span class=""> </span><span class="delimiter">(</span><span class="">auto</span><span class=""> </span><span class="">simp</span><span class=""> </span><span class="">add</span><span class="delimiter">:</span><span class=""> </span><span class="">ntrunc_def</span><span class="delimiter">)</span><span class="">
+</span><span class="">
+</span><span class="keyword1">lemma</span><span class=""> </span><span class="">ntrunc_subsetD</span><span class="delimiter">:</span><span class=""> </span><span class="string">&quot;(!!k. ntrunc k M &lt;= N) ==&gt; M&lt;=N&quot;</span><span class="">
+</span><span class="keyword1">by</span><span class=""> </span><span class="delimiter">(</span><span class="">auto</span><span class=""> </span><span class="">simp</span><span class=""> </span><span class="">add</span><span class="delimiter">:</span><span class=""> </span><span class="">ntrunc_def</span><span class="delimiter">)</span><span class="">
+</span><span class="">
+</span><span class="comment">(*A generalized form of the take-lemma*)</span><span class="">
+</span><span class="keyword1">lemma</span><span class=""> </span><span class="">ntrunc_equality</span><span class="delimiter">:</span><span class=""> </span><span class="string">&quot;(!!k. ntrunc k M = ntrunc k N) ==&gt; M=N&quot;</span><span class="">
+</span><span class="keyword1"><span class="improper">apply</span></span><span class=""> </span><span class="delimiter">(</span><span class="">rule</span><span class=""> </span><span class="">equalityI</span><span class="delimiter">)</span><span class="">
+</span><span class="keyword1"><span class="improper">apply</span></span><span class=""> </span><span class="delimiter">(</span><span class="">rule_tac</span><span class=""> </span><span class="delimiter">[</span><span class="delimiter">!</span><span class="delimiter">]</span><span class=""> </span><span class="">ntrunc_subsetD</span><span class="delimiter">)</span><span class="">
+</span><span class="keyword1"><span class="improper">apply</span></span><span class=""> </span><span class="delimiter">(</span><span class="">rule_tac</span><span class=""> </span><span class="delimiter">[</span><span class="delimiter">!</span><span class="delimiter">]</span><span class=""> </span><span class="">ntrunc_subsetI</span><span class=""> </span><span class="delimiter">[</span><span class="">THEN</span><span class=""> </span><span class="delimiter">[</span><span class="">2</span><span class="delimiter">]</span><span class=""> </span><span class="">subset_trans</span><span class="delimiter">]</span><span class="delimiter">,</span><span class=""> </span><span class="">auto</span><span class="delimiter">)</span><span class=""> 
+</span><span class="keyword1"><span class="improper">done</span></span><span class="">
+</span><span class="">
+</span><span class="keyword1">lemma</span><span class=""> </span><span class="">ntrunc_o_equality</span><span class="delimiter">:</span><span class=""> 
+</span><span class="">    </span><span class="string">&quot;[| !!k. (ntrunc(k) o h1) = (ntrunc(k) o h2) |] ==&gt; h1=h2&quot;</span><span class="">
+</span><span class="keyword1"><span class="improper">apply</span></span><span class=""> </span><span class="delimiter">(</span><span class="">rule</span><span class=""> </span><span class="">ntrunc_equality</span><span class=""> </span><span class="delimiter">[</span><span class="">THEN</span><span class=""> </span><span class="">ext</span><span class="delimiter">]</span><span class="delimiter">)</span><span class="">
+</span><span class="keyword1"><span class="improper">apply</span></span><span class=""> </span><span class="delimiter">(</span><span class="">simp</span><span class=""> </span><span class="">add</span><span class="delimiter">:</span><span class=""> </span><span class="">fun_eq_iff</span><span class="delimiter">)</span><span class=""> 
+</span><span class="keyword1"><span class="improper">done</span></span><span class="">
+</span><span class="">
+</span><span class="">
+</span><span class="comment">(*** Monotonicity ***)</span><span class="">
+</span><span class="">
+</span><span class="keyword1">lemma</span><span class=""> </span><span class="">uprod_mono</span><span class="delimiter">:</span><span class=""> </span><span class="string">&quot;[| A&lt;=A&#39;;  B&lt;=B&#39; |] ==&gt; uprod A B &lt;= uprod A&#39; B&#39;&quot;</span><span class="">
+</span><span class="keyword1">by</span><span class=""> </span><span class="delimiter">(</span><span class="">simp</span><span class=""> </span><span class="">add</span><span class="delimiter">:</span><span class=""> </span><span class="">uprod_def</span><span class="delimiter">,</span><span class=""> </span><span class="">blast</span><span class="delimiter">)</span><span class="">
+</span><span class="">
+</span><span class="keyword1">lemma</span><span class=""> </span><span class="">usum_mono</span><span class="delimiter">:</span><span class=""> </span><span class="string">&quot;[| A&lt;=A&#39;;  B&lt;=B&#39; |] ==&gt; usum A B &lt;= usum A&#39; B&#39;&quot;</span><span class="">
+</span><span class="keyword1">by</span><span class=""> </span><span class="delimiter">(</span><span class="">simp</span><span class=""> </span><span class="">add</span><span class="delimiter">:</span><span class=""> </span><span class="">usum_def</span><span class="delimiter">,</span><span class=""> </span><span class="">blast</span><span class="delimiter">)</span><span class="">
+</span><span class="">
+</span><span class="keyword1">lemma</span><span class=""> </span><span class="">Scons_mono</span><span class="delimiter">:</span><span class=""> </span><span class="string">&quot;[| M&lt;=M&#39;;  N&lt;=N&#39; |] ==&gt; Scons M N &lt;= Scons M&#39; N&#39;&quot;</span><span class="">
+</span><span class="keyword1">by</span><span class=""> </span><span class="delimiter">(</span><span class="">simp</span><span class=""> </span><span class="">add</span><span class="delimiter">:</span><span class=""> </span><span class="">Scons_def</span><span class="delimiter">,</span><span class=""> </span><span class="">blast</span><span class="delimiter">)</span><span class="">
+</span><span class="">
+</span><span class="keyword1">lemma</span><span class=""> </span><span class="">In0_mono</span><span class="delimiter">:</span><span class=""> </span><span class="string">&quot;M&lt;=N ==&gt; In0(M) &lt;= In0(N)&quot;</span><span class="">
+</span><span class="keyword1">by</span><span class=""> </span><span class="delimiter">(</span><span class="">simp</span><span class=""> </span><span class="">add</span><span class="delimiter">:</span><span class=""> </span><span class="">In0_def</span><span class=""> </span><span class="">Scons_mono</span><span class="delimiter">)</span><span class="">
+</span><span class="">
+</span><span class="keyword1">lemma</span><span class=""> </span><span class="">In1_mono</span><span class="delimiter">:</span><span class=""> </span><span class="string">&quot;M&lt;=N ==&gt; In1(M) &lt;= In1(N)&quot;</span><span class="">
+</span><span class="keyword1">by</span><span class=""> </span><span class="delimiter">(</span><span class="">simp</span><span class=""> </span><span class="">add</span><span class="delimiter">:</span><span class=""> </span><span class="">In1_def</span><span class=""> </span><span class="">Scons_mono</span><span class="delimiter">)</span><span class="">
+</span><span class="">
+</span><span class="">
+</span><span class="comment">(*** Split and Case ***)</span><span class="">
+</span><span class="">
+</span><span class="keyword1">lemma</span><span class=""> </span><span class="">Split</span><span class=""> </span><span class="delimiter">[</span><span class="">simp</span><span class="delimiter">]</span><span class="delimiter">:</span><span class=""> </span><span class="string">&quot;Split c (Scons M N) = c M N&quot;</span><span class="">
+</span><span class="keyword1">by</span><span class=""> </span><span class="delimiter">(</span><span class="">simp</span><span class=""> </span><span class="">add</span><span class="delimiter">:</span><span class=""> </span><span class="">Split_def</span><span class="delimiter">)</span><span class="">
+</span><span class="">
+</span><span class="keyword1">lemma</span><span class=""> </span><span class="">Case_In0</span><span class=""> </span><span class="delimiter">[</span><span class="">simp</span><span class="delimiter">]</span><span class="delimiter">:</span><span class=""> </span><span class="string">&quot;Case c d (In0 M) = c(M)&quot;</span><span class="">
+</span><span class="keyword1">by</span><span class=""> </span><span class="delimiter">(</span><span class="">simp</span><span class=""> </span><span class="">add</span><span class="delimiter">:</span><span class=""> </span><span class="">Case_def</span><span class="delimiter">)</span><span class="">
+</span><span class="">
+</span><span class="keyword1">lemma</span><span class=""> </span><span class="">Case_In1</span><span class=""> </span><span class="delimiter">[</span><span class="">simp</span><span class="delimiter">]</span><span class="delimiter">:</span><span class=""> </span><span class="string">&quot;Case c d (In1 N) = d(N)&quot;</span><span class="">
+</span><span class="keyword1">by</span><span class=""> </span><span class="delimiter">(</span><span class="">simp</span><span class=""> </span><span class="">add</span><span class="delimiter">:</span><span class=""> </span><span class="">Case_def</span><span class="delimiter">)</span><span class="">
+</span><span class="">
+</span><span class="">
+</span><span class="">
+</span><span class="comment">(**** UN x. B(x) rules ****)</span><span class="">
+</span><span class="">
+</span><span class="keyword1">lemma</span><span class=""> </span><span class="">ntrunc_UN1</span><span class="delimiter">:</span><span class=""> </span><span class="string">&quot;ntrunc k (UN x. f(x)) = (UN x. ntrunc k (f x))&quot;</span><span class="">
+</span><span class="keyword1">by</span><span class=""> </span><span class="delimiter">(</span><span class="">simp</span><span class=""> </span><span class="">add</span><span class="delimiter">:</span><span class=""> </span><span class="">ntrunc_def</span><span class="delimiter">,</span><span class=""> </span><span class="">blast</span><span class="delimiter">)</span><span class="">
+</span><span class="">
+</span><span class="keyword1">lemma</span><span class=""> </span><span class="">Scons_UN1_x</span><span class="delimiter">:</span><span class=""> </span><span class="string">&quot;Scons (UN x. f x) M = (UN x. Scons (f x) M)&quot;</span><span class="">
+</span><span class="keyword1">by</span><span class=""> </span><span class="delimiter">(</span><span class="">simp</span><span class=""> </span><span class="">add</span><span class="delimiter">:</span><span class=""> </span><span class="">Scons_def</span><span class="delimiter">,</span><span class=""> </span><span class="">blast</span><span class="delimiter">)</span><span class="">
+</span><span class="">
+</span><span class="keyword1">lemma</span><span class=""> </span><span class="">Scons_UN1_y</span><span class="delimiter">:</span><span class=""> </span><span class="string">&quot;Scons M (UN x. f x) = (UN x. Scons M (f x))&quot;</span><span class="">
+</span><span class="keyword1">by</span><span class=""> </span><span class="delimiter">(</span><span class="">simp</span><span class=""> </span><span class="">add</span><span class="delimiter">:</span><span class=""> </span><span class="">Scons_def</span><span class="delimiter">,</span><span class=""> </span><span class="">blast</span><span class="delimiter">)</span><span class="">
+</span><span class="">
+</span><span class="keyword1">lemma</span><span class=""> </span><span class="">In0_UN1</span><span class="delimiter">:</span><span class=""> </span><span class="string">&quot;In0(UN x. f(x)) = (UN x. In0(f(x)))&quot;</span><span class="">
+</span><span class="keyword1">by</span><span class=""> </span><span class="delimiter">(</span><span class="">simp</span><span class=""> </span><span class="">add</span><span class="delimiter">:</span><span class=""> </span><span class="">In0_def</span><span class=""> </span><span class="">Scons_UN1_y</span><span class="delimiter">)</span><span class="">
+</span><span class="">
+</span><span class="keyword1">lemma</span><span class=""> </span><span class="">In1_UN1</span><span class="delimiter">:</span><span class=""> </span><span class="string">&quot;In1(UN x. f(x)) = (UN x. In1(f(x)))&quot;</span><span class="">
+</span><span class="keyword1">by</span><span class=""> </span><span class="delimiter">(</span><span class="">simp</span><span class=""> </span><span class="">add</span><span class="delimiter">:</span><span class=""> </span><span class="">In1_def</span><span class=""> </span><span class="">Scons_UN1_y</span><span class="delimiter">)</span><span class="">
+</span><span class="">
+</span><span class="">
+</span><span class="comment">(*** Equality for Cartesian Product ***)</span><span class="">
+</span><span class="">
+</span><span class="keyword1">lemma</span><span class=""> </span><span class="">dprodI</span><span class=""> </span><span class="delimiter">[</span><span class="">intro</span><span class="delimiter">!</span><span class="delimiter">]</span><span class="delimiter">:</span><span class=""> 
+</span><span class="">    </span><span class="string">&quot;[| (M,M&#39;):r;  (N,N&#39;):s |] ==&gt; (Scons M N, Scons M&#39; N&#39;) : dprod r s&quot;</span><span class="">
+</span><span class="keyword1">by</span><span class=""> </span><span class="delimiter">(</span><span class="">auto</span><span class=""> </span><span class="">simp</span><span class=""> </span><span class="">add</span><span class="delimiter">:</span><span class=""> </span><span class="">dprod_def</span><span class="delimiter">)</span><span class="">
+</span><span class="">
+</span><span class="comment">(*The general elimination rule*)</span><span class="">
+</span><span class="keyword1">lemma</span><span class=""> </span><span class="">dprodE</span><span class=""> </span><span class="delimiter">[</span><span class="">elim</span><span class="delimiter">!</span><span class="delimiter">]</span><span class="delimiter">:</span><span class=""> 
+</span><span class="">    </span><span class="string">&quot;[| c : dprod r s;   
+        !!x y x&#39; y&#39;. [| (x,x&#39;) : r;  (y,y&#39;) : s;  
+                        c = (Scons x y, Scons x&#39; y&#39;) |] ==&gt; P  
+     |] ==&gt; P&quot;</span><span class="">
+</span><span class="keyword1">by</span><span class=""> </span><span class="delimiter">(</span><span class="">auto</span><span class=""> </span><span class="">simp</span><span class=""> </span><span class="">add</span><span class="delimiter">:</span><span class=""> </span><span class="">dprod_def</span><span class="delimiter">)</span><span class="">
+</span><span class="">
+</span><span class="">
+</span><span class="comment">(*** Equality for Disjoint Sum ***)</span><span class="">
+</span><span class="">
+</span><span class="keyword1">lemma</span><span class=""> </span><span class="">dsum_In0I</span><span class=""> </span><span class="delimiter">[</span><span class="">intro</span><span class="delimiter">]</span><span class="delimiter">:</span><span class=""> </span><span class="string">&quot;(M,M&#39;):r ==&gt; (In0(M), In0(M&#39;)) : dsum r s&quot;</span><span class="">
+</span><span class="keyword1">by</span><span class=""> </span><span class="delimiter">(</span><span class="">auto</span><span class=""> </span><span class="">simp</span><span class=""> </span><span class="">add</span><span class="delimiter">:</span><span class=""> </span><span class="">dsum_def</span><span class="delimiter">)</span><span class="">
+</span><span class="">
+</span><span class="keyword1">lemma</span><span class=""> </span><span class="">dsum_In1I</span><span class=""> </span><span class="delimiter">[</span><span class="">intro</span><span class="delimiter">]</span><span class="delimiter">:</span><span class=""> </span><span class="string">&quot;(N,N&#39;):s ==&gt; (In1(N), In1(N&#39;)) : dsum r s&quot;</span><span class="">
+</span><span class="keyword1">by</span><span class=""> </span><span class="delimiter">(</span><span class="">auto</span><span class=""> </span><span class="">simp</span><span class=""> </span><span class="">add</span><span class="delimiter">:</span><span class=""> </span><span class="">dsum_def</span><span class="delimiter">)</span><span class="">
+</span><span class="">
+</span><span class="keyword1">lemma</span><span class=""> </span><span class="">dsumE</span><span class=""> </span><span class="delimiter">[</span><span class="">elim</span><span class="delimiter">!</span><span class="delimiter">]</span><span class="delimiter">:</span><span class=""> 
+</span><span class="">    </span><span class="string">&quot;[| w : dsum r s;   
+        !!x x&#39;. [| (x,x&#39;) : r;  w = (In0(x), In0(x&#39;)) |] ==&gt; P;  
+        !!y y&#39;. [| (y,y&#39;) : s;  w = (In1(y), In1(y&#39;)) |] ==&gt; P  
+     |] ==&gt; P&quot;</span><span class="">
+</span><span class="keyword1">by</span><span class=""> </span><span class="delimiter">(</span><span class="">auto</span><span class=""> </span><span class="">simp</span><span class=""> </span><span class="">add</span><span class="delimiter">:</span><span class=""> </span><span class="">dsum_def</span><span class="delimiter">)</span><span class="">
+</span><span class="">
+</span><span class="">
+</span><span class="comment">(*** Monotonicity ***)</span><span class="">
+</span><span class="">
+</span><span class="keyword1">lemma</span><span class=""> </span><span class="">dprod_mono</span><span class="delimiter">:</span><span class=""> </span><span class="string">&quot;[| r&lt;=r&#39;;  s&lt;=s&#39; |] ==&gt; dprod r s &lt;= dprod r&#39; s&#39;&quot;</span><span class="">
+</span><span class="keyword1">by</span><span class=""> </span><span class="">blast</span><span class="">
+</span><span class="">
+</span><span class="keyword1">lemma</span><span class=""> </span><span class="">dsum_mono</span><span class="delimiter">:</span><span class=""> </span><span class="string">&quot;[| r&lt;=r&#39;;  s&lt;=s&#39; |] ==&gt; dsum r s &lt;= dsum r&#39; s&#39;&quot;</span><span class="">
+</span><span class="keyword1">by</span><span class=""> </span><span class="">blast</span><span class="">
+</span><span class="">
+</span><span class="">
+</span><span class="comment">(*** Bounding theorems ***)</span><span class="">
+</span><span class="">
+</span><span class="keyword1">lemma</span><span class=""> </span><span class="">dprod_Sigma</span><span class="delimiter">:</span><span class=""> </span><span class="string">&quot;(dprod (A &#215; B) (C &#215; D)) &lt;= (uprod A C) &#215; (uprod B D)&quot;</span><span class="">
+</span><span class="keyword1">by</span><span class=""> </span><span class="">blast</span><span class="">
+</span><span class="">
+</span><span class="keyword1">lemmas</span><span class=""> </span><span class="">dprod_subset_Sigma</span><span class=""> </span><span class="delimiter">=</span><span class=""> </span><span class="">subset_trans</span><span class=""> </span><span class="delimiter">[</span><span class="">OF</span><span class=""> </span><span class="">dprod_mono</span><span class=""> </span><span class="">dprod_Sigma</span><span class="delimiter">]</span><span class="">
+</span><span class="">
+</span><span class="comment">(*Dependent version*)</span><span class="">
+</span><span class="keyword1">lemma</span><span class=""> </span><span class="">dprod_subset_Sigma2</span><span class="delimiter">:</span><span class="">
+</span><span class="">    </span><span class="string">&quot;(dprod (Sigma A B) (Sigma C D)) &lt;= Sigma (uprod A C) (Split (%x y. uprod (B x) (D y)))&quot;</span><span class="">
+</span><span class="keyword1">by</span><span class=""> </span><span class="">auto</span><span class="">
+</span><span class="">
+</span><span class="keyword1">lemma</span><span class=""> </span><span class="">dsum_Sigma</span><span class="delimiter">:</span><span class=""> </span><span class="string">&quot;(dsum (A &#215; B) (C &#215; D)) &lt;= (usum A C) &#215; (usum B D)&quot;</span><span class="">
+</span><span class="keyword1">by</span><span class=""> </span><span class="">blast</span><span class="">
+</span><span class="">
+</span><span class="keyword1">lemmas</span><span class=""> </span><span class="">dsum_subset_Sigma</span><span class=""> </span><span class="delimiter">=</span><span class=""> </span><span class="">subset_trans</span><span class=""> </span><span class="delimiter">[</span><span class="">OF</span><span class=""> </span><span class="">dsum_mono</span><span class=""> </span><span class="">dsum_Sigma</span><span class="delimiter">]</span><span class="">
+</span><span class="">
+</span><span class="">
+</span><span class="comment">(*** Domain theorems ***)</span><span class="">
+</span><span class="">
+</span><span class="keyword1">lemma</span><span class=""> </span><span class="">Domain_dprod</span><span class=""> </span><span class="delimiter">[</span><span class="">simp</span><span class="delimiter">]</span><span class="delimiter">:</span><span class=""> </span><span class="string">&quot;Domain (dprod r s) = uprod (Domain r) (Domain s)&quot;</span><span class="">
+</span><span class="">  </span><span class="keyword1">by</span><span class=""> </span><span class="">auto</span><span class="">
+</span><span class="">
+</span><span class="keyword1">lemma</span><span class=""> </span><span class="">Domain_dsum</span><span class=""> </span><span class="delimiter">[</span><span class="">simp</span><span class="delimiter">]</span><span class="delimiter">:</span><span class=""> </span><span class="string">&quot;Domain (dsum r s) = usum (Domain r) (Domain s)&quot;</span><span class="">
+</span><span class="">  </span><span class="keyword1">by</span><span class=""> </span><span class="">auto</span><span class="">
+</span><span class="">
+</span><span class="">
+</span><span class="keyword1">text</span><span class=""> </span><span class="cartouche">&#8249;hides popular names&#8250;</span><span class="">
+</span><span class="keyword1">hide_type</span><span class=""> </span><span class="delimiter">(</span><span class="keyword2">open</span><span class="delimiter">)</span><span class=""> </span><span class="">node</span><span class=""> </span><span class="">item</span><span class="">
+</span><span class="keyword1">hide_const</span><span class=""> </span><span class="delimiter">(</span><span class="keyword2">open</span><span class="delimiter">)</span><span class=""> </span><span class="">Push</span><span class=""> </span><span class="">Node</span><span class=""> </span><span class="">Atom</span><span class=""> </span><span class="">Leaf</span><span class=""> </span><span class="">Numb</span><span class=""> </span><span class="">Lim</span><span class=""> </span><span class="">Split</span><span class=""> </span><span class="">Case</span><span class="">
+</span><span class="">
+</span><span class="keyword1">ML_file</span><span class=""> </span><span class="string">&quot;~~/src/HOL/Tools/Old_Datatype/old_datatype.ML&quot;</span><span class="">
+</span><span class="keyword1">ML_file</span><span class=""> </span><span class="string">&quot;~~/src/HOL/Tools/inductive_realizer.ML&quot;</span><span class="">
+</span><span class="">
+</span><span class="keyword2">end</span><span class="">
+</span></pre>
+
+</div>
+</body>
+</html>
