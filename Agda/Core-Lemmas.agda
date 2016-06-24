@@ -63,12 +63,12 @@ fv-x≠y : ∀ (x y : ℕ) {L} -> x ∉ (y ∷ L) -> ¬ (x ≡ y)
 fv-x≠y x y x∉y∷L x≡y = x∉y∷L (here x≡y)
 
 
-∈-cons-l : ∀ {A : Set} {x : A} {xs} ys -> x ∈ xs -> x ∈ (xs ++ ys)
+∈-cons-l : ∀ {a} {A : Set a} {x : A} {xs} ys -> x ∈ xs -> x ∈ (xs ++ ys)
 ∈-cons-l ys (here eq) = here eq
 ∈-cons-l ys (there x∈xs') = there (∈-cons-l ys x∈xs')
 
 
-∈-cons-r : ∀ {A : Set} {x : A} xs {ys} -> x ∈ ys -> x ∈ (xs ++ ys)
+∈-cons-r : ∀ {a} {A : Set a} {x : A} xs {ys} -> x ∈ ys -> x ∈ (xs ++ ys)
 ∈-cons-r [] x∈ys = x∈ys
 ∈-cons-r (_ ∷ xs) x∈ys = there (∈-cons-r xs x∈ys)
 
