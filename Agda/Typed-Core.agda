@@ -88,3 +88,13 @@ data _~_ : ∀{t} -> Λ t -> PTerm -> Set where
 Λ[ k >> u ] (lam A t) = lam A (Λ[ (suc k) >> u ] t)
 Λ[ k >> u ] (app t1 t2) = app (Λ[ k >> u ] t1) (Λ[ k >> u ] t2)
 Λ[ k >> u ] (Y t) = Y t
+
+_Λ[_::=_] : ∀ {τ τ'} -> Λ τ -> Atom -> Λ τ' -> Λ τ
+bv i Λ[ x ::= u ] = bv i
+_Λ[_::=_] {τ} {τ'} (fv y) x u with x ≟ y | τ ≟T τ'
+fv y Λ[ x ::= u ] | yes _ | yes refl = u
+... | yes _ | no _ = fv y
+... | no _ | _ = fv y
+lam A t Λ[ x ::= u ] = lam A (t Λ[ x ::= u ])
+app t1 t2 Λ[ x ::= u ] = app (t1 Λ[ x ::= u ]) (t2 Λ[ x ::= u ])
+Y t₁ Λ[ x ::= u ] = Y t₁
