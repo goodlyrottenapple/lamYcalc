@@ -91,7 +91,7 @@ open import Reduction using (_↝_)
 subst-⊩ : ∀ {A B Γ τ τᵢ x} {m : Λ A} {n : Λ B} -> ΛTerm m -> ΛTerm n -> ((x , (τᵢ , A)) ∷ Γ) ⊩ m ∶ τ -> Γ ⊩ₗ n ∶ τᵢ ->
   Γ ⊩ (m Λ[ x ::= n ]) ∶ τ
 subst-⊩ {A} {B} {x = x} var trm-n (var {x = y} wf-Γ τᵢ∈Γ τ⊆τᵢ) Γ⊩ₗn∶τᵢ with x ≟ y | A ≟T B
-subst-⊩ var trm-n (var wf-Γ τᵢ∈Γ τ⊆τᵢ) Γ⊩ₗn∶τᵢ | yes refl | yes refl = ?
+subst-⊩ var trm-n (var wf-Γ τᵢ∈Γ τ⊆τᵢ) Γ⊩ₗn∶τᵢ | yes refl | yes refl = {!   !}
 subst-⊩ var trm-n (var wf-Γ τᵢ∈Γ τ⊆τᵢ) Γ⊩ₗn∶τᵢ | yes refl | no ¬p = {!   !}
 subst-⊩ var trm-n (var wf-Γ τᵢ∈Γ τ⊆τᵢ) Γ⊩ₗn∶τᵢ | no ¬p | q = {!   !}
 subst-⊩ (lam L cf) trm-n x∷Γ⊩m∶τ Γ⊩ₗn∶τᵢ = {!   !}
