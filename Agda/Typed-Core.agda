@@ -1,10 +1,13 @@
 module Typed-Core where
+
+open import Data.Empty
 open import Data.List
 open import Data.Nat
 open import Data.List.Any as LAny
 open LAny.Membership-≡
 open import Relation.Nullary
 open import Relation.Binary.Core
+open import Relation.Binary.PropositionalEquality
 
 open import Core
 open import Core-Lemmas
@@ -98,3 +101,106 @@ fv y Λ[ x ::= u ] | yes _ | yes refl = u
 lam A t Λ[ x ::= u ] = lam A (t Λ[ x ::= u ])
 app t1 t2 Λ[ x ::= u ] = app (t1 Λ[ x ::= u ]) (t2 Λ[ x ::= u ])
 Y t₁ Λ[ x ::= u ] = Y t₁
+
+
+
+
+data ΛTerm : ∀ {τ} -> Λ τ -> Set where
+  var : ∀ {A x} -> ΛTerm (fv {A} x)
+  lam : ∀ {A B} (L : FVars) -> ∀ {e : Λ B} ->
+    (cf : ∀ {x} -> (x∉L : x ∉ L) -> ΛTerm (Λ[ 0 >> fv {A} x ] e)) -> ΛTerm (lam A e)
+  app : ∀ {A B} {e₁ : Λ (A ⟶ B)} {e₂ : Λ A} -> ΛTerm e₁ -> ΛTerm e₂ -> ΛTerm (app e₁ e₂)
+  Y : ∀ {t} -> ΛTerm (Y t)
+
+
+Λlam-inj : ∀ {A B : Type} {t u : Λ B} -> (Λ.lam A t) ≡ (Λ.lam A u) -> t ≡ u
+Λlam-inj refl = refl
+
+
+Λlam-eq : {A B : Type} {t u : Λ B} -> t ≡ u -> (Λ.lam A t) ≡ (Λ.lam A u)
+Λlam-eq refl = refl
+
+
+Λapp-inj-l : ∀ {A B : Type} {t₁ u₁ : Λ (A ⟶ B)} {t₂ u₂ : Λ A} -> (Λ.app t₁ t₂) ≡ (Λ.app u₁ u₂) -> t₁ ≡ u₁
+Λapp-inj-l refl = refl
+
+
+Λapp-inj-r : ∀ {A B : Type} {t₁ u₁ : Λ (A ⟶ B)} {t₂ u₂ : Λ A} -> (Λ.app t₁ t₂) ≡ (Λ.app u₁ u₂) -> t₂ ≡ u₂
+Λapp-inj-r refl = refl
+
+
+Λapp-eq : ∀ {A B : Type} {t₁ u₁ : Λ (A ⟶ B)} {t₂ u₂ : Λ A} -> t₁ ≡ u₁ -> t₂ ≡ u₂ -> (Λ.app t₁ t₂) ≡ (Λ.app u₁ u₂)
+Λapp-eq refl refl = refl
+
+
+
+
+^-ΛTerm-eq-aux : ∀ {τ τ' τ''} j (t : Λ τ') i (u : Λ τ'') (e : Λ τ) → ¬ (i ≡ j) -> Λ[ j >> t ] e ≡ Λ[ i >> u ] (Λ[ j >> t ] e) ->
+  e ≡ Λ[ i >> u ] e
+^-ΛTerm-eq-aux j t i u (bv k) i≠j eq with i ≟ k
+^-ΛTerm-eq-aux j t i u (bv ._) i≠j eq | yes refl with j ≟ i
+^-ΛTerm-eq-aux j t ._ u (bv ._) i≠j eq | yes refl | yes refl = ⊥-elim (i≠j refl)
+^-ΛTerm-eq-aux j t i u (bv ._) i≠j eq | yes refl | no _ with i ≟ i
+^-ΛTerm-eq-aux j t i u (bv ._) i≠j eq | yes refl | no _ | yes refl = eq
+^-ΛTerm-eq-aux j t i u (bv ._) i≠j eq | yes refl | no _ | no i≠i = ⊥-elim (i≠i refl)
+^-ΛTerm-eq-aux j t i u (bv k) i≠j eq | no _ = refl
+^-ΛTerm-eq-aux j t i u (fv x) i≠j eq = refl
+^-ΛTerm-eq-aux j t i u (lam A e) i≠j eq
+  with ^-ΛTerm-eq-aux (suc j) t (suc i) u e
+           (λ eq' -> i≠j (suc-inj i j eq')) (Λlam-inj eq)
+... | eq'' = Λlam-eq eq''
+^-ΛTerm-eq-aux j t i u (app e₁ e₂) i≠j eq
+  with ^-ΛTerm-eq-aux j t i u e₁ i≠j (Λapp-inj-l eq)
+     | ^-ΛTerm-eq-aux j t i u e₂ i≠j (Λapp-inj-r eq)
+... | eq₁ | eq₂
+  = Λapp-eq eq₁ eq₂
+^-ΛTerm-eq-aux j t i u (Y s) i≠j eq = refl
+
+
+^-ΛTerm-eq : ∀ {τ τ'} k (t : Λ τ') {e : Λ τ} → ΛTerm e → e ≡ Λ[ k >> t ] e
+^-ΛTerm-eq k t var = refl
+^-ΛTerm-eq k t {lam A e} (lam L cf) = body
+  where
+    y = ∃fresh L
+
+    y∉ : y ∉ L
+    y∉ = ∃fresh-spec L
+
+    body : lam A e ≡ Λ[ k >> t ] (lam A e)
+    body with ^-ΛTerm-eq (suc k) t {Λ[ 0 >> fv y ] e} (cf y∉)
+    ... | eq with ^-ΛTerm-eq-aux 0 (fv y) (suc k) t e (λ ()) eq
+    ...   | eq' = Λlam-eq eq'
+^-ΛTerm-eq k t (app trm-u trm-v) with
+  ^-ΛTerm-eq k t trm-u | ^-ΛTerm-eq k t trm-v
+... | e1 | e2 = Λapp-eq e1 e2
+^-ΛTerm-eq k t₁ Y = refl
+
+
+
+Λsubst-open : ∀ {τ τ' τ''} x (t : Λ τ') k (u : Λ τ'') (e : Λ τ) -> ΛTerm t ->
+  (Λ[ k >> u ] e) Λ[ x ::= t ] ≡ Λ[ k >> (u Λ[ x ::= t ]) ] (e Λ[ x ::= t ])
+
+Λsubst-open {τ} {τ'} {τ''} x t k u (bv i) trm-t with k ≟ i | τ ≟T τ''
+Λsubst-open x t k u (bv i) trm-t | yes p | yes refl = refl
+... | yes _ | no _ = refl
+... | no _ | _ = refl
+
+Λsubst-open {τ} {τ'} x t k u (fv y) trm-t with x ≟ y | τ ≟T τ'
+Λsubst-open x t k u (fv y) trm-t | yes _ | yes refl = ^-ΛTerm-eq k (u Λ[ x ::= t ]) trm-t
+Λsubst-open x t k u (fv y) trm-t | yes _ | no _ = refl
+... | no _ | _ = refl
+Λsubst-open x t k u (lam A e) trm-t rewrite
+  Λsubst-open x t (suc k) u e trm-t = refl
+Λsubst-open x t k u (app v w) trm-t rewrite
+  Λsubst-open x t k u v trm-t |
+  Λsubst-open x t k u w trm-t = refl
+Λsubst-open x t₁ k u (Y t) trm-t = refl
+
+
+Λsubst-open-var : ∀ {τ τ' τ''} x y (u : Λ τ') (e : Λ τ) -> ¬ (x ≡ y) -> ΛTerm u ->
+  (Λ[ 0 >> fv {τ''} x ] (e Λ[ y ::= u ])) ≡ (Λ[ 0 >> fv {τ''} x ] e) Λ[ y ::= u ]
+Λsubst-open-var {τ'' = τ''} x y u e x≠y lu
+  with Λsubst-open {τ'' = τ''} y u 0 (fv x) e lu
+...  | eq with y ≟ x
+Λsubst-open-var x ._ u e x≠y lu | eq | yes refl = ⊥-elim (x≠y refl)
+Λsubst-open-var x y u e x≠y lu | eq | no _ = sym eq
