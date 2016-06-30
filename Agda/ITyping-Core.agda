@@ -206,8 +206,8 @@ data _⊆ₗ[_]_ where
 ⊆->⊆ₗ : ∀ {A τ τ'} -> τ ⊆[ A ] τ' -> (∩' τ) ⊆ₗ[ A ] (∩' τ')
 ⊆->⊆ₗ {τ = τ} {τ'} τ⊆τ' = cons (τ' , (here refl , τ⊆τ')) (nil (cons (⊆-∷'-r τ⊆τ') nil))
 
-_≈_ : (A B : List IType) -> Set
-A ≈ B = A ⊆ B × B ⊆ A
+-- _≈_ : (A B : List IType) -> Set
+-- A ≈ B = A ⊆ B × B ⊆ A
 
 data _⊩_∶_ : ∀ {A} -> ICtxt -> Λ A -> IType -> Set
 data _⊩ₗ_∶_ : ∀ {A} -> ICtxt -> Λ A -> List IType -> Set
@@ -265,6 +265,22 @@ data _⊆Γ_ : ICtxt -> ICtxt -> Set where
 ⊩ₗ-wf-Γ (cons _ Γ⊩ₗm∶τ) = ⊩ₗ-wf-Γ Γ⊩ₗm∶τ
 -- ⊩ₗ-wf-Γ (subₗ x _) = ⊩ₗ-wf-Γ x
 
+⊩-wf-Γ : ∀ {A Γ} {m : Λ A} {τ} -> Γ ⊩ m ∶ τ -> Wf-ICtxt Γ
+⊩-wf-Γ (var wf-Γ τᵢ∈Γ τ⊆τᵢ) = wf-Γ
+⊩-wf-Γ (app Γ⊩m∶τ x x₁ x₂) = ⊩-wf-Γ Γ⊩m∶τ
+⊩-wf-Γ (abs L cf _) = cons' (⊩ₗ-wf-Γ (cf x∉))
+  where
+  x = ∃fresh L
+
+  x∉ : x ∉ L
+  x∉ = ∃fresh-spec L
+
+  cons' : ∀ {x τ A Γ} -> Wf-ICtxt ((x , τ , A) ∷ Γ) -> Wf-ICtxt Γ
+  cons' (cons x∉ x₂ wf-Γ) = wf-Γ
+
+⊩-wf-Γ (Y wf-Γ x x₁) = wf-Γ
+⊩-wf-Γ (~>∩ Γ⊩m∶τ Γ⊩m∶τ₁ x) = ⊩-wf-Γ Γ⊩m∶τ₁
+
 ⊆Γ-wfΓ' : ∀ {Γ Γ'} -> Γ ⊆Γ Γ' -> Wf-ICtxt Γ'
 ⊆Γ-wfΓ' (nil wf-Γ') = wf-Γ'
 ⊆Γ-wfΓ' (cons _ Γ⊆Γ') = ⊆Γ-wfΓ' Γ⊆Γ'
@@ -315,15 +331,16 @@ arr' (arr x y) = x , y
 ⊩ₗ-∷'ₗ (cons Γ⊩m∶τ Γ⊩ₗm∶τᵢ) = cons (⊩-∷' Γ⊩m∶τ) (⊩ₗ-∷'ₗ Γ⊩ₗm∶τᵢ)
 -- ⊩ₗ-∷'ₗ (subₗ _ x) = ⊆ₗ-∷'ₗ-l x
 
-
-
+⊩ₗ-++ : ∀ {A Γ} {n : Λ A} {τₗ τᵣ} -> Γ ⊩ₗ n ∶ τₗ -> Γ ⊩ₗ n ∶ τᵣ -> Γ ⊩ₗ n ∶ (τₗ ++ τᵣ)
+⊩ₗ-++ (nil wf-Γ) Γ⊩ₗn∶τᵣ = Γ⊩ₗn∶τᵣ
+⊩ₗ-++ (cons x Γ⊩ₗn∶τₗ) Γ⊩ₗn∶τᵣ = cons x (⊩ₗ-++ Γ⊩ₗn∶τₗ Γ⊩ₗn∶τᵣ)
 
 data _->Λβ_ : ∀ {τ} -> Λ τ ↝ Λ τ where
   redL : ∀ {A B} {n : Λ A} {m m' : Λ (A ⟶ B)} -> ΛTerm n -> m ->Λβ m' -> app m n ->Λβ app m' n
   redR : ∀ {A B} {m : Λ (A ⟶ B)} {n n' : Λ A} -> ΛTerm m -> n ->Λβ n' -> app m n ->Λβ app m n'
   abs : ∀ L {A B} {m m' : Λ B} -> ( ∀ {x} -> x ∉ L -> Λ[ 0 >> fv {A} x ] m ->Λβ Λ[ 0 >> fv {A} x ] m' ) ->
     lam A m ->Λβ lam A m'
-  beta : ∀ {A B} {m : Λ (A ⟶ B)} {n : Λ A} -> ΛTerm (lam A m) -> ΛTerm n -> app (lam A m) n ->Λβ (Λ[ 0 >> n ] m)
+  beta : ∀ {A B} {m : Λ B} {n : Λ A} -> ΛTerm (lam A m) -> ΛTerm n -> app (lam A m) n ->Λβ (Λ[ 0 >> n ] m)
   Y : ∀ {A} {m : Λ (A ⟶ A)} -> ΛTerm m -> app (Y A) m ->Λβ app m (app (Y A) m)
 
 
@@ -386,11 +403,40 @@ subₗΓ (cons x Γ⊩ₗm∶τ) Γ⊆Γ' = cons (subΓ x Γ⊆Γ') (subₗΓ Γ
   τᵢ++τⱼ∷'A = ⊆ₗ-∷'ₗ-l τᵢ++τⱼ⊆ₗτ
 
 
+
+
 ⊆ₗ++-r : ∀ {A τᵢ τᵢ' τⱼ} -> τᵢ ⊆ₗ[ A ] τᵢ' -> τⱼ ∷'ₗ A -> (τᵢ ++ τⱼ) ⊆ₗ[ A ] (τᵢ' ++ τⱼ)
 ⊆ₗ++-r {τᵢ' = τᵢ'} {τⱼ} (nil x) τⱼ∷'A = ⊆ₗ-⊆ (λ x₂ → ∈-cons-r τᵢ' x₂) (∷'ₗ-++ x τⱼ∷'A)
 ⊆ₗ++-r (cons (τ , τ∈τᵢ , τ'⊆τ) τᵢ⊆τᵢ') τⱼ∷'A = cons (τ , (∈-cons-l _ τ∈τᵢ , τ'⊆τ)) (⊆ₗ++-r τᵢ⊆τᵢ' τⱼ∷'A)
 ⊆ₗ++-r {τⱼ = τⱼ} (~>∩ x) τⱼ∷'A = ~>∩ (∷'ₗ-++ {τⱼ = τⱼ} x τⱼ∷'A)
 ⊆ₗ++-r (⊆ₗ-trans τᵢ⊆τᵢ'' τᵢ''⊆τᵢ') τⱼ∷'A = ⊆ₗ-trans (⊆ₗ++-r τᵢ⊆τᵢ'' τⱼ∷'A) (⊆ₗ++-r τᵢ''⊆τᵢ' τⱼ∷'A)
+
+⊆ₗ++-l : ∀ {A τᵢ τⱼ τⱼ'} -> τⱼ ⊆ₗ[ A ] τⱼ' -> τᵢ ∷'ₗ A -> (τᵢ ++ τⱼ) ⊆ₗ[ A ] (τᵢ ++ τⱼ')
+⊆ₗ++-l {τᵢ = []} τⱼ⊆τⱼ' τᵢ∷'ₗ = τⱼ⊆τⱼ'
+⊆ₗ++-l {τᵢ = τ ∷ τᵢ} {τⱼ} {τⱼ'} τⱼ⊆τⱼ' (cons x τᵢ∷'ₗ) =
+  cons (τ , ((here refl) , (⊆-refl x))) (⊆ₗ-trans {τⱼ = τᵢ ++ τⱼ'} (⊆ₗ++-l τⱼ⊆τⱼ' τᵢ∷'ₗ) (⊆ₗ-⊆ (λ {x₁} → there) (++-∷'ₗ (cons x τᵢ∷'ₗ) (⊆ₗ-∷'ₗ-r τⱼ⊆τⱼ'))))
+
+
+∷-≡ : ∀ {a} {A : Set a} {x y : A} {X Y : List A} ->  x ≡ y -> X ≡ Y -> (x ∷ X) ≡ y ∷ Y
+∷-≡ refl refl = refl
+
+++[]-≡ : ∀ {a} {A : Set a} {X : List A} -> X ≡ X ++ []
+++[]-≡ {X = []} = refl
+++[]-≡ {X = x ∷ X} = ∷-≡ refl ++[]-≡
+
+++[]-≡2 : ∀ {a} {A : Set a} {X : List A} -> X ++ [] ≡ X
+++[]-≡2 {X = []} = refl
+++[]-≡2 {X = x ∷ X} = ∷-≡ refl ++[]-≡2
+
+++[]++-≡ : ∀ {a} {A : Set a} {X Y : List A} -> (X ++ []) ++ Y ≡ X ++ Y
+++[]++-≡ {X = X} rewrite ++[]-≡2 {X = X} = λ {Y₁} → refl
+
+
+⊆ₗ++-l' : ∀ {A τᵢ τⱼ} -> τᵢ ∷'ₗ A -> τⱼ ∷'ₗ A -> τᵢ ⊆ₗ[ A ] (τᵢ ++ τⱼ)
+⊆ₗ++-l' {A} {τᵢ} {τⱼ} τᵢ∷' τⱼ∷' rewrite ++[]-≡ {X = τᵢ} | ++[]++-≡ {X = τᵢ} {Y = τⱼ} = ⊆ₗ++-l {τᵢ = τᵢ} {[]} (nil τⱼ∷') τᵢ∷''
+  where
+  τᵢ∷'' : τᵢ ∷'ₗ A
+  τᵢ∷'' rewrite ++[]-≡ {X = τᵢ} = τᵢ∷'
 
 
 ⊩++ : ∀ {A Γ} {m : Λ (A ⟶ A)} {τᵢ τⱼ} -> Γ ⊩ₗ m ∶ τᵢ -> Γ ⊩ₗ m ∶ τⱼ -> Γ ⊩ₗ m ∶ (τᵢ ++ τⱼ)

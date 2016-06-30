@@ -83,10 +83,14 @@ data _~_ : ∀{t} -> Λ t -> PTerm -> Set where
 
 
 Λ[_>>_] : ∀ {τ τ'} -> ℕ -> Λ τ' -> Λ τ -> Λ τ
-Λ[_>>_] {τ} {τ'} k u (bv i) with k ≟ i | τ ≟T τ'
-Λ[ k >> u ] (bv i) | yes _ | yes refl = u
-... | yes _ | no _ = bv i
-... | no _ | _ = bv i
+Λ[ k >> u ] (bv i) with k ≟ i
+Λ[_>>_] {τ} {τ'} k u (bv .k) | yes refl with τ ≟T τ'
+Λ[ k >> u ] (bv .k) | yes refl | yes refl = u
+Λ[ k >> u ] (bv .k) | yes refl | no _ = bv k
+Λ[ k >> u ] (bv i) | no _ = bv i
+-- Λ[ k >> u ] {τ} {τ'} (bv i) | yes _ | yes refl = u
+-- Λ[ k >> u ] {τ} {τ'} (bv i) | yes _ | no _ = bv i
+-- ... | no _  = bv i
 Λ[ k >> u ] (fv x) = fv x
 Λ[ k >> u ] (lam A t) = lam A (Λ[ (suc k) >> u ] t)
 Λ[ k >> u ] (app t1 t2) = app (Λ[ k >> u ] t1) (Λ[ k >> u ] t2)
@@ -94,15 +98,27 @@ data _~_ : ∀{t} -> Λ t -> PTerm -> Set where
 
 _Λ[_::=_] : ∀ {τ τ'} -> Λ τ -> Atom -> Λ τ' -> Λ τ
 bv i Λ[ x ::= u ] = bv i
-_Λ[_::=_] {τ} {τ'} (fv y) x u with x ≟ y | τ ≟T τ'
-fv y Λ[ x ::= u ] | yes _ | yes refl = u
-... | yes _ | no _ = fv y
-... | no _ | _ = fv y
+fv y Λ[ x ::= u ] with x ≟ y
+_Λ[_::=_] {τ} {τ'} (fv y) .y u | yes refl with τ ≟T τ'
+fv y Λ[ .y ::= u ] | yes refl | yes refl = u
+fv y Λ[ .y ::= u ] | yes refl | no _ = fv y
+fv y Λ[ x ::= u ] | no _ = fv y
+-- _Λ[_::=_] {τ} {τ'} (fv y) x u with x ≟ y | τ ≟T τ'
+
+-- fv y Λ[ x ::= u ] | yes _ | yes refl = u
+-- ... | yes _ | no _ = fv y
+-- ... | no _ | _ = fv y
 lam A t Λ[ x ::= u ] = lam A (t Λ[ x ::= u ])
 app t1 t2 Λ[ x ::= u ] = app (t1 Λ[ x ::= u ]) (t2 Λ[ x ::= u ])
 Y t₁ Λ[ x ::= u ] = Y t₁
 
 
+ΛFV : ∀ {τ} -> Λ τ -> FVars
+ΛFV (bv i) = []
+ΛFV (fv x) = x ∷ []
+ΛFV (lam A e) = ΛFV e
+ΛFV (app e₁ e₂) = ΛFV e₁ ++ ΛFV e₂
+ΛFV (Y t) = []
 
 
 data ΛTerm : ∀ {τ} -> Λ τ -> Set where
@@ -180,15 +196,18 @@ data ΛTerm : ∀ {τ} -> Λ τ -> Set where
 Λsubst-open : ∀ {τ τ' τ''} x (t : Λ τ') k (u : Λ τ'') (e : Λ τ) -> ΛTerm t ->
   (Λ[ k >> u ] e) Λ[ x ::= t ] ≡ Λ[ k >> (u Λ[ x ::= t ]) ] (e Λ[ x ::= t ])
 
-Λsubst-open {τ} {τ'} {τ''} x t k u (bv i) trm-t with k ≟ i | τ ≟T τ''
-Λsubst-open x t k u (bv i) trm-t | yes p | yes refl = refl
-... | yes _ | no _ = refl
-... | no _ | _ = refl
+Λsubst-open x t k u (bv i) trm-t with k ≟ i
+Λsubst-open {τ} {τ'} {τ''} x t k u (bv .k) trm-t | yes refl with τ ≟T τ''
+Λsubst-open x t k u (bv .k) trm-t | yes refl | yes refl = refl
+Λsubst-open x t k u (bv .k) trm-t | yes refl | no _ = refl
+Λsubst-open x t k u (bv i) trm-t | no _ = refl
 
-Λsubst-open {τ} {τ'} x t k u (fv y) trm-t with x ≟ y | τ ≟T τ'
-Λsubst-open x t k u (fv y) trm-t | yes _ | yes refl = ^-ΛTerm-eq k (u Λ[ x ::= t ]) trm-t
-Λsubst-open x t k u (fv y) trm-t | yes _ | no _ = refl
-... | no _ | _ = refl
+Λsubst-open x t k u (fv y) trm-t with x ≟ y
+Λsubst-open {τ} {τ'} x t k u (fv .x) trm-t | yes refl with τ ≟T τ'
+Λsubst-open x t k u (fv .x) trm-t | yes refl | yes refl = ^-ΛTerm-eq k (u Λ[ x ::= t ]) trm-t
+Λsubst-open x t k u (fv .x) trm-t | yes refl | no _ = refl
+Λsubst-open x t k u (fv y) trm-t | no _ = refl
+
 Λsubst-open x t k u (lam A e) trm-t rewrite
   Λsubst-open x t (suc k) u e trm-t = refl
 Λsubst-open x t k u (app v w) trm-t rewrite
@@ -204,3 +223,45 @@ data ΛTerm : ∀ {τ} -> Λ τ -> Set where
 ...  | eq with y ≟ x
 Λsubst-open-var x ._ u e x≠y lu | eq | yes refl = ⊥-elim (x≠y refl)
 Λsubst-open-var x y u e x≠y lu | eq | no _ = sym eq
+
+Λsubst-open-var2 : ∀ {τ τ' τ''} x y (u : Λ τ') (e : Λ τ) -> ¬ (x ≡ y) -> ΛTerm u ->
+  (Λ[ 0 >> fv {τ''} x ] e) Λ[ y ::= u ] ≡ (Λ[ 0 >> fv {τ''} x ] (e Λ[ y ::= u ]))
+Λsubst-open-var2 {τ'' = τ''} x y u e x≠y lu rewrite Λsubst-open-var {τ'' = τ''} x y u e x≠y lu = refl
+
+
+Λ^-^-swap : ∀ {τ τ' τ''} k n x y (m : Λ τ) -> ¬(k ≡ n) -> ¬(x ≡ y) -> Λ[ k >> fv {τ'} x ] (Λ[ n >> fv {τ''} y ] m) ≡ Λ[ n >> fv {τ''} y ] (Λ[ k >> fv {τ'} x ] m)
+Λ^-^-swap k n x y (bv i) k≠n x≠y with n ≟ i
+Λ^-^-swap {τ} {τ'} {τ''} k n x y (bv .n) k≠n x≠y | yes refl with τ ≟T τ''
+Λ^-^-swap k n x y (bv .n) k≠n x≠y | yes refl | yes refl with k ≟ n
+Λ^-^-swap n .n x y (bv .n) k≠n x≠y | yes refl | yes refl | yes refl = ⊥-elim (k≠n refl)
+Λ^-^-swap k n x y (bv .n) k≠n x≠y | yes refl | yes refl | no _ with n ≟ n
+Λ^-^-swap {τ} k n x y (bv .n) k≠n x≠y | yes refl | yes refl | no _ | yes refl with τ ≟T τ
+Λ^-^-swap k n x y (bv .n) k≠n x≠y | yes refl | yes refl | no _ | yes refl | yes refl = refl
+Λ^-^-swap k n x y (bv .n) k≠n x≠y | yes refl | yes refl | no _ | yes refl | no τ≠τ = ⊥-elim (τ≠τ refl)
+Λ^-^-swap k n x y (bv .n) k≠n x≠y | yes refl | yes refl | no _ | no n≠n = ⊥-elim (n≠n refl)
+
+Λ^-^-swap k n x y (bv .n) k≠n x≠y | yes refl | no τ≠τ'' with k ≟ n
+Λ^-^-swap n .n x y (bv .n) k≠n x≠y | yes refl | no τ≠τ'' | yes refl = ⊥-elim (k≠n refl)
+Λ^-^-swap k n x y (bv .n) k≠n x≠y | yes refl | no τ≠τ'' | no _ with n ≟ n
+Λ^-^-swap {τ} {τ'} {τ''} k n x y (bv .n) k≠n x≠y | yes refl | no τ≠τ'' | no _ | yes refl with τ ≟T τ''
+Λ^-^-swap k n x y (bv .n) k≠n x≠y | yes refl | no τ≠τ'' | no ¬p | yes refl | yes refl = ⊥-elim (τ≠τ'' refl)
+Λ^-^-swap k n x y (bv .n) k≠n x≠y | yes refl | no τ≠τ'' | no ¬p₁ | yes refl | no _ = refl
+Λ^-^-swap k n x y (bv .n) k≠n x≠y | yes refl | no τ≠τ'' | no _ | no n≠n = ⊥-elim (n≠n refl)
+
+Λ^-^-swap k n x y (bv i) k≠n x≠y | no n≠i with k ≟ n
+Λ^-^-swap n .n x y (bv i) k≠n x≠y | no n≠i | yes refl = ⊥-elim (k≠n refl)
+Λ^-^-swap k n x y (bv i) k≠n x≠y | no n≠i | no _ with k ≟ i
+Λ^-^-swap {τ} {τ'} k n x y (bv .k) k≠n x≠y | no n≠i | no _ | yes refl with τ ≟T τ'
+Λ^-^-swap k n x y (bv .k) k≠n x≠y | no n≠i | no _ | yes refl | yes refl = refl
+Λ^-^-swap k n x y (bv .k) k≠n x≠y | no n≠i | no _ | yes refl | no τ≠τ' with n ≟ k
+Λ^-^-swap k .k x y (bv .k) k≠n x≠y | no n≠i | no _ | yes refl | no τ≠τ' | yes refl = ⊥-elim (k≠n refl)
+Λ^-^-swap k n x y (bv .k) k≠n x≠y | no n≠i | no _ | yes refl | no τ≠τ' | no _ = refl
+Λ^-^-swap k n x y (bv i) k≠n x≠y | no n≠i | no _ | no k≠i with n ≟ i
+Λ^-^-swap k i x y (bv .i) k≠n x≠y | no n≠i | no _ | no k≠i | yes refl = ⊥-elim (n≠i refl)
+Λ^-^-swap k n x y (bv i) k≠n x≠y | no n≠i | no _ | no k≠i | no _ = refl
+
+Λ^-^-swap k n x y (fv z) k≠n x≠y = refl
+Λ^-^-swap {_} {τ'} {τ''} k n x y (lam {B} A m) k≠n x≠y = cong (lam A) (Λ^-^-swap {B} {τ'} {τ''} (suc k) (suc n) x y m (λ sk≡sn → k≠n (≡-suc sk≡sn)) x≠y)
+Λ^-^-swap {_} {τ'} {τ''} k n x y (app {τ₁} {τ₂} t1 t2) k≠n x≠y rewrite
+  Λ^-^-swap {τ₁ ⟶ τ₂} {τ'} {τ''} k n x y t1 k≠n x≠y | Λ^-^-swap {τ₁} {τ'} {τ''} k n x y t2 k≠n x≠y = refl
+Λ^-^-swap k n x y (Y _) k≠n x≠y = refl

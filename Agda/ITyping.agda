@@ -9,6 +9,7 @@ open import Data.List.Any as LAny
 open LAny.Membership-≡
 open import Relation.Nullary
 open import Relation.Binary.Core
+open import Relation.Binary.PropositionalEquality using (sym)
 
 open import Core
 open import Core-Lemmas
@@ -36,17 +37,14 @@ subst-⊩ : ∀ {A B Γ τ τᵢ x} {m : Λ A} {n : Λ B} -> ΛTerm m -> ΛTerm 
 subst-⊩ₗ : ∀ {A B Γ τ τᵢ x} {m : Λ A} {n : Λ B} -> ΛTerm m -> ΛTerm n -> ((x , (τᵢ , B)) ∷ Γ) ⊩ₗ m ∶ τ -> Γ ⊩ₗ n ∶ τᵢ ->
   Γ ⊩ₗ (m Λ[ x ::= n ]) ∶ τ
 
-subst-⊩ {A} {B} {x = x} var trm-n (var {x = y} wf-Γ τᵢ∈Γ τ⊆τᵢ) Γ⊩ₗn∶τᵢ with x ≟ y | A ≟T B
-subst-⊩ var trm-n (var (cons x∉ x₁ wf-Γ) (here refl) τ⊆τᵢ) Γ⊩ₗn∶τᵢ | yes refl | yes refl = ⊩ₗ-∈-⊩ (subₗ Γ⊩ₗn∶τᵢ τ⊆τᵢ (⊆Γ-⊆ wf-Γ (λ {x} z → z))) (here refl)
-
-subst-⊩ var trm-n (var (cons x∉ x₁ wf-Γ) (there τᵢ∈Γ) τ⊆τᵢ) Γ⊩ₗn∶τᵢ | yes refl | yes refl = ⊥-elim (∉-dom x∉ τᵢ∈Γ)
-subst-⊩ var trm-n (var wf-Γ (here refl) τ⊆τᵢ) Γ⊩ₗn∶τᵢ | yes refl | no A≠B = ⊥-elim (A≠B refl)
-subst-⊩ var trm-n (var (cons x∉ x₁ wf-Γ) (there τᵢ∈Γ) τ⊆τᵢ) Γ⊩ₗn∶τᵢ | yes refl | no A≠B = ⊥-elim (∉-dom x∉ τᵢ∈Γ)
-
-subst-⊩ var trm-n (var (cons x∉ x₂ wf-Γ) (here refl) τ⊆τᵢ) Γ⊩ₗn∶τᵢ | no x≠y | q = ⊥-elim (x≠y refl)
-subst-⊩ var trm-n (var (cons x∉ x₂ wf-Γ) (there τᵢ∈Γ) τ⊆τᵢ) Γ⊩ₗn∶τᵢ | no x≠y | q = var wf-Γ τᵢ∈Γ τ⊆τᵢ
+subst-⊩ {x = x} var trm-n (var {x = y} wf-Γ τᵢ∈Γ τ⊆τᵢ) Γ⊩ₗn∶τᵢ with x ≟ y
+subst-⊩ {A} {B} var trm-n (var (cons x∉ x₂ wf-Γ) (here px) τ⊆τᵢ) Γ⊩ₗn∶τᵢ | yes refl with A ≟T B
+subst-⊩ var trm-n (var (cons x∉ x₂ wf-Γ) (here refl) τ⊆τᵢ) Γ⊩ₗn∶τᵢ | yes refl | yes refl = ⊩ₗ-∈-⊩ (subₗ Γ⊩ₗn∶τᵢ τ⊆τᵢ (⊆Γ-⊆ wf-Γ (λ {x} z → z))) (here refl)
+subst-⊩ var trm-n (var (cons x∉ x₂ wf-Γ) (here refl) τ⊆τᵢ) Γ⊩ₗn∶τᵢ | yes refl | no A≠B = ⊥-elim (A≠B refl)
+subst-⊩ var trm-n (var (cons x∉ x₂ wf-Γ) (there τᵢ∈Γ) τ⊆τᵢ) Γ⊩ₗn∶τᵢ | yes refl = ⊥-elim (∉-dom x∉ τᵢ∈Γ)
+subst-⊩ var trm-n (var (cons x∉ x₂ wf-Γ) (here refl) τ⊆τᵢ) Γ⊩ₗn∶τᵢ | no x≠y = ⊥-elim (x≠y refl)
+subst-⊩ var trm-n (var (cons x∉ x₂ wf-Γ) (there τᵢ∈Γ) τ⊆τᵢ) Γ⊩ₗn∶τᵢ | no x≠y = var wf-Γ τᵢ∈Γ τ⊆τᵢ
 subst-⊩ var trm-n (~>∩ x y z) Γ⊩ₗn∶τᵢ = ~>∩ (subst-⊩ var trm-n x Γ⊩ₗn∶τᵢ) (subst-⊩ var trm-n y Γ⊩ₗn∶τᵢ) z
-
 subst-⊩ {B = B} {Γ} {τᵢ = τᵢ} {x} {n = n} (lam L cf) trm-n (abs {A} {τ = τ} {τ'} L' {m} cf' (arr τ∷' τ'∷')) Γ⊩ₗn∶τᵢ = abs (x ∷ L ++ L' ++ dom Γ) body (arr τ∷' τ'∷')
   where
   body : ∀ {x'} -> x' ∉ x ∷ L ++ L' ++ dom Γ -> ((x' , τ , A) ∷ Γ) ⊩ₗ Λ[ 0 >> (fv {A} x') ] (m Λ[ x ::= n ]) ∶ τ'
@@ -65,6 +63,202 @@ subst-⊩ Y trm-n (~>∩ x∷Γ⊩m∶τ x∷Γ⊩m∶τ₁ x₁) Γ⊩ₗn∶τ
 
 subst-⊩ₗ trm-m trm-n (nil (cons x∉ x₁ wf-Γ)) Γ⊩ₗn∶τᵢ = nil wf-Γ
 subst-⊩ₗ trm-m trm-n (cons x₁ x∷Γ⊩ₗm∶τ) Γ⊩ₗn∶τᵢ = cons (subst-⊩ trm-m trm-n x₁ Γ⊩ₗn∶τᵢ) (subst-⊩ₗ trm-m trm-n x∷Γ⊩ₗm∶τ Γ⊩ₗn∶τᵢ)
+
+
+∈-imp-∈dom : ∀ {Γ} {A : Type} {x : Atom} {τ : List IType} -> (x , (τ , A)) ∈ Γ -> x ∈ dom Γ
+∈-imp-∈dom (here refl) = here refl
+∈-imp-∈dom (there x,τ,A∈Γ) = there (∈-imp-∈dom x,τ,A∈Γ)
+
+aux : ∀ {A B Γ τ τ' x y k} (m : Λ B) -> y ∉ dom Γ -> x ∉ ΛFV m -> y ∉ ΛFV m -> ¬(x ≡ y) ->
+  ((x , τ , A) ∷ Γ) ⊩ Λ[ k >> fv {A} x ] m ∶ τ' -> ((y , τ , A) ∷ Γ) ⊩ Λ[ k >> fv {A} y ] m ∶ τ'
+auxₗ : ∀ {A B Γ τ τ' x y k} (m : Λ B) -> y ∉ dom Γ -> x ∉ ΛFV m -> y ∉ ΛFV m -> ¬(x ≡ y) ->
+  ((x , τ , A) ∷ Γ) ⊩ₗ Λ[ k >> fv {A} x ] m ∶ τ' -> ((y , τ , A) ∷ Γ) ⊩ₗ Λ[ k >> fv {A} y ] m ∶ τ'
+aux (bv i) y∉Γ x∉FVm y∉FVm x≠y x∷Γ⊩m^'x∶τ' = {!   !}
+aux (fv x₁) y∉Γ x∉FVm y∉FVm x≠y x∷Γ⊩m^'x∶τ' = {!   !}
+aux {y = y} {k} (lam A' m) y∉Γ x∉FVm y∉FVm x≠y (abs L cf x₁) = abs L (λ {x} x∉L -> {!   !}) x₁
+aux (lam A m) y∉Γ x∉FVm y∉FVm x≠y (~>∩ x∷Γ⊩m^'x∶τ' x∷Γ⊩m^'x∶τ'' x₁) = ~>∩ (aux (lam A m) y∉Γ x∉FVm y∉FVm x≠y x∷Γ⊩m^'x∶τ') (aux (lam A m) y∉Γ x∉FVm y∉FVm x≠y x∷Γ⊩m^'x∶τ'') x₁
+aux (app m m₁) y∉Γ x∉FVm y∉FVm x≠y (app x∷Γ⊩m^'x∶τ' x₁ x₂ x₃) = app (aux m y∉Γ {!   !} {!   !} x≠y x∷Γ⊩m^'x∶τ') (auxₗ m₁ y∉Γ {!   !} {!   !} x≠y x₁) x₂ x₃
+aux (app m m₁) y∉Γ x∉FVm y∉FVm x≠y (~>∩ x∷Γ⊩m^'x∶τ' x∷Γ⊩m^'x∶τ'' x₁) = ~>∩ (aux (app m m₁) y∉Γ x∉FVm y∉FVm x≠y x∷Γ⊩m^'x∶τ') (aux (app m m₁) y∉Γ x∉FVm y∉FVm x≠y x∷Γ⊩m^'x∶τ'') x₁
+aux (Y _) y∉Γ x∉FVm y∉FVm x≠y(Y (cons x∉ x₁ wf-Γ) x₂ x₃) = Y (cons y∉Γ x₁ wf-Γ) x₂ x₃
+aux {k = k} (Y B) y∉Γ x∉FVm y∉FVm x≠y (~>∩ x∷Γ⊩m^'x∶τ' x∷Γ⊩m^'x∶τ'' x₁) = ~>∩ (aux {k = k} (Y B) y∉Γ x∉FVm y∉FVm x≠y x∷Γ⊩m^'x∶τ') (aux {k = k} (Y B) y∉Γ x∉FVm y∉FVm x≠y x∷Γ⊩m^'x∶τ'') x₁
+
+auxₗ m y∉Γ _ _ _ (nil (cons x∉ x₁ wf-Γ)) = nil (cons y∉Γ x₁ wf-Γ)
+auxₗ m y∉Γ x∉FVm y∉FVm x≠y (cons x₁ x∷Γ⊩ₗm^'x∶τ') = cons (aux m y∉Γ x∉FVm y∉FVm x≠y x₁) (auxₗ m y∉Γ x∉FVm y∉FVm x≠y x∷Γ⊩ₗm^'x∶τ')
+
+-- {-# TERMINATING #-}
+-- subst-⊩-2 : ∀ {A B Γ τ x} {m : Λ A} {n : Λ B} -> ΛTerm m -> ΛTerm n -> x ∉ dom Γ -> Γ ⊩ (m Λ[ x ::= n ]) ∶ τ ->
+--   ∃(λ τᵢ -> ( ((x , τᵢ , B) ∷ Γ) ⊩ m ∶ τ ) × ( Γ ⊩ₗ n ∶ τᵢ ))
+-- subst-⊩ₗ-2 : ∀ {A B Γ τ x} {m : Λ A} {n : Λ B} -> ΛTerm m -> ΛTerm n -> x ∉ dom Γ -> Γ ⊩ₗ (m Λ[ x ::= n ]) ∶ τ ->
+--   ∃(λ τᵢ -> ( ((x , τᵢ , B) ∷ Γ) ⊩ₗ m ∶ τ ) × ( Γ ⊩ₗ n ∶ τᵢ ))
+--
+-- subst-⊩-2 {A} {B} {x = x} (var {x = y}) trm-n x∉Γ Γ⊩m[x::=n] with x ≟ y | A ≟T B
+-- subst-⊩-2 {τ = τ} var trm-n x∉Γ Γ⊩m[x::=n] | yes refl | yes refl = (∩' τ) ,
+--   (var (cons x∉Γ (cons (⊩-∷' Γ⊩m[x::=n]) nil) (⊩-wf-Γ Γ⊩m[x::=n])) (here refl) (⊆ₗ-refl (cons (⊩-∷' Γ⊩m[x::=n]) nil)) ,
+--   (cons Γ⊩m[x::=n] (nil (⊩-wf-Γ Γ⊩m[x::=n]))))
+-- subst-⊩-2 var trm-n x∉Γ Γ⊩m[x::=n] | yes refl | no _ = ⊥-elim (x∉Γ (contr Γ⊩m[x::=n]))
+--   where
+--   contr : ∀ {Γ A x τ} -> Γ ⊩ (fv {A} x) ∶ τ -> x ∈ dom Γ
+--   contr (var wf-Γ τᵢ∈Γ τ⊆τᵢ) = ∈-imp-∈dom τᵢ∈Γ
+--   contr (~>∩ Γ⊩x∶τ Γ⊩x∶τ₁ x₁) = contr Γ⊩x∶τ₁
+--
+-- ... | no _ | _ = ω , ((sub Γ⊩m[x::=n] (⊆-refl (⊩-∷' Γ⊩m[x::=n])) (⊆Γ-⊆ (cons x∉Γ nil (⊩-wf-Γ Γ⊩m[x::=n])) (λ {x₁} → there))) , (nil (⊩-wf-Γ Γ⊩m[x::=n])))
+-- subst-⊩-2 {A ⟶ B} {C} {Γ} {τ ~> τ'} {x} {_} {n} (lam L {m} cf) trm-n x∉Γ (abs L' cf' (arr τ∷' τ'∷')) = τᵢ , (abs {!   !} {!   !} {!   !}) , {!   !}
+--   where
+--   x' = ∃fresh-impl (x ∷ L ++ L' ++ dom Γ)
+--
+--   x'∉ : x' ∉ (x ∷ L ++ L' ++ dom Γ)
+--   x'∉ = ∃fresh-impl-spec (x ∷ L ++ L' ++ dom Γ)
+--
+--   ih' : ((x' , τ , A) ∷ Γ) ⊩ₗ (Λ[ 0 >> fv {A} x' ] m) Λ[ x ::= n ] ∶ τ'
+--   ih' rewrite Λsubst-open-var2 {τ'' = A} x' x n m (fv-x≠y _ _ x'∉) trm-n = cf' (∉-cons-l L' _ (∉-cons-r L _ (∉-∷-elim _ x'∉)))
+--
+--   ih : ∃(λ τᵢ₁ ->
+--     (((x , τᵢ₁ , C) ∷ (suc (x ⊔ ∪ (L ++ L' ++ dom Γ)) , τ , A) ∷ Γ) ⊩ₗ Λ[ 0 >> fv x' ] m ∶ τ') × (((suc (x ⊔ ∪ (L ++ L' ++ dom Γ)) , τ , A) ∷ Γ) ⊩ₗ n ∶ τᵢ₁))
+--   ih = subst-⊩ₗ-2 (cf (∉-cons-l L _ (∉-∷-elim _ x'∉))) trm-n (∉-∷ _ (dom Γ) (λ x₂ -> fv-x≠y _ _ x'∉ (sym x₂)) x∉Γ) ih'
+--
+--   τᵢ = proj₁ ih
+--
+--   -- x∷x'∷Γ⊩ₗm^x∶τ' : ((x , τᵢ , C) ∷ (x' , τ , A) ∷ Γ) ⊩ₗ Λ[ 0 >> fv x' ] m ∶ τ'
+--   -- x∷x'∷Γ⊩ₗm^x∶τ' = proj₁ (proj₂ ih)
+--
+--   -- helper₁ : ∀ {x'} -> x' ∉ x ∷ L ++ L' ++ dom Γ -> ((x' , τ , A) ∷ Γ) ⊩ₗ (Λ[ 0 >> fv {A} x' ] m) Λ[ x ::= n ] ∶ τ'
+--   -- helper₁ {x'} x'∉ rewrite Λsubst-open-var2 {τ'' = A} x' x n m (fv-x≠y _ _ x'∉) trm-n = cf' (∉-cons-l L' _ (∉-cons-r L _ (∉-∷-elim _ x'∉)))
+--   --
+--   -- helper₂ : ∀ {x'} -> x' ∉ x ∷ L ++ L' ++ dom Γ -> ∃(λ τᵢ ->
+--   --   (((x , τᵢ , C) ∷ (x' , τ , A) ∷ Γ) ⊩ₗ Λ[ 0 >> fv x' ] m ∶ τ') × (((x' , τ , A) ∷ Γ) ⊩ₗ n ∶ τᵢ))
+--   -- helper₂ {x'} x'∉ = subst-⊩ₗ-2 (cf (∉-cons-l L _ (∉-∷-elim _ x'∉))) trm-n (∉-∷ _ (dom Γ) (λ x₂ -> fv-x≠y _ _ x'∉ (sym x₂)) x∉Γ) ih'
+--   --   where
+--   --   ih' = helper₁ x'∉
+--
+--
+-- subst-⊩-2 {B = B} {Γ} {x = x} (lam L {e = m} cf) trm-n x∉Γ (~>∩ Γ⊩m[x::=n] Γ⊩m[x::=n]₁ x₁) = τₗ ++ τᵣ ,
+--   sub
+--     (~>∩
+--       (sub {Γ' = ((x , τₗ ++ τᵣ , B) ∷ Γ)} x∷Γ⊩m∶τₗ (⊆-refl (⊩-∷' Γ⊩m[x::=n])) ⊆Γₗ)
+--       (sub x∷Γ⊩m∶τᵣ (⊆-refl (⊩-∷' Γ⊩m[x::=n]₁)) ⊆Γᵣ)
+--       (⊆ₗ-refl (++-∷'ₗ (proj₂ (arr' (⊩-∷' Γ⊩m[x::=n]))) (proj₂ (arr' (⊩-∷' Γ⊩m[x::=n]₁))))))
+--     (arr (⊆ₗ-refl τ∷) x₁ (arr τ∷ (⊆ₗ-∷'ₗ-l x₁)) (arr τ∷ (⊆ₗ-∷'ₗ-r x₁)))
+--     (⊆Γ-⊆ wf-x∷Γ (λ x₃ → x₃)) ,
+--   ⊩ₗ-++ Γ⊩n∶τₗ Γ⊩n∶τᵣ
+--   where
+--   ihₗ = subst-⊩-2 (lam L {e = m} cf) trm-n x∉Γ Γ⊩m[x::=n]
+--   ihᵣ = subst-⊩-2 (lam L {e = m} cf) trm-n x∉Γ Γ⊩m[x::=n]₁
+--   τₗ = proj₁ ihₗ
+--   τᵣ = proj₁ ihᵣ
+--   x∷Γ⊩m∶τₗ = proj₁ (proj₂ ihₗ)
+--   x∷Γ⊩m∶τᵣ = proj₁ (proj₂ ihᵣ)
+--   Γ⊩n∶τₗ = proj₂ (proj₂ ihₗ)
+--   Γ⊩n∶τᵣ = proj₂ (proj₂ ihᵣ)
+--
+--   τₗ++τᵣ∷' : (τₗ ++ τᵣ) ∷'ₗ B
+--   τₗ++τᵣ∷' = ++-∷'ₗ (⊩ₗ-∷'ₗ Γ⊩n∶τₗ) (⊩ₗ-∷'ₗ Γ⊩n∶τᵣ)
+--
+--   wf-x∷Γ : Wf-ICtxt ((x , τₗ ++ τᵣ , B) ∷ Γ)
+--   wf-x∷Γ = cons x∉Γ τₗ++τᵣ∷' (⊩-wf-Γ Γ⊩m[x::=n]₁)
+--
+--   ⊆Γₗ : ((x , τₗ , B) ∷ Γ) ⊆Γ ((x , τₗ ++ τᵣ , B) ∷ Γ)
+--   ⊆Γₗ = cons ((τₗ ++ τᵣ) , ((here refl) , ⊆ₗ++-l' (⊩ₗ-∷'ₗ Γ⊩n∶τₗ) (⊩ₗ-∷'ₗ Γ⊩n∶τᵣ))) (⊆Γ-⊆ wf-x∷Γ (λ x₃ → there x₃))
+--
+--   ⊆Γᵣ : ((x , τᵣ , B) ∷ Γ) ⊆Γ ((x , τₗ ++ τᵣ , B) ∷ Γ)
+--   ⊆Γᵣ = cons ((τₗ ++ τᵣ) , ((here refl) , ⊆ₗ++-r (nil (⊩ₗ-∷'ₗ Γ⊩n∶τₗ)) (⊩ₗ-∷'ₗ Γ⊩n∶τᵣ))) (⊆Γ-⊆ wf-x∷Γ (λ x₃ → there x₃))
+--
+--   τ∷ = proj₁ (arr' (⊩-∷' Γ⊩m[x::=n]₁))
+--
+-- subst-⊩-2 {B = B} {Γ} {x = x} (app trm-m trm-m₁) trm-n x∉Γ (app Γ⊩e₁[x::=n] Γ⊩ₗe₂[x::=n] x₂ x₃) = τₗ ++ τᵣ ,
+--   (app (sub x∷Γ⊩m∶τₗ (⊆-refl (⊩-∷' Γ⊩e₁[x::=n])) ⊆Γₗ) (subₗ x∷Γ⊩m∶τᵣ (⊆ₗ-refl (⊩ₗ-∷'ₗ Γ⊩ₗe₂[x::=n])) ⊆Γᵣ) x₂ x₃) ,
+--   (⊩ₗ-++ Γ⊩n∶τₗ Γ⊩n∶τᵣ)
+--   where
+--   ihₗ = subst-⊩-2 trm-m trm-n x∉Γ Γ⊩e₁[x::=n]
+--   ihᵣ = subst-⊩ₗ-2 trm-m₁ trm-n x∉Γ Γ⊩ₗe₂[x::=n]
+--   τₗ = proj₁ ihₗ
+--   τᵣ = proj₁ ihᵣ
+--   x∷Γ⊩m∶τₗ = proj₁ (proj₂ ihₗ)
+--   x∷Γ⊩m∶τᵣ = proj₁ (proj₂ ihᵣ)
+--   Γ⊩n∶τₗ = proj₂ (proj₂ ihₗ)
+--   Γ⊩n∶τᵣ = proj₂ (proj₂ ihᵣ)
+--
+--   τₗ++τᵣ∷' : (τₗ ++ τᵣ) ∷'ₗ B
+--   τₗ++τᵣ∷' = ++-∷'ₗ (⊩ₗ-∷'ₗ Γ⊩n∶τₗ) (⊩ₗ-∷'ₗ Γ⊩n∶τᵣ)
+--
+--   wf-x∷Γ : Wf-ICtxt ((x , τₗ ++ τᵣ , B) ∷ Γ)
+--   wf-x∷Γ = cons x∉Γ τₗ++τᵣ∷' (⊩-wf-Γ Γ⊩e₁[x::=n])
+--
+--   ⊆Γₗ : ((x , τₗ , B) ∷ Γ) ⊆Γ ((x , τₗ ++ τᵣ , B) ∷ Γ)
+--   ⊆Γₗ = cons ((τₗ ++ τᵣ) , ((here refl) , ⊆ₗ++-l' (⊩ₗ-∷'ₗ Γ⊩n∶τₗ) (⊩ₗ-∷'ₗ Γ⊩n∶τᵣ))) (⊆Γ-⊆ wf-x∷Γ (λ x₃ → there x₃))
+--
+--   ⊆Γᵣ : ((x , τᵣ , B) ∷ Γ) ⊆Γ ((x , τₗ ++ τᵣ , B) ∷ Γ)
+--   ⊆Γᵣ = cons ((τₗ ++ τᵣ) , ((here refl) , ⊆ₗ++-r (nil (⊩ₗ-∷'ₗ Γ⊩n∶τₗ)) (⊩ₗ-∷'ₗ Γ⊩n∶τᵣ))) (⊆Γ-⊆ wf-x∷Γ (λ x₃ → there x₃))
+--
+-- subst-⊩-2 {B = B} {Γ} {x = x} (app trm-m trm-m₁) trm-n x∉Γ (~>∩ Γ⊩m[x::=n] Γ⊩m[x::=n]₁ x₁) = τₗ ++ τᵣ ,
+--   sub
+--     (~>∩
+--       (sub {Γ' = ((x , τₗ ++ τᵣ , B) ∷ Γ)} x∷Γ⊩m∶τₗ (⊆-refl (⊩-∷' Γ⊩m[x::=n])) ⊆Γₗ)
+--       (sub x∷Γ⊩m∶τᵣ (⊆-refl (⊩-∷' Γ⊩m[x::=n]₁)) ⊆Γᵣ)
+--       (⊆ₗ-refl (++-∷'ₗ (proj₂ (arr' (⊩-∷' Γ⊩m[x::=n]))) (proj₂ (arr' (⊩-∷' Γ⊩m[x::=n]₁))))))
+--     (arr (⊆ₗ-refl τ∷) x₁ (arr τ∷ (⊆ₗ-∷'ₗ-l x₁)) (arr τ∷ (⊆ₗ-∷'ₗ-r x₁)))
+--     (⊆Γ-⊆ wf-x∷Γ (λ x₃ → x₃)) ,
+--   ⊩ₗ-++ Γ⊩n∶τₗ Γ⊩n∶τᵣ
+--   where
+--   ihₗ = subst-⊩-2 (app trm-m trm-m₁) trm-n x∉Γ Γ⊩m[x::=n]
+--   ihᵣ = subst-⊩-2 (app trm-m trm-m₁) trm-n x∉Γ Γ⊩m[x::=n]₁
+--   τₗ = proj₁ ihₗ
+--   τᵣ = proj₁ ihᵣ
+--   x∷Γ⊩m∶τₗ = proj₁ (proj₂ ihₗ)
+--   x∷Γ⊩m∶τᵣ = proj₁ (proj₂ ihᵣ)
+--   Γ⊩n∶τₗ = proj₂ (proj₂ ihₗ)
+--   Γ⊩n∶τᵣ = proj₂ (proj₂ ihᵣ)
+--
+--   τₗ++τᵣ∷' : (τₗ ++ τᵣ) ∷'ₗ B
+--   τₗ++τᵣ∷' = ++-∷'ₗ (⊩ₗ-∷'ₗ Γ⊩n∶τₗ) (⊩ₗ-∷'ₗ Γ⊩n∶τᵣ)
+--
+--   wf-x∷Γ : Wf-ICtxt ((x , τₗ ++ τᵣ , B) ∷ Γ)
+--   wf-x∷Γ = cons x∉Γ τₗ++τᵣ∷' (⊩-wf-Γ Γ⊩m[x::=n]₁)
+--
+--   ⊆Γₗ : ((x , τₗ , B) ∷ Γ) ⊆Γ ((x , τₗ ++ τᵣ , B) ∷ Γ)
+--   ⊆Γₗ = cons ((τₗ ++ τᵣ) , ((here refl) , ⊆ₗ++-l' (⊩ₗ-∷'ₗ Γ⊩n∶τₗ) (⊩ₗ-∷'ₗ Γ⊩n∶τᵣ))) (⊆Γ-⊆ wf-x∷Γ (λ x₃ → there x₃))
+--
+--   ⊆Γᵣ : ((x , τᵣ , B) ∷ Γ) ⊆Γ ((x , τₗ ++ τᵣ , B) ∷ Γ)
+--   ⊆Γᵣ = cons ((τₗ ++ τᵣ) , ((here refl) , ⊆ₗ++-r (nil (⊩ₗ-∷'ₗ Γ⊩n∶τₗ)) (⊩ₗ-∷'ₗ Γ⊩n∶τᵣ))) (⊆Γ-⊆ wf-x∷Γ (λ x₃ → there x₃))
+--
+--   τ∷ = proj₁ (arr' (⊩-∷' Γ⊩m[x::=n]₁))
+--
+-- subst-⊩-2 Y trm-n x∉Γ Γ⊩m[x::=n] = ω , (sub Γ⊩m[x::=n] (⊆-refl (⊩-∷' Γ⊩m[x::=n])) (⊆Γ-⊆ (cons x∉Γ nil (⊩-wf-Γ Γ⊩m[x::=n])) (λ {x} → there))) , (nil (⊩-wf-Γ Γ⊩m[x::=n]))
+--
+-- subst-⊩ₗ-2 trm-m trm-n x∉Γ (nil wf-Γ) = ω , ((nil (cons x∉Γ nil wf-Γ)) , (nil wf-Γ))
+-- subst-⊩ₗ-2 {B = B} {Γ} {x = x} trm-m trm-n x∉Γ (cons x' Γ⊩ₗm∶τ) =
+--   τ ++ τₗ , (cons (sub x∷Γ⊩m∶τ (⊆-refl (⊩-∷' x')) ⊆Γ') (subₗ x∷Γ⊩m∶τₗ (⊆ₗ-refl (⊩ₗ-∷'ₗ Γ⊩ₗm∶τ)) ⊆Γₗ)) , ⊩ₗ-++ Γ⊩n∶τ Γ⊩n∶τₗ
+--   where
+--   ih = subst-⊩-2 trm-m trm-n x∉Γ x'
+--   ihₗ = subst-⊩ₗ-2 trm-m trm-n x∉Γ Γ⊩ₗm∶τ
+--   τ = proj₁ ih
+--   τₗ = proj₁ ihₗ
+--   x∷Γ⊩m∶τ = proj₁ (proj₂ ih)
+--   x∷Γ⊩m∶τₗ = proj₁ (proj₂ ihₗ)
+--   Γ⊩n∶τ = proj₂ (proj₂ ih)
+--   Γ⊩n∶τₗ = proj₂ (proj₂ ihₗ)
+--
+--   τ++τₗ∷' : (τ ++ τₗ) ∷'ₗ B
+--   τ++τₗ∷' = ++-∷'ₗ (⊩ₗ-∷'ₗ Γ⊩n∶τ) (⊩ₗ-∷'ₗ Γ⊩n∶τₗ)
+--
+--   wf-x∷Γ : Wf-ICtxt ((x , τ ++ τₗ , B) ∷ Γ)
+--   wf-x∷Γ = cons x∉Γ τ++τₗ∷' (⊩-wf-Γ x')
+--
+--   ⊆Γ' : ((x , τ , B) ∷ Γ) ⊆Γ ((x , τ ++ τₗ , B) ∷ Γ)
+--   ⊆Γ' = cons ((τ ++ τₗ) , ((here refl) , ⊆ₗ++-l' (⊩ₗ-∷'ₗ Γ⊩n∶τ) (⊩ₗ-∷'ₗ Γ⊩n∶τₗ))) (⊆Γ-⊆ wf-x∷Γ (λ x₃ → there x₃))
+--
+--   ⊆Γₗ : ((x , τₗ , B) ∷ Γ) ⊆Γ ((x , τ ++ τₗ , B) ∷ Γ)
+--   ⊆Γₗ = cons ((τ ++ τₗ) , ((here refl) , ⊆ₗ++-r (nil (⊩ₗ-∷'ₗ Γ⊩n∶τ)) (⊩ₗ-∷'ₗ Γ⊩n∶τₗ))) (⊆Γ-⊆ wf-x∷Γ (λ x₃ → there x₃))
+
+-----------------------------------------------------------------
+
+^-⊩-2 : ∀ {A B Γ τ} {m : Λ B} {n : Λ A} -> ΛTerm (lam A m) -> ΛTerm n -> Γ ⊩ (Λ[ 0 >> n ] m) ∶ τ ->
+  ∃(λ τᵢ -> (Γ ⊩ lam A m ∶ (τᵢ ~> ∩' τ) × ( Γ ⊩ₗ n ∶ τᵢ )))
+^-⊩-2 trm-lam-m trm-n Γ⊩m^n∶τ = {!   !}
+
+
+-- ω , ((abs (dom Γ) (λ x∉L → cons {!   !} (nil (cons x∉L nil {!   !}))) (arr nil {!   !})) , (nil {!  !}))
+
+-------------------------------------------------------------------------------
 
 
 Γ⊩Ym-max : ∀ {A Γ} {m : Λ (A ⟶ A)} {τ} -> Γ ⊩ app (Y A) m ∶ τ -> ∃(λ τ' -> Γ ⊩ₗ m ∶ ∩' (τ' ~> τ') × (∩' τ) ⊆ₗ[ A ] τ')
@@ -231,22 +425,28 @@ subst-⊩ₗ trm-m trm-n (cons x₁ x∷Γ⊩ₗm∶τ) Γ⊩ₗn∶τᵢ = cons
 
 ⊩->β Γ⊩m'∶τ (redL x m->βm') = ⊩->β-redL Γ⊩m'∶τ m->βm'
   where
-    ⊩->β-redL : ∀ {A B Γ} {m m' : Λ (A ⟶ B)} {n : Λ A} {τ} -> Γ ⊩ app m' n ∶ τ -> m ->Λβ m' -> Γ ⊩ app m n ∶ τ
-    ⊩->β-redL (app Γ⊩m'n∶τ x₁ x₂ x₃) (redL x₄ m->Λβm') = app (⊩->β-redL Γ⊩m'n∶τ m->Λβm') x₁ x₂ x₃
-    ⊩->β-redL (~>∩ Γ⊩m'n∶τ Γ⊩m'n∶τ₁ x₁) (redL x₂ m->Λβm') = ~>∩ (⊩->β-redL Γ⊩m'n∶τ (redL x₂ m->Λβm')) (⊩->β-redL Γ⊩m'n∶τ₁ (redL x₂ m->Λβm')) x₁
-    ⊩->β-redL (app Γ⊩m'n∶τ x₁ x₂ x₃) (redR x₄ m->Λβm') = app (⊩->β Γ⊩m'n∶τ (redR x₄ m->Λβm')) x₁ x₂ x₃
-    ⊩->β-redL (~>∩ Γ⊩m'n∶τ Γ⊩m'n∶τ₁ x₁) (redR x₂ m->Λβm') = ~>∩ (⊩->β-redL Γ⊩m'n∶τ (redR x₂ m->Λβm')) (⊩->β-redL Γ⊩m'n∶τ₁ (redR x₂ m->Λβm')) x₁
-    ⊩->β-redL (app Γ⊩m'n∶τ x₁ x₂ x₃) (abs L x₄) = app (⊩->β Γ⊩m'n∶τ (abs L x₄)) x₁ x₂ x₃
-    ⊩->β-redL (~>∩ Γ⊩m'n∶τ Γ⊩m'n∶τ₁ x₁) (abs L x₂) = ~>∩ (⊩->β-redL Γ⊩m'n∶τ (abs L x₂)) (⊩->β-redL Γ⊩m'n∶τ₁ (abs L x₂)) x₁
-    ⊩->β-redL (app Γ⊩m'n∶τ x₁ x₂ x₃) (beta x₄ x₅) = app (⊩->β Γ⊩m'n∶τ (beta x₄ x₅)) x₁ x₂ x₃
-    ⊩->β-redL (~>∩ Γ⊩m'n∶τ Γ⊩m'n∶τ₁ x₁) (beta x₂ x₃) = ~>∩ (⊩->β-redL Γ⊩m'n∶τ (beta x₂ x₃)) (⊩->β-redL Γ⊩m'n∶τ₁ (beta x₂ x₃)) x₁
-    ⊩->β-redL (app Γ⊩m'n∶τ x₁ x₂ x₃) (Y x₄) = app (⊩->β Γ⊩m'n∶τ (Y x₄)) x₁ x₂ x₃
-    ⊩->β-redL (~>∩ Γ⊩m'n∶τ Γ⊩m'n∶τ₁ x₁) (Y x₂) = ~>∩ (⊩->β-redL Γ⊩m'n∶τ (Y x₂)) (⊩->β-redL Γ⊩m'n∶τ₁ (Y x₂)) x₁
+  ⊩->β-redL : ∀ {A B Γ} {m m' : Λ (A ⟶ B)} {n : Λ A} {τ} -> Γ ⊩ app m' n ∶ τ -> m ->Λβ m' -> Γ ⊩ app m n ∶ τ
+  ⊩->β-redL (app Γ⊩m'n∶τ x₁ x₂ x₃) (redL x₄ m->Λβm') = app (⊩->β-redL Γ⊩m'n∶τ m->Λβm') x₁ x₂ x₃
+  ⊩->β-redL (~>∩ Γ⊩m'n∶τ Γ⊩m'n∶τ₁ x₁) (redL x₂ m->Λβm') = ~>∩ (⊩->β-redL Γ⊩m'n∶τ (redL x₂ m->Λβm')) (⊩->β-redL Γ⊩m'n∶τ₁ (redL x₂ m->Λβm')) x₁
+  ⊩->β-redL (app Γ⊩m'n∶τ x₁ x₂ x₃) (redR x₄ m->Λβm') = app (⊩->β Γ⊩m'n∶τ (redR x₄ m->Λβm')) x₁ x₂ x₃
+  ⊩->β-redL (~>∩ Γ⊩m'n∶τ Γ⊩m'n∶τ₁ x₁) (redR x₂ m->Λβm') = ~>∩ (⊩->β-redL Γ⊩m'n∶τ (redR x₂ m->Λβm')) (⊩->β-redL Γ⊩m'n∶τ₁ (redR x₂ m->Λβm')) x₁
+  ⊩->β-redL (app Γ⊩m'n∶τ x₁ x₂ x₃) (abs L x₄) = app (⊩->β Γ⊩m'n∶τ (abs L x₄)) x₁ x₂ x₃
+  ⊩->β-redL (~>∩ Γ⊩m'n∶τ Γ⊩m'n∶τ₁ x₁) (abs L x₂) = ~>∩ (⊩->β-redL Γ⊩m'n∶τ (abs L x₂)) (⊩->β-redL Γ⊩m'n∶τ₁ (abs L x₂)) x₁
+  ⊩->β-redL (app Γ⊩m'n∶τ x₁ x₂ x₃) (beta x₄ x₅) = app (⊩->β Γ⊩m'n∶τ (beta x₄ x₅)) x₁ x₂ x₃
+  ⊩->β-redL (~>∩ Γ⊩m'n∶τ Γ⊩m'n∶τ₁ x₁) (beta x₂ x₃) = ~>∩ (⊩->β-redL Γ⊩m'n∶τ (beta x₂ x₃)) (⊩->β-redL Γ⊩m'n∶τ₁ (beta x₂ x₃)) x₁
+  ⊩->β-redL (app Γ⊩m'n∶τ x₁ x₂ x₃) (Y x₄) = app (⊩->β Γ⊩m'n∶τ (Y x₄)) x₁ x₂ x₃
+  ⊩->β-redL (~>∩ Γ⊩m'n∶τ Γ⊩m'n∶τ₁ x₁) (Y x₂) = ~>∩ (⊩->β-redL Γ⊩m'n∶τ (Y x₂)) (⊩->β-redL Γ⊩m'n∶τ₁ (Y x₂)) x₁
+
 ⊩->β (app Γ⊩m'∶τ x x₁ x₂) (redR x₃ m->βm') = app Γ⊩m'∶τ (⊩->βₗ x m->βm') x₁ x₂
 ⊩->β (~>∩ Γ⊩m'∶τ Γ⊩m'∶τ₁ x) (redR x₁ m->βm') = ~>∩ (⊩->β Γ⊩m'∶τ (redR x₁ m->βm')) (⊩->β Γ⊩m'∶τ₁ (redR x₁ m->βm')) x
 ⊩->β (abs L cf x) (abs L₁ x₁) = abs (L ++ L₁) (λ x∉L → ⊩->βₗ (cf (∉-cons-l _ _ x∉L)) (x₁ (∉-cons-r L _ x∉L))) x
 ⊩->β (~>∩ Γ⊩m'∶τ Γ⊩m'∶τ₁ x) (abs L x₁) = ~>∩ (⊩->β Γ⊩m'∶τ (abs L x₁)) (⊩->β Γ⊩m'∶τ₁ (abs L x₁)) x
-⊩->β Γ⊩m'∶τ (beta x x₁) = {!   !}
+⊩->β Γ⊩m'∶τ (beta {m = m} {n} x x₁) = app Γ⊩lam-m∶τ Γ⊩ₗn∶τᵢ {!   !} (⊩ₗ-∷'ₗ Γ⊩ₗn∶τᵢ)
+  where
+  helper = ^-⊩-2 x x₁ Γ⊩m'∶τ
+  τᵢ = proj₁ helper
+  Γ⊩lam-m∶τ = proj₁ (proj₂ helper)
+  Γ⊩ₗn∶τᵢ = proj₂ (proj₂ helper)
 ⊩->β Γ⊩mYm∶τ (Y _) = Γ⊩mYm∶τ->Γ⊩Ym∶τ Γ⊩mYm∶τ
 
 ⊩->βₗ (nil wf-Γ) m->βm' = nil wf-Γ
