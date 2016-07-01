@@ -57,18 +57,23 @@ subst-⊩ₗ trm-m trm-n (cons x₁ x∷Γ⊩ₗm∶τ) Γ⊩ₗn∶τᵢ = cons
 
 ^-⊩ : ∀ {A B Γ τ τᵢ} {m : Λ B} {n : Λ A} -> ΛTerm (lam A m) -> ΛTerm n -> Γ ⊩ lam A m ∶ (τᵢ ~> ∩' τ) -> Γ ⊩ₗ n ∶ τᵢ ->
    Γ ⊩ (Λ[ 0 >> n ] m) ∶ τ
-^-⊩ {Γ = Γ} {τ} {τᵢ} {m} {n} trm-lam-m trm-n Γ⊩lam-m Γ⊩n = body
+^-⊩ {A} {Γ = Γ} {τ} {τᵢ} {m} {n} (lam L cf) trm-n Γ⊩lam-m Γ⊩n = body
   where
-  L = {!   !}
-  x = ∃fresh (L ++ ΛFV m)
+  helper : ∃(λ L -> ( ∀ {x} -> (x∉L : x ∉ L) -> ((x , (τᵢ , A)) ∷ Γ) ⊩ₗ Λ[ 0 >> fv {A} x ] m ∶ ∩' τ ))
+  helper = abs-inv Γ⊩lam-m
 
-  x∉ : x ∉ (L ++ ΛFV m)
-  x∉ = ∃fresh-spec (L ++ ΛFV m)
+  L' = proj₁ helper
+  cf' = proj₂ helper
+
+  x = ∃fresh (L ++ L' ++ ΛFV m)
+
+  x∉ : x ∉ (L ++ L' ++ ΛFV m)
+  x∉ = ∃fresh-spec (L ++ L' ++ ΛFV m)
 
   body : Γ ⊩ (Λ[ 0 >> n ] m) ∶ τ
-  body = {!   !}
-  -- body rewrite
-  --   subst-intro x n m (∉-cons-r L _ x∉) trm-n = ?
+  body rewrite
+    Λsubst-intro x n m (∉-cons-r L' _ (∉-cons-r L _ x∉)) trm-n =
+    subst-⊩ (cf (∉-cons-l L _ x∉)) trm-n (⊩ₗ-∈-⊩ (cf' (∉-cons-l L' _ (∉-cons-r L _ x∉))) (here refl)) Γ⊩n
 
 
 Γ⊩Ym∶τ->Γ⊩mYm∶τ : ∀ {A Γ m τ} -> Γ ⊩ app (Y A) m ∶ τ -> Γ ⊩ app m (app (Y A) m) ∶ τ
@@ -118,16 +123,38 @@ subst-⊩ₗ trm-m trm-n (cons x₁ x∷Γ⊩ₗm∶τ) Γ⊩ₗn∶τᵢ = cons
 ->β⊩ₗ (cons x Γ⊩ₗm∶τ) m->βm' = cons (->β⊩ x m->βm') (->β⊩ₗ Γ⊩ₗm∶τ m->βm')
 
 
------------------------------------------------------------------
 
 ^-⊩-2 : ∀ {A B Γ τ} {m : Λ B} {n : Λ A} -> ΛTerm (lam A m) -> ΛTerm n -> Γ ⊩ (Λ[ 0 >> n ] m) ∶ τ ->
   ∃(λ τᵢ -> (Γ ⊩ lam A m ∶ (τᵢ ~> ∩' τ) × ( Γ ⊩ₗ n ∶ τᵢ )))
-^-⊩-2 trm-lam-m trm-n Γ⊩m^n∶τ = {!   !}
+^-⊩-2 {A} {B} {Γ} {τ} {m} {n} (lam L cf) trm-n Γ⊩m^n∶τ =
+  τᵢ ,
+  ((abs
+    (x ∷ dom Γ ++ ΛFV m)
+    (λ {x'} x'∉ → auxₗ
+      m
+      (proj₂ (∃~T m))
+      (∉-cons-l (dom Γ) _ (∉-∷-elim _ x'∉))
+      (∉-cons-l (ΛFV m) _ (∉-cons-r L _ x∉))
+      ((∉-cons-r (dom Γ) _ (∉-∷-elim _ x'∉)))
+      (λ x₁ → fv-x≠y _ _ x'∉ (sym x₁))
+      (cons x∷Γ⊩m^'x∶τ (nil (cons (∉-cons-r (ΛFV m) _ (∉-cons-r L _ x∉)) (⊩ₗ-∷'ₗ Γ⊩ₗn∶τᵢ) (⊩ₗ-wf-Γ Γ⊩ₗn∶τᵢ)))))
+    (arr (⊩ₗ-∷'ₗ Γ⊩ₗn∶τᵢ) (cons (⊩-∷' x∷Γ⊩m^'x∶τ) nil))) ,
+  Γ⊩ₗn∶τᵢ)
+  where
+  x = ∃fresh (L ++ ΛFV m ++ dom Γ)
 
+  x∉ : x ∉ (L ++ ΛFV m ++ dom Γ)
+  x∉ = ∃fresh-spec (L ++ ΛFV m ++ dom Γ)
 
--- ω , ((abs (dom Γ) (λ x∉L → cons {!   !} (nil (cons x∉L nil {!   !}))) (arr nil {!   !})) , (nil {!  !}))
+  Γ⊩m^n∶τ' : Γ ⊩ ((Λ[ 0 >> fv {A} x ] m) Λ[ x ::= n ]) ∶ τ
+  Γ⊩m^n∶τ' rewrite Λsubst-intro2 x n m (∉-cons-l (ΛFV m) _ (∉-cons-r L _ x∉)) trm-n = Γ⊩m^n∶τ
 
--------------------------------------------------------------------------------
+  ih : ∃(λ τᵢ -> ( ((x , τᵢ , A) ∷ Γ) ⊩ (Λ[ 0 >> fv {A} x ] m) ∶ τ ) × ( Γ ⊩ₗ n ∶ τᵢ ))
+  ih = subst-⊩-2 (cf (∉-cons-l L _ x∉)) trm-n (∉-cons-r (ΛFV m) _ (∉-cons-r L _ x∉)) Γ⊩m^n∶τ'
+
+  τᵢ = proj₁ ih
+  x∷Γ⊩m^'x∶τ = proj₁ (proj₂ ih)
+  Γ⊩ₗn∶τᵢ = proj₂ (proj₂ ih)
 
 
 Γ⊩Ym-max : ∀ {A Γ} {m : Λ (A ⟶ A)} {τ} -> Γ ⊩ app (Y A) m ∶ τ -> ∃(λ τ' -> Γ ⊩ₗ m ∶ ∩' (τ' ~> τ') × (∩' τ) ⊆ₗ[ A ] τ')

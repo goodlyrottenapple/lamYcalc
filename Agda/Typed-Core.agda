@@ -229,6 +229,32 @@ data ΛTerm : ∀ {τ} -> Λ τ -> Set where
 Λsubst-open-var2 {τ'' = τ''} x y u e x≠y lu rewrite Λsubst-open-var {τ'' = τ''} x y u e x≠y lu = refl
 
 
+Λsubst-fresh : ∀ {τ τ'} x (t : Λ τ') (u : Λ τ) -> (x∉FVt : x ∉ (ΛFV t)) -> (t Λ[ x ::= u ]) ≡ t
+Λsubst-fresh x (bv i) u x∉FVt = refl
+Λsubst-fresh x (fv y) u x∉FVt with x ≟ y
+Λsubst-fresh x (fv y) u x∉FVt | yes p = ⊥-elim (x∉FVt (here p))
+Λsubst-fresh x (fv y) u x∉FVt | no ¬p = refl
+Λsubst-fresh x (lam A s) u x∉FVt rewrite Λsubst-fresh x s u x∉FVt = refl
+Λsubst-fresh x (app t1 t2) u x∉FVt rewrite
+  Λsubst-fresh x t1 u (∉-cons-l (ΛFV t1) (ΛFV t2) x∉FVt) |
+  Λsubst-fresh x t2 u (∉-cons-r (ΛFV t1) (ΛFV t2) x∉FVt) = refl
+Λsubst-fresh x (Y t₁) u x∉FVt = refl
+
+
+Λsubst-intro : ∀ {τ τ'} x (t : Λ τ') (e : Λ τ) -> x ∉ ΛFV e -> ΛTerm t ->
+  (Λ[ 0 >> t ] e) ≡ (Λ[ 0 >> fv {τ'} x ] e) Λ[ x ::= t ]
+Λsubst-intro {τ} {τ'} x t e x∉ lt with Λsubst-open x t 0 (fv {τ'} x) e lt
+Λsubst-intro x t e x∉ lt | eq with x ≟ x
+Λsubst-intro {_} {τ'} x t e x∉ lt | eq | yes refl with τ' ≟T τ'
+Λsubst-intro x t e x∉ lt | eq | yes refl | yes refl  rewrite Λsubst-fresh x e t x∉ = sym eq
+Λsubst-intro x t e x∉ lt | eq | yes refl | no τ'≠τ' = ⊥-elim (τ'≠τ' refl)
+Λsubst-intro x t e x∉ lt | eq | no x≠x = ⊥-elim (x≠x refl)
+
+Λsubst-intro2 : ∀ {τ τ'} x (t : Λ τ') (e : Λ τ) -> x ∉ ΛFV e -> ΛTerm t ->
+  (Λ[ 0 >> fv {τ'} x ] e) Λ[ x ::= t ] ≡ (Λ[ 0 >> t ] e)
+Λsubst-intro2 {τ} {τ'} x t e x∉ lt rewrite Λsubst-intro {τ} {τ'} x t e x∉ lt = refl
+
+
 Λ^-^-swap : ∀ {τ τ' τ''} k n x y (m : Λ τ) -> ¬(k ≡ n) -> ¬(x ≡ y) -> Λ[ k >> fv {τ'} x ] (Λ[ n >> fv {τ''} y ] m) ≡ Λ[ n >> fv {τ''} y ] (Λ[ k >> fv {τ'} x ] m)
 Λ^-^-swap k n x y (bv i) k≠n x≠y with n ≟ i
 Λ^-^-swap {τ} {τ'} {τ''} k n x y (bv .n) k≠n x≠y | yes refl with τ ≟T τ''
