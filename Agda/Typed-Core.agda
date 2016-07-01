@@ -265,3 +265,17 @@ data ΛTerm : ∀ {τ} -> Λ τ -> Set where
 Λ^-^-swap {_} {τ'} {τ''} k n x y (app {τ₁} {τ₂} t1 t2) k≠n x≠y rewrite
   Λ^-^-swap {τ₁ ⟶ τ₂} {τ'} {τ''} k n x y t1 k≠n x≠y | Λ^-^-swap {τ₁} {τ'} {τ''} k n x y t2 k≠n x≠y = refl
 Λ^-^-swap k n x y (Y _) k≠n x≠y = refl
+
+ΛFV-^ : ∀ {k x y A B} (m : Λ A) -> x ∉ ΛFV m -> ¬(x ≡ y) -> x ∉ ΛFV (Λ[ k >> fv {B} y ] m)
+ΛFV-^ {k} (bv i) x∉FVm x≠y x∈ with k ≟ i
+ΛFV-^ {_} {x} {y} {A} {B} (bv k) x∉FVm x≠y x∈ | yes refl with A ≟T B
+ΛFV-^ {_} {x} {y} (bv k) x∉FVm x≠y x∈ | yes refl | yes refl = x≠y (fv-x≡y x y x∈)
+ΛFV-^ (bv k) x∉FVm x≠y x∈ | yes refl | no _ = x∉FVm x∈
+ΛFV-^ (bv i) x∉FVm x≠y x∈ | no k≠i = x∉FVm x∈
+ΛFV-^ (fv _) x∉FVm x≠y x∈ = x∉FVm x∈
+ΛFV-^ (lam A m) x∉FVm x≠y x∈ = ΛFV-^ m x∉FVm x≠y x∈
+ΛFV-^ {k} {x} {y} (app t1 t2) x∉FVm x≠y =
+  ∉-cons-intro (ΛFV (Λ[ k >> fv y ] t1)) (ΛFV (Λ[ k >> fv y ] t2))
+    (λ x∈t1 → ΛFV-^ t1 (∉-cons-l _ _ x∉FVm) x≠y x∈t1)
+    (λ x∈t2 → ΛFV-^ t2 (∉-cons-r (ΛFV t1) _ x∉FVm) x≠y x∈t2)
+ΛFV-^ (Y t₁) x∉FVm x≠y x∈ = x∉FVm x∈
