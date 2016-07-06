@@ -32,52 +32,13 @@ exchange-⊩ₗ {_} {Γ} {x} {y} {τ₁} {τ₂} {A} {B} {_} {m} x∷y∷Γ⊩�
   ⊆-aux (there (there ∈)) = there (there ∈)
 
 
-data Tree : Set where
-  * : Tree
-  U : Tree -> Tree
-  _&_ : Tree -> Tree -> Tree
-
-
-data _~T_ : ∀ {τ} -> Λ τ -> Tree -> Set where
-  l-bv : ∀ {A i} -> bv {A} i ~T *
-  l-fv : ∀ {A x} -> fv {A} x ~T *
-  l-Y : ∀ {A} -> Y A ~T *
-  un : ∀ {A B v} {e : Λ B} -> e ~T v -> (lam A e) ~T (U v)
-  bin : ∀ {A B v w} {s : Λ (A ⟶ B)} {t : Λ A} -> s ~T v -> t ~T w -> (app s t) ~T (v & w)
-
-
-^'-~T-inv : ∀ {A B x t k} {m : Λ A} -> m ~T t -> Λ[ k >> fv {B} x ] m ~T t
-^'-~T-inv {A} {B} {x} {_} {k} {bv i} l-bv with k ≟ i
-^'-~T-inv {A} {B} {x} {.*} {k} {bv .k} l-bv | yes refl with A ≟T B
-^'-~T-inv {A} {.A} {x} {.*} {k} {bv .k} l-bv | yes refl | yes refl = l-fv
-^'-~T-inv {A} {B} {x} {.*} {k} {bv .k} l-bv | yes refl | no _ = l-bv
-^'-~T-inv {A} {B} {x} {.*} {k} {bv i} l-bv | no _ = l-bv
-^'-~T-inv l-fv = l-fv
-^'-~T-inv l-Y = l-Y
-^'-~T-inv (un m~Tt) = un (^'-~T-inv m~Tt)
-^'-~T-inv (bin m~Tt m~Tt₁) = bin (^'-~T-inv m~Tt) (^'-~T-inv m~Tt₁)
-
-
-∃~T : ∀ {A} (m : Λ A) -> ∃(λ t -> m ~T t)
-∃~T (bv i) = * , l-bv
-∃~T (fv x) = * , l-fv
-∃~T (lam A m) = (U (proj₁ ih)) , (un (proj₂ ih))
-  where
-  ih = ∃~T m
-∃~T (app m m₁) = ((proj₁ ihₗ) & (proj₁ ihᵣ)) , bin (proj₂ ihₗ) (proj₂ ihᵣ)
-  where
-  ihₗ = ∃~T m
-  ihᵣ = ∃~T m₁
-∃~T (Y t) = * , l-Y
-
-
 strenghten-⊩-aux : ∀ {A B Γ x τ τᵢ} {m : Λ B} {t} -> m ~T t -> x ∉ ΛFV m -> ((x , τᵢ , A) ∷ Γ) ⊩ m ∶ τ -> Γ ⊩ m ∶ τ
 strenghten-⊩ₗ-aux : ∀ {A B Γ x τ τᵢ} {m : Λ B} {t} -> m ~T t -> x ∉ ΛFV m -> ((x , τᵢ , A) ∷ Γ) ⊩ₗ m ∶ τ -> Γ ⊩ₗ m ∶ τ
 strenghten-⊩-aux m~Tt x∉ (var (cons x∉₁ x₂ wf-Γ) (here refl) τ⊆τᵢ) = ⊥-elim (x∉ (here refl))
 strenghten-⊩-aux m~Tt x∉ (var (cons x∉₁ x₂ wf-Γ) (there τᵢ∈Γ) τ⊆τᵢ) = var wf-Γ τᵢ∈Γ τ⊆τᵢ
-strenghten-⊩-aux (bin u~Tt v~Tt) x∉ (app {s = s} x∷Γ⊩m∶τ x₁ x₂ x₃) = app (strenghten-⊩-aux u~Tt (∉-cons-l _ _ x∉) x∷Γ⊩m∶τ) (strenghten-⊩ₗ-aux v~Tt (∉-cons-r (ΛFV s) _ x∉) x₁) x₂ x₃
-strenghten-⊩-aux {x = x} (un m~Tt) x∉ (abs L {m} cf x₁) =
-  abs (x ∷ L) (λ x∉L → strenghten-⊩ₗ-aux (^'-~T-inv m~Tt) (ΛFV-^ m x∉ (λ x₂ → fv-x≠y _ _ x∉L (sym x₂))) (exchange-⊩ₗ (cf (∉-∷-elim _ x∉L)))) x₁
+strenghten-⊩-aux (bin u~Tt v~Tt) x∉ (app {s = s} x∷Γ⊩m∶τ x₁ x₂) = app (strenghten-⊩-aux u~Tt (∉-cons-l _ _ x∉) x∷Γ⊩m∶τ) (strenghten-⊩ₗ-aux v~Tt (∉-cons-r (ΛFV s) _ x∉) x₁) x₂
+strenghten-⊩-aux {x = x} (un m~Tt) x∉ (abs L {m} cf) =
+  abs (x ∷ L) (λ x∉L → strenghten-⊩ₗ-aux (^'-~T-inv m~Tt) (ΛFV-^ m x∉ (λ x₂ → fv-x≠y _ _ x∉L (sym x₂))) (exchange-⊩ₗ (cf (∉-∷-elim _ x∉L))))
 strenghten-⊩-aux l-Y x∉ (Y (cons x∉₁ x₁ wf-Γ) x₂ x₃) = Y wf-Γ x₂ x₃
 strenghten-⊩-aux m~Tt x∉ (~>∩ x∷Γ⊩m∶τ x∷Γ⊩m∶τ₁ x₁) = ~>∩ (strenghten-⊩-aux m~Tt x∉ x∷Γ⊩m∶τ) (strenghten-⊩-aux m~Tt x∉ x∷Γ⊩m∶τ₁) x₁
 
@@ -129,7 +90,7 @@ aux {A} {B} {Γ} {k = k} (fv x₁) l-fv y∉Γ x∉FVm y∉FVm x≠y x∷Γ⊩m^
   wf-Γ : Wf-ICtxt Γ
   wf-Γ = cons' (⊩-wf-Γ x∷Γ⊩m^'x∶τ')
 
-aux {A} {_} {Γ} {τ} {τ' ~> τ''} {x} {y} {k} (lam {B} A' m) (un m~Tt) y∉Γ x∉FVm y∉FVm x≠y (abs L cf x₁) = abs (y ∷ x ∷ L) body x₁
+aux {A} {_} {Γ} {τ} {τ' ~> τ''} {x} {y} {k} (lam {B} A' m) (un m~Tt) y∉Γ x∉FVm y∉FVm x≠y (abs L cf) = abs (y ∷ x ∷ L) body
   where
   cf' : ∀ {x'} -> x' ∉ (x ∷ L) -> ((x , τ , A) ∷ (x' , τ' , A') ∷ Γ) ⊩ₗ Λ[ suc k >> fv {A} x ](Λ[ 0 >> fv {A'} x' ] m) ∶ τ''
   cf' {x'} x'∉L rewrite Λ^-^-swap {B} {A} {A'} (suc k) 0 x x' m (λ ()) (λ x₂ → fv-x≠y _ _ x'∉L (sym x₂)) = exchange-⊩ₗ (cf (∉-∷-elim _ x'∉L))
@@ -149,8 +110,8 @@ aux {A} {_} {Γ} {τ} {τ' ~> τ''} {x} {y} {k} (lam {B} A' m) (un m~Tt) y∉Γ 
 
 aux (lam A m) m~Tt y∉Γ x∉FVm y∉FVm x≠y (~>∩ x∷Γ⊩m^'x∶τ' x∷Γ⊩m^'x∶τ'' x₁) =
   ~>∩ (aux (lam A m) m~Tt y∉Γ x∉FVm y∉FVm x≠y x∷Γ⊩m^'x∶τ') (aux (lam A m) m~Tt y∉Γ x∉FVm y∉FVm x≠y x∷Γ⊩m^'x∶τ'') x₁
-aux (app m m₁) (bin m~Tt m₁~Tt) y∉Γ x∉FVm y∉FVm x≠y (app x∷Γ⊩m^'x∶τ' x₁ x₂ x₃) =
-  app (aux m m~Tt y∉Γ (∉-cons-l _ _ x∉FVm) (∉-cons-l _ _ y∉FVm) x≠y x∷Γ⊩m^'x∶τ') (auxₗ m₁ m₁~Tt y∉Γ (∉-cons-r (ΛFV m) _ x∉FVm) (∉-cons-r (ΛFV m) _ y∉FVm) x≠y x₁) x₂ x₃
+aux (app m m₁) (bin m~Tt m₁~Tt) y∉Γ x∉FVm y∉FVm x≠y (app x∷Γ⊩m^'x∶τ' x₁ x₂) =
+  app (aux m m~Tt y∉Γ (∉-cons-l _ _ x∉FVm) (∉-cons-l _ _ y∉FVm) x≠y x∷Γ⊩m^'x∶τ') (auxₗ m₁ m₁~Tt y∉Γ (∉-cons-r (ΛFV m) _ x∉FVm) (∉-cons-r (ΛFV m) _ y∉FVm) x≠y x₁) x₂
 aux (app m m₁) m~Tt y∉Γ x∉FVm y∉FVm x≠y (~>∩ x∷Γ⊩m^'x∶τ' x∷Γ⊩m^'x∶τ'' x₁) =
   ~>∩ (aux (app m m₁) m~Tt y∉Γ x∉FVm y∉FVm x≠y x∷Γ⊩m^'x∶τ') (aux (app m m₁) m~Tt y∉Γ x∉FVm y∉FVm x≠y x∷Γ⊩m^'x∶τ'') x₁
 aux (Y _) l-Y y∉Γ x∉FVm y∉FVm x≠y(Y (cons x∉ x₁ wf-Γ) x₂ x₃) = Y (cons y∉Γ x₁ wf-Γ) x₂ x₃
@@ -180,8 +141,9 @@ subst-⊩-2-aux l-fv var trm-n x∉Γ Γ⊩m[x::=n] | yes refl | no _ = ⊥-elim
   contr (~>∩ Γ⊩x∶τ Γ⊩x∶τ₁ x₁) = contr Γ⊩x∶τ₁
 
 subst-⊩-2-aux {A} {B} l-fv var trm-n x∉Γ Γ⊩m[x::=n] | no _ = ω , ((sub Γ⊩m[x::=n] (⊆-refl (⊩-∷' Γ⊩m[x::=n])) (⊆Γ-⊆ (cons x∉Γ nil (⊩-wf-Γ Γ⊩m[x::=n])) (λ {x₁} → there))) , (nil (⊩-wf-Γ Γ⊩m[x::=n])))
-subst-⊩-2-aux {A ⟶ B} {C} {Γ} {τ ~> τ'} {x} {_} {n} (un m~Tt) (lam L {m} cf) trm-n x∉Γ (abs L' cf' x₁) = τᵢ ,
-  (abs (x' ∷ x ∷ dom Γ ++ ΛFV m)
+subst-⊩-2-aux {A ⟶ B} {C} {Γ} {τ ~> τ'} {x} {_} {n} (un m~Tt) (lam L {m} cf) trm-n x∉Γ (abs L' cf') = τᵢ ,
+  (abs
+    (x' ∷ x ∷ dom Γ ++ ΛFV m)
     (λ x∉ -> auxₗ
       m
       m~Tt
@@ -189,8 +151,7 @@ subst-⊩-2-aux {A ⟶ B} {C} {Γ} {τ ~> τ'} {x} {_} {n} (un m~Tt) (lam L {m} 
       (∉-cons-l (ΛFV m) _ (∉-cons-r (dom Γ) _ (∉-cons-r L' _ (∉-cons-r L _ (∉-∷-elim _ x'∉)))))
       (∉-cons-r (dom Γ) _ (∉-∷-elim _ (∉-∷-elim _ x∉)))
       (λ x₂ → fv-x≠y _ _ x∉ (sym x₂))
-      x∷x'∷Γ⊩ₗm^x∶τ')
-    x₁) ,
+      x∷x'∷Γ⊩ₗm^x∶τ')) ,
   Γ⊩ₗn∶τᵢ
   where
   x' = ∃fresh-impl (x ∷ L ++ L' ++ dom Γ ++ ΛFV m ++ ΛFV n)
@@ -219,7 +180,7 @@ subst-⊩-2-aux {B = B} {Γ} {x = x} m~Tt (lam L {e = m} cf) trm-n x∉Γ (~>∩
       (sub {Γ' = ((x , τₗ ++ τᵣ , B) ∷ Γ)} x∷Γ⊩m∶τₗ (⊆-refl (⊩-∷' Γ⊩m[x::=n])) ⊆Γₗ)
       (sub x∷Γ⊩m∶τᵣ (⊆-refl (⊩-∷' Γ⊩m[x::=n]₁)) ⊆Γᵣ)
       (⊆ₗ-refl (++-∷'ₗ (proj₂ (arr' (⊩-∷' Γ⊩m[x::=n]))) (proj₂ (arr' (⊩-∷' Γ⊩m[x::=n]₁))))))
-    (arr (⊆ₗ-refl τ∷) x₁ (arr τ∷ (⊆ₗ-∷'ₗ-l x₁)) (arr τ∷ (⊆ₗ-∷'ₗ-r x₁)))
+    (arr (⊆ₗ-refl τ∷) x₁)
     (⊆Γ-⊆ wf-x∷Γ (λ x₃ → x₃)) ,
   ⊩ₗ-++ Γ⊩n∶τₗ Γ⊩n∶τᵣ
   where
@@ -246,8 +207,8 @@ subst-⊩-2-aux {B = B} {Γ} {x = x} m~Tt (lam L {e = m} cf) trm-n x∉Γ (~>∩
 
   τ∷ = proj₁ (arr' (⊩-∷' Γ⊩m[x::=n]₁))
 
-subst-⊩-2-aux {B = B} {Γ} {x = x} (bin m~Tt m₁~Tt) (app trm-m trm-m₁) trm-n x∉Γ (app Γ⊩e₁[x::=n] Γ⊩ₗe₂[x::=n] x₂ x₃) = τₗ ++ τᵣ ,
-  (app (sub x∷Γ⊩m∶τₗ (⊆-refl (⊩-∷' Γ⊩e₁[x::=n])) ⊆Γₗ) (subₗ x∷Γ⊩m∶τᵣ (⊆ₗ-refl (⊩ₗ-∷'ₗ Γ⊩ₗe₂[x::=n])) ⊆Γᵣ) x₂ x₃) ,
+subst-⊩-2-aux {B = B} {Γ} {x = x} (bin m~Tt m₁~Tt) (app trm-m trm-m₁) trm-n x∉Γ (app Γ⊩e₁[x::=n] Γ⊩ₗe₂[x::=n] x₂) = τₗ ++ τᵣ ,
+  (app (sub x∷Γ⊩m∶τₗ (⊆-refl (⊩-∷' Γ⊩e₁[x::=n])) ⊆Γₗ) (subₗ x∷Γ⊩m∶τᵣ (⊆ₗ-refl (⊩ₗ-∷'ₗ Γ⊩ₗe₂[x::=n])) ⊆Γᵣ) x₂) ,
   (⊩ₗ-++ Γ⊩n∶τₗ Γ⊩n∶τᵣ)
   where
   ihₗ = subst-⊩-2-aux m~Tt trm-m trm-n x∉Γ Γ⊩e₁[x::=n]
@@ -277,7 +238,7 @@ subst-⊩-2-aux {B = B} {Γ} {x = x} m~Tt (app trm-m trm-m₁) trm-n x∉Γ (~>�
       (sub {Γ' = ((x , τₗ ++ τᵣ , B) ∷ Γ)} x∷Γ⊩m∶τₗ (⊆-refl (⊩-∷' Γ⊩m[x::=n])) ⊆Γₗ)
       (sub x∷Γ⊩m∶τᵣ (⊆-refl (⊩-∷' Γ⊩m[x::=n]₁)) ⊆Γᵣ)
       (⊆ₗ-refl (++-∷'ₗ (proj₂ (arr' (⊩-∷' Γ⊩m[x::=n]))) (proj₂ (arr' (⊩-∷' Γ⊩m[x::=n]₁))))))
-    (arr (⊆ₗ-refl τ∷) x₁ (arr τ∷ (⊆ₗ-∷'ₗ-l x₁)) (arr τ∷ (⊆ₗ-∷'ₗ-r x₁)))
+    (arr (⊆ₗ-refl τ∷) x₁)
     (⊆Γ-⊆ wf-x∷Γ (λ x₃ → x₃)) ,
   ⊩ₗ-++ Γ⊩n∶τₗ Γ⊩n∶τᵣ
   where
