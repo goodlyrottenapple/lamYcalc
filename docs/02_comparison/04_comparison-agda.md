@@ -1,13 +1,3 @@
----
-header-includes:
-	- \usepackage{minted}
-	- \hypersetup{ colorlinks=true, linkcolor=blue, filecolor=magenta, urlcolor=cyan}
-	- \urlstyle{same}
-	- \let\OldTexttt\texttt
-	- \renewcommand{\texttt}[1]{\small\OldTexttt{#1}}
----
-
-
 #Isabelle vs. Agda
 
 The formalization of the terms and reduction rules of the $\lambda$-Y calculus presented here is a locally nameless presentation due to @aydemir08. 
@@ -434,6 +424,3 @@ subst-fresh, do the example for agda
 
 
  -->
-
-
-#References

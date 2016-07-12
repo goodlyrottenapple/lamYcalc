@@ -1,212 +1,11 @@
----
-header-includes:
-	- \usepackage{bussproofs}
-    - \usepackage{minted}
-    - \hypersetup{ colorlinks=true, linkcolor=blue, filecolor=magenta, urlcolor=cyan}
-    - \urlstyle{same}
-    - \let\OldTexttt\texttt
-    - \renewcommand{\texttt}[1]{\small\OldTexttt{#1}}
----
+#Introduction
 
-\newenvironment{bprooftree}
-  {\leavevmode\hbox\bgroup}
-  {\DisplayProof\egroup}
+Formal verification of software is a field of active research in computer science. One of the main approaches to verification is model checking, wherein a system specification is checked against certain correctness properties, by finding a model of the system, encoding the desired correctness property as a logical formula and then exhaustively checking whether the given formula is satisfiable in the model of the system. Big advances in model checking of 1\textsuperscript{st} order (imperative) programs have been made, with techniques like abstraction refinement and SAT/SMT-solver use, allowing scalability.   
+Higher order (functional) program verification, on the other hand, has been much less explored. Current approaches to formal verification of such programs usually involve the use of (automatic) theorem provers, which usually require a lot of user interaction and as a result have not managed to scale as well as model checking in the 1\textsuperscript{st} order setting. In recent years, advances in higher order model checking (HOMC) have been made by Ong / ? (find paper??). Whilst a lot of theory has been developed for HOMC, there has been little done in implementing/mechanizing these results in a fully formal setting of a theorem prover.   
+The aim of this project is to make a start of such a mechanization, by formalizing the $\lamy$ calculus with the intersection-type system described by ? and formally proving important properties of the system.   
+The first part of this work focuses on the mechanization aspect of the simply typed $\lamy$ calculus in a theorem prover, in a fashion similar to the $\poplm$ challenge, by exploring different formalizations of the calculus and the use of different theorem provers. The project focuses on the engineering choices and formalization overheads, which result from translating the informal systems into a fully-formal setting of a theorem prover. 
 
-#$\lambda$-Y calculus - Definitions
-
-**Syntax (nominal)**
-
-Types: 
-$$\sigma ::= a\ |\ \sigma \to \sigma \text{ where }a \in \mathcal{TV}$$
-
-Terms:
-$$M::= x\ |\ MM\ |\ \lambda x.M\ |\ Y_\sigma \text{ where }x \in Var$$
-
-
-**Well typed terms (nominal)**
-
-\begin{center}
-    \AxiomC{}
-    \LeftLabel{$(var)$}
-    \RightLabel{$(x : \sigma \in \Gamma)$}
-    \UnaryInfC{$\Gamma \vdash x : \sigma$}
-    \DisplayProof
-    \hskip 1.5em
-    \AxiomC{}
-    \LeftLabel{$(Y)$}
-    \UnaryInfC{$\Gamma \vdash Y_\sigma : (\sigma \to \sigma) \to \sigma$}
-    \DisplayProof
-    \vskip 1.5em
-    \AxiomC{$\Gamma \cup \{x:\sigma\} \vdash M : \tau$}
-    \LeftLabel{$(abs)$}
-    \RightLabel{$(x\ \sharp\ \Gamma/ x \not\in Subjects(\Gamma))$}
-    \UnaryInfC{$\Gamma \vdash \lambda x. M : \sigma \to \tau$}
-    \DisplayProof
-    \hskip 1.5em
-    \AxiomC{$\Gamma \vdash M : \sigma \to \tau$}
-    \AxiomC{$\Gamma \vdash N : \sigma$}
-    \LeftLabel{$(app)$}
-    \BinaryInfC{$\Gamma \vdash MN : \tau$}
-    \DisplayProof
-\end{center}
-
-**$\beta Y$-Reduction(nominal, typed)**
-
-\begin{center}
-    \AxiomC{$\Gamma \vdash M \Rightarrow M' : \sigma \to \tau$}
-    \AxiomC{$\Gamma \vdash N : \sigma$}
-    \LeftLabel{$(red_L)$}
-    \BinaryInfC{$\Gamma \vdash MN \Rightarrow M'N : \tau$}
-    \DisplayProof
-    \hskip 1.5em
-    \AxiomC{$\Gamma \vdash M : \sigma \to \tau$}
-    \AxiomC{$\Gamma \vdash N \Rightarrow N' : \sigma$}
-    \LeftLabel{$(red_R)$}
-    \BinaryInfC{$\Gamma \vdash MN \Rightarrow M'N : \tau$}
-    \DisplayProof
-    \vskip 1.5em
-    \AxiomC{$\Gamma \cup \{x:\sigma\} \vdash M \Rightarrow M' : \tau$}
-    \LeftLabel{$(abs)$}
-    \RightLabel{$(x\ \sharp\ \Gamma)$}
-    \UnaryInfC{$\Gamma \vdash \lambda x. M \Rightarrow \lambda x. M' : \sigma \to \tau$}
-    \DisplayProof
-    \hskip 1.5em
-    \AxiomC{$\Gamma \cup \{x:\sigma\} \vdash M : \tau$}
-    \AxiomC{$\Gamma \vdash N : \sigma$}
-    \LeftLabel{$(\beta)$}
-    \RightLabel{$(x\ \sharp\ \Gamma, N)$}
-    \BinaryInfC{$\Gamma \vdash (\lambda x. M)N \Rightarrow M[N/x] : \tau$}
-    \DisplayProof
-    \vskip 1.5em
-    \AxiomC{$\Gamma \vdash M : \sigma \to \sigma$}
-    \LeftLabel{$(Y)$}
-    \UnaryInfC{$\Gamma \vdash Y_\sigma M \Rightarrow M (Y_\sigma M) : \sigma$}
-    \DisplayProof
-\end{center}
-
-
-
-**$\beta Y$-Reduction(nominal, untyped)**
-
-\begin{center}
-    \AxiomC{$M \Rightarrow M'$}
-    \LeftLabel{$(red_L)$}
-    \UnaryInfC{$MN \Rightarrow M'N$}
-    \DisplayProof
-    \hskip 1.5em
-    \AxiomC{$N \Rightarrow N'$}
-    \LeftLabel{$(red_R)$}
-    \UnaryInfC{$MN \Rightarrow M'N$}
-    \DisplayProof
-    \vskip 1.5em
-    \AxiomC{$M \Rightarrow M'$}
-    \LeftLabel{$(abs)$}
-    \UnaryInfC{$\lambda x. M \Rightarrow \lambda x. M'$}
-    \DisplayProof
-    \hskip 1.5em
-    \AxiomC{}
-    \LeftLabel{$(\beta)$}
-    \RightLabel{$(x\ \sharp\ N)$}
-    \UnaryInfC{$(\lambda x. M)N \Rightarrow M[N/x]$}
-    \DisplayProof
-    \hskip 1.5em
-    \AxiomC{}
-    \LeftLabel{$(Y)$}
-    \UnaryInfC{$M \Rightarrow M (Y_\sigma M)$}
-    \DisplayProof
-\end{center}
-
-
--------------------
-
-
-
-
-
-**Syntax (locally nameless)**
-
-Types: 
-$$\sigma ::= a\ |\ \sigma \to \sigma \text{ where }a \in \mathcal{TV}$$
-
-Pre-terms:
-$$M::= x\ |\ n\ |\ MM\ |\ \lambda M\ |\ Y_\sigma \text{ where }x \in Var \text{ and } n \in Nat$$
-
-**Open (locally nameless)**
-
-$M^N \equiv \{0 \to N\}M\\$
-
-\begin{math}
-\{k \to U\}(x) = x\\
-\{k \to U\}(n) = \text{if }k = n \text{ then } U \text{ else } n\\
-\{k \to U\}(MN) = (\{k \to U\}M)(\{k \to U\}N)\\
-\{k \to U\}(\lambda M) = \lambda (\{k+1 \to U\}M)\\
-\{k \to U\}(Y \sigma) = Y \sigma
-\end{math}
-
-
-**Closed terms (locally nameless, cofinite)**
-
-\begin{center}
-    \AxiomC{}
-    \LeftLabel{$(fvar)$}
-    \UnaryInfC{term$(x)$}
-    \DisplayProof
-    \hskip 1.5em
-    \AxiomC{}
-    \LeftLabel{$(Y)$}
-    \UnaryInfC{term$(Y_\sigma)$}
-    \DisplayProof
-    \vskip 1.5em
-    \AxiomC{$\forall x \not\in L.\ \text{term}(M^x) $}
-    \LeftLabel{$(lam)$}
-    \RightLabel{(finite $L$)}
-    \UnaryInfC{term$(\lambda M)$}
-    \DisplayProof
-    \hskip 1.5em
-    \AxiomC{term$(M)$}
-    \AxiomC{term$(M)$}
-    \LeftLabel{$(app)$}
-    \BinaryInfC{term$(MN)$}
-    \DisplayProof
-\end{center}
-
-
-**$\beta Y$-Reduction(locally nameless, cofinite, untyped)**
-
-\begin{center}
-    \AxiomC{$M \Rightarrow M'$}
-    \AxiomC{term$(N)$}
-    \LeftLabel{$(red_L)$}
-    \BinaryInfC{$MN \Rightarrow M'N$}
-    \DisplayProof
-    \hskip 1.5em
-    \AxiomC{term$(M)$}
-    \AxiomC{$N \Rightarrow N'$}
-    \LeftLabel{$(red_R)$}
-    \BinaryInfC{$MN \Rightarrow M'N$}
-    \DisplayProof
-    \vskip 1.5em
-    \AxiomC{$\forall x \not\in L.\ M^x \Rightarrow M'^x$}
-    \LeftLabel{$(abs)$}
-    \RightLabel{(finite $L$)}
-    \UnaryInfC{$\lambda M \Rightarrow \lambda M'$}
-    \DisplayProof
-    \hskip 1.5em
-    \AxiomC{term$(\lambda M)$}
-    \AxiomC{term$(N)$}
-    \LeftLabel{$(\beta)$}
-    \BinaryInfC{$(\lambda M)N \Rightarrow M^N$}
-    \DisplayProof
-    \hskip 1.5em
-    \AxiomC{}
-    \LeftLabel{$(Y)$}
-    \UnaryInfC{$M \Rightarrow M (Y_\sigma M)$}
-    \DisplayProof
-\end{center}
-
-\newpage
-
-#Bindings
+##Binders
 
 When describing the (untyped) $\lambda$-calculus on paper, the terms of the $\lambda$-calculus are usually inductively defined in the following way:
 
@@ -229,11 +28,11 @@ Because of this, the usual informal representation of the $\lambda$-calculus is 
 To mitigate the overheads of a fully formal definition of the $\lambda$-calculus, we want to have an encoding of the $\lambda$-terms, which includes the notion of $\alpha$-equivalence whilst being inductively defined, giving us the inductive/recursive principles for $alpha$-equivalent terms directly. This can be achieved in several different ways. In general, there are two main approaches taken in a rigorous formalization of the terms of the lambda calculus, namely the concrete approaches and the higher-order approaches, both described in some detail below.
 
 
-##Concrete approaches
+###Concrete approaches
 
 The concrete or first-order approaches usually encode variables using names (like strings or natural numbers). Encoding of terms and capture-avoiding substitution must be encoded explicitly. A survey by @aydemir08 details three main groups of concrete approaches, found in formalizations of the $\lambda$-calculus in the literature:
 
-###Named
+####Named
 
 This approach generally defines terms in much the same way as the informal inductive definition given above. Using a functional language, such as Haskell or ML, such a definition might look like this:
 
@@ -258,7 +57,7 @@ nominal_datatype trm =
 
 Most importantly, this definition allows one to define functions over $\alpha$-equivalent terms using structural induction. The nominal package also provides freshness lemmas and a strengthened induction principle with name freshness for terms involving binders.
 
-###Nameless/de Bruijn
+####Nameless/de Bruijn
 
 Using a named representation of the lambda calculus in a fully formal setting can be inconvenient when dealing with bound variables. For example, substitution, as described in the introduction, with its side-condition of freshness of $y$ in $x$ and $t$ is not structurally recursive on "raw" terms, but rather requires well-founded recursion over $\alpha$-equivalence classes of terms. To avoid this problem in the definition of substitution, the terms of the lambda calculus can be encoded using de Bruijn indices:
 
@@ -334,7 +133,7 @@ $$\text{For all indices }i, j\text{ with }i \leq j\text{, }M[N/i][L/j] = M[L/j +
 
 Clearly, the first version of this lemma is much more intuitive.
 
-###Locally Nameless
+####Locally Nameless
 
 The locally nameless approach to binders is a mix of the two previous approaches. Whilst a named representation uses variables for both free and bound variables and the nameless encoding uses de Bruijn indices in both cases as well, a locally nameless encoding distinguishes between the two types of variables.   
 Free variables are represented by names, much like in the named version, and bound variables are encoded using de Bruijn indices. By using de Bruijn indices for bound variables, we again obtain an inductive definition of terms which are already $alpha$-equivalent.
@@ -353,7 +152,7 @@ Note however, that this definition doesn't quite fit the notion of $\lambda$-ter
 
 The advantage of using a locally nameless definition of $\lambda$-terms is a better readability of such terms, compared to equivalent de Bruijn terms. Another advantage is the fact that definitions of functions and reasoning about properties of these terms is much closer to the informal setting.
 
-##Higher-Order approaches
+###Higher-Order approaches
 
 Unlike concrete approaches to formalizing the lambda calculus, where the notion of binding and substitution is defined explicitly in the host language, higher-order formalizations use the function space of the implementation language, which handles binding. HOAS, or higher-order abstract syntax [@pfenning88, @harper93], is a framework for defining logics based on the simply typed lambda calculus. A form of HOAS, introduced by @harper93, called the Logical Framework (LF) has been implemented as Twelf by @pfenning99, which has been previously used to encode the $\lambda$-calculus.   
 Using HOAS for encoding the $\lambda$-calculus comes down to encoding binders using the meta-language binders. This way, the definitions of capture avoiding substitution or notion of $\alpha$-equivalence are offloaded onto the meta-language. As an example, take the following definition of terms of the $\lambda$-calculus in Haskell:
@@ -367,6 +166,3 @@ data Term where
 
 This definition avoids the need for explicitly defining substitution, because it encodes a lambda term as a Haskell function `(Term -> Term)`, relying on Haskell's internal substitution and notion of $\alpha$-equivalence. As with the de Bruijn and locally nameless representations, this encoding gives us inductively defined terms with a built in notion of $\alpha$-equivalence.      
 However, using HOAS only works if the notion of $\alpha$-equivalence and substitution of the meta-language coincide with these notions in the object-language.
-
-
-#References

@@ -4,3 +4,8 @@
 *.out
 *.aux
 *.log
+*.toc
+
+_minted*
+
+ROOT

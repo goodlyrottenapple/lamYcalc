@@ -1,20 +1,3 @@
----
-header-includes:
-- \usepackage{bussproofs}
-- \usepackage{amsthm}
-- \usepackage{minted}
-- \hypersetup{ colorlinks=true, linkcolor=blue, filecolor=magenta, urlcolor=cyan}
-- \urlstyle{same}
-- \let\OldTexttt\texttt
-- \renewcommand{\texttt}[1]{\small\OldTexttt{#1}}
-- \newcommand{\concat}{\ensuremath{+\!\!\!\!+\,}}
-- \newcommand{\wf}{\textsf{Wf-ICtxt}\ }
-- \newcommand{\tocap}{\leadsto\kern-.5ex\cap}
-- \newcommand{\conR}{\concat_{\kern-1ex R}}
-- \newcommand{\conL}{\concat_{\kern-1ex L}}
-
----
-
 #Intersection types
 
 In this section, we will work with both the simple types introduced earlier (definition given again below), as well as intersection types, defined in the following way:
@@ -432,7 +415,7 @@ ii)   $\Gamma \Vdash m : \tau_i \implies m \Rightarrow_\beta m' \implies \Gamma 
 iii)  $\Gamma \Vdash_s m' : \tau \implies m \Rightarrow_\beta m' \implies \Gamma \Vdash_s m : \tau$
 iv)   $\Gamma \Vdash m' : \tau_i \implies m \Rightarrow_\beta m' \implies \Gamma \Vdash m : \tau_i$
 
-_Proof:_ By induction on the reduction $\Rightarrow_\beta$. The proofs in both directions follow more or less straightforwardly for all the rules except for $(Y)$ and $(beta)$. The $(Y)$ rule here is not the typing rule, but rather the reduction rule $Y_A m \Rightarrow_\beta m(Y_A m)$.
+_Proof:_ By induction on $\Rightarrow_\beta$. The proofs in both directions follow by straightforward induction for all the rules except for $(Y)$ and $(beta)$. Note that the $(Y)$ rule here is not the typing rule, but rather the reduction rule $Y_A m \Rightarrow_\beta m(Y_A m)$.
 
 i)
     $(Y)$: By assumption, we have $Y_A m \Rightarrow_\beta m(Y_A m)$ and $\Gamma \Vdash_s Y_A m : \tau$.
@@ -473,10 +456,3 @@ i)
         Where $A \equiv B \to C$.
 
         By IH, we get $\Gamma \Vdash_s m (Y_{B \to C} m) : \tau_i \leadsto \tau_j$ and $\Gamma \Vdash_s m (Y_{B \to C} m) : \tau_i \leadsto \tau_k$, thus from $(\tocap)$ it follows that $\Gamma \Vdash_s m (Y_{B \to C} m) : \tau_i \leadsto \tau_{jk}$
-    
-    
-
-<!--
-\newpage
-#References
--->

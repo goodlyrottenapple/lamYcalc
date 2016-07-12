@@ -1,0 +1,2030 @@
+\documentclass[a4paper, 12pt, twoside]{style/ociamthesis}
+% - Customization --------------------------------------------------------------
+% - These settings are changed in metadata.yaml
+% - You should not touch anything here
+
+\title{A formalization of the \(\lamy\) calculus}            % the title of the thesis
+
+\author{Samuel Balco}          % your name
+
+\college{GTC}        % your college
+
+\supervisor{Faris Abou-Saleh, Luke Ong and Steven Ramsay}  % your supervisor
+
+\degree{MSc in Computer Science}          % the degree
+\degreedate{Trinity 2016}  % the degree date
+
+\logofile{style/logobar}
+
+%input macros (i.e. write your own macros file called mymacros.tex
+%and uncomment the next line)
+% \include{}
+
+% -----------------------------------------------------------------------------
+% -- PACKAGES -----------------------------------------------------------------
+% -----------------------------------------------------------------------------
+\usepackage{framed}
+\usepackage{epstopdf}
+\usepackage[usenames,dvipsnames]{xcolor}
+% Set figure legends and captions to be smaller sized sans serif font
+\usepackage[font={footnotesize,sf}]{caption}
+\usepackage{float}
+
+\usepackage[titletoc]{appendix}
+\usepackage{pdfpages} % incluce pdf files
+\usepackage{wallpaper}
+
+
+% - Font Stuff starts   ---------------------------------------------------------
+% \usepackage{xltxtra}
+
+% % \usepackage{lmodern}
+% 
+% % \usepackage{amssymb,amsmath}
+% \usepackage{ifxetex,ifluatex}
+% \usepackage{fixltx2e} % provides \textsubscript
+
+% % use upquote if available, for straight quotes in verbatim environments
+\IfFileExists{upquote.sty}{\usepackage{upquote}}{}
+% % use microtype if available
+\IfFileExists{microtype.sty}{%
+\usepackage{microtype}
+\UseMicrotypeSet[protrusion]{basicmath} % disable protrusion for tt fonts
+}{}
+\usepackage{lmodern}
+\usepackage{amssymb,amsmath}
+\usepackage{ifxetex,ifluatex}
+\usepackage{fixltx2e} % provides \textsubscript
+\ifnum 0\ifxetex 1\fi\ifluatex 1\fi=0 % if pdftex
+  \usepackage[T1]{fontenc}
+  \usepackage[utf8]{inputenc}
+\else % if luatex or xelatex
+  \ifxetex
+    \usepackage{mathspec}
+  \else
+    \usepackage{fontspec}
+  \fi
+  \defaultfontfeatures{Ligatures=TeX,Scale=MatchLowercase}
+    \setmainfont[]{Fira Sans Light}
+    \setsansfont[]{Fira Sans}
+    \setmonofont[Mapping=tex-ansi,Scale=0.8]{FreeMono}
+    \setmathfont(Digits,Latin,Greek)[]{Fira Sans Light}
+
+% - Geometry  ------------------------------------------------------------------
+\usepackage[margin=2cm]{geometry}
+
+% - Layout ---------------------------------------------------------------------
+\usepackage{fancyhdr}
+\usepackage{sectsty}
+\usepackage{titlesec}
+\titleformat{\chapter}{\bfseries\huge}{\thechapter.}{20pt}{\huge}
+
+% - Links ----------------------------------------------------------------------
+\PassOptionsToPackage{usenames,dvipsnames}{xcolor} % color is loaded by hyperref
+\ifxetex
+\usepackage[pdfusetitle,setpagesize=false, % page size defined by xetex
+  unicode=false, % unicode breaks when used with xetex
+xetex]{hyperref}
+\else
+  \usepackage[unicode=true]{hyperref}
+\fi
+% Make sure url breaks
+\usepackage{url}
+\makeatletter
+\g@addto@macro{\UrlBreaks}{\UrlOrds}
+\makeatother
+\hypersetup{breaklinks=true,
+            bookmarks=true,
+            pdfauthor={Samuel Balco},
+            pdftitle={A formalization of the \textbackslash{}lamy calculus},
+            colorlinks=true,
+            citecolor=blue,
+            urlcolor=cyan,
+            linkcolor=cyan,
+            pdfborder={0 0 0}}
+\urlstyle{same}  % don't use monospace font for urls
+\usepackage[all]{hypcap}% improve link placement in floats
+
+% better names when cross-referencing with cleveref
+\usepackage[nameinlink]{cleveref}
+\makeatother
+\crefname{listing}{Figure}{Figures}
+\Crefname{listing}{Figure}{Figures}
+\crefname{chapter}{Chapter}{Chapters}
+\Crefname{chapter}{Chapter}{Chapters}
+\crefname{section}{Section}{Sections}
+\Crefname{section}{Section}{Sections}
+\crefname{subsection}{Section}{Sections}
+\Crefname{subsection}{Section}{Sections}
+\crefname{subsubsection}{Section}{Sections}
+\Crefname{subsubsection}{Section}{Sections}
+\crefname{figure}{Figure}{Figures} % changes default behavior to Figure. 1
+\Crefname{figure}{Figure}{Figures} % changes default behavior to Figure. 1
+\crefname{table}{Table}{Tables}
+\Crefname{table}{Table}{Tables}
+\crefname{subfigure}{Figure}{Figures}
+\Crefname{subfigure}{Figure}{Figures}
+\crefname{subsubfigure}{Figure}{Figures}
+\Crefname{subsubfigure}{Figure}{Figures}
+\crefname{appendix}{Appendix}{Appendices}
+\Crefname{appendix}{Appendix}{Appendices}
+
+% - Language -------------------------------------------------------------------
+
+% - Bibliography  --------------------------------------------------------------
+
+% - Listings -------------------------------------------------------------------
+
+% - Graphics  ------------------------------------------------------------------
+\usepackage{graphicx,grffile}
+\makeatletter
+\def\maxwidth{\ifdim\Gin@nat@width>\linewidth\linewidth\else\Gin@nat@width\fi}
+\def\maxheight{\ifdim\Gin@nat@height>\textheight\textheight\else\Gin@nat@height\fi}
+\makeatother
+% Scale images if necessary, so that they will not overflow the page
+% margins by default, and it is still possible to overwrite the defaults
+% using explicit options in \includegraphics[width, height, ...]{}
+\setkeys{Gin}{width=\maxwidth,height=\maxheight,keepaspectratio}
+
+% - Other Options --------------------------------------------------------------
+
+
+
+
+% Make links footnotes instead of hotlinks:
+\renewcommand{\href}[2]{#2\footnote{\url{#1}}}
+
+
+\IfFileExists{parskip.sty}{%
+\usepackage{parskip}
+}{% else
+\setlength{\parindent}{0pt}
+\setlength{\parskip}{6pt plus 2pt minus 1pt}
+}
+
+\setlength{\emergencystretch}{3em}  % prevent overfull lines
+\providecommand{\tightlist}{%
+  \setlength{\itemsep}{0pt}\setlength{\parskip}{0pt}}
+
+\setcounter{secnumdepth}{5}
+
+% Redefines (sub)paragraphs to behave more like sections
+\ifx\paragraph\undefined\else
+\let\oldparagraph\paragraph
+\renewcommand{\paragraph}[1]{\oldparagraph{#1}\mbox{}}
+\fi
+\ifx\subparagraph\undefined\else
+\let\oldsubparagraph\subparagraph
+\renewcommand{\subparagraph}[1]{\oldsubparagraph{#1}\mbox{}}
+\fi
+
+
+% - Add to Header --------------------------------------------------------------
+\usepackage{bussproofs}
+\usepackage{amsthm}
+\usepackage{minted}
+\let\OldTexttt\texttt
+\renewcommand{\texttt}[1]{\small\OldTexttt{#1}}
+\newcommand{\lamy}{\lambda\text{-}Y}
+\newcommand{\concat}{\ensuremath{+\!\!\!\!+\,}}
+\newcommand{\wf}{\textsf{Wf-ICtxt}\ }
+\newcommand{\tocap}{\leadsto\kern-.5ex\cap}
+\newcommand{\conR}{\concat_{\kern-1ex R}}
+\newcommand{\conL}{\concat_{\kern-1ex L}}
+\newcommand{\poplm}{\textsc{PoplMark}}
+\renewcommand{\max}{\textsf{max}\ }
+
+\pagenumbering{roman}
+
+\begin{document}
+
+% - Title ----------------------------------------------------------------------
+\maketitle
+
+% - Dedication -----------------------------------------------------------------
+\begin{dedication}
+This is a dedication
+\end{dedication}
+
+% - Acknowledgements -----------------------------------------------------------
+\begin{acknowledgements}
+Say thanks to whoever listened to your rants for 2 months
+\end{acknowledgements}
+
+
+% - Originality ----------------------------------------------------------------
+\begin{originality}
+This is the statement of originality
+\end{originality}
+
+
+% - Abstract -------------------------------------------------------------------
+\begin{abstract}
+This is the abstract. For this and the other front-matter options you
+can either include the text directly on the metadata file or you can use
+in order to include your text.
+\end{abstract}
+
+
+
+% - Table of Contents  ---------------------------------------------------------
+% \begin{romanpages}
+ \hypersetup{linkcolor=black} 
+\setcounter{page}{1}
+\setcounter{tocdepth}{2}
+\tableofcontents 
+% \end{romanpages}
+% - List of Tables -------------------------------------------------------------
+% \end{romanpages}
+\newpage
+
+% - BODY -----------------------------------------------------------------------
+\pagenumbering{arabic}
+\chapter{Introduction}\label{introduction}
+
+Formal verification of software is a field of active research in
+computer science. One of the main approaches to verification is model
+checking, wherein a system specification is checked against certain
+correctness properties, by finding a model of the system, encoding the
+desired correctness property as a logical formula and then exhaustively
+checking whether the given formula is satisfiable in the model of the
+system. Big advances in model checking of 1\textsuperscript{st} order
+(imperative) programs have been made, with techniques like abstraction
+refinement and SAT/SMT-solver use, allowing scalability.\\
+Higher order (functional) program verification, on the other hand, has
+been much less explored. Current approaches to formal verification of
+such programs usually involve the use of (automatic) theorem provers,
+which usually require a lot of user interaction and as a result have not
+managed to scale as well as model checking in the 1st order setting. In
+recent years, advances in higher order model checking (HOMC) have been
+made by Ong / ? (find paper??). Whilst a lot of theory has been
+developed for HOMC, there has been little done in
+implementing/mechanizing these results in a fully formal setting of a
+theorem prover.\\
+The aim of this project is to make a start of such a mechanization, by
+formalizing the \(\lamy\) calculus with the intersection-type system
+described by ? and formally proving important properties of the
+system.\\
+The first part of this work focuses on the mechanization aspect of the
+simply typed \(\lamy\) calculus in a theorem prover, in a fashion
+similar to the \(\poplm\) challenge, by exploring different
+formalizations of the calculus and the use of different theorem provers.
+The project focuses on the engineering choices and formalization
+overheads, which result from translating the informal systems into a
+fully-formal setting of a theorem prover.
+
+\section{Binders}\label{binders}
+
+When describing the (untyped) \(\lambda\)-calculus on paper, the terms
+of the \(\lambda\)-calculus are usually inductively defined in the
+following way:
+
+\[t::= x\ |\ tt\ |\ \lambda x.t \text{ where }x \in Var\]
+
+This definition of terms yields an induction/recursion principle, which
+can be used to define functions over the \(\lambda\)-terms by structural
+recursion and prove properties about the \(\lambda\)-terms using
+structural induction (recursion and induction being two sides of the
+same coin).\\
+However, whilst the definition above describes valid terms of the
+\(\lambda\)-calculus, there are implicit assumptions one makes about the
+terms, namely, the \(x\) in the \(\lambda x.t\) case appears bound in
+\(t\). This means that while \(x\) and \(y\) might be distinct terms of
+the \(\lambda\)-calculus (i.e. \(x \neq y\)), \(\lambda x.x\) and
+\(\lambda y.y\) represent the same term, as \(x\) and \(y\) are bound by
+the \(\lambda\). Without the notion of \(\alpha\)-equivalence of terms,
+one cannot prove any properties of terms involving bound variables, such
+as saying that \(\lambda x.x \equiv \lambda y.y\).
+
+In an informal setting, reasoning with \(\alpha\)-equivalence of terms
+is often very implicit, however in a formal setting of theorem provers,
+having an inductive definition of ``raw'' \(lambda\)-terms, which are
+not \(alpha\)-equivalent, yet reasoning about \(\alpha\)-equivalent
+\(\lambda\)-terms poses certain challenges.\\
+One of the main problems is the fact that the inductive/recursive
+definition does not easily lift to \(alpha\)-equivalent terms. Take a
+trivial example of a function on raw terms, which checks whether a
+variable appears bound in a given \(\lambda\)-term. Clearly, such
+function is well formed for ``raw'' terms, but does not work (or even
+make sense) for \(\alpha\)-equivalent terms.\\
+Conversely, there are informal definitions over \(\alpha\)-equivalent
+terms, which are not straight-forward to define over raw terms. Take the
+usual definition of substitution, defined over \(\alpha\)-equivalent
+terms, which actually relies on this fact in the following case:
+
+\[(\lambda y'. s')[t/x] \equiv \lambda y'.(s'[t/x]) \text{ assuming } y' \not\equiv x\text{ and }y' \not\in FV(t)\]
+
+Here in the \(\lambda\) case, it is assumed that a given lambda term
+\(\lambda y. s\) can always be swapped out for an alpha equivalent term
+\(\lambda y'. s'\), such that \(y'\) satisfies the side condition. The
+assumption that a bound variable can be swapped out for a ``fresh'' one
+to avoid name clashes is often referred to as the Barendregt Variable
+Convention.
+
+The direct approach of defining ``raw'' terms and an additional notion
+of \(\alpha\)-equivalence introduces a lot of overhead when defining
+functions, as one either has to use the recursive principles for ``raw''
+terms and then show that the function lifts to the \(\alpha\)-equivalent
+terms or define functions on \(alpha\)-equivalence classes and prove
+that it is well-founded, without being able to rely on the structurally
+inductive principles that one gets ``for free'' with the ``raw''
+terms.\\
+Because of this, the usual informal representation of the
+\(\lambda\)-calculus is rarely used in a fully formal setting.
+
+To mitigate the overheads of a fully formal definition of the
+\(\lambda\)-calculus, we want to have an encoding of the
+\(\lambda\)-terms, which includes the notion of \(\alpha\)-equivalence
+whilst being inductively defined, giving us the inductive/recursive
+principles for \(alpha\)-equivalent terms directly. This can be achieved
+in several different ways. In general, there are two main approaches
+taken in a rigorous formalization of the terms of the lambda calculus,
+namely the concrete approaches and the higher-order approaches, both
+described in some detail below.
+
+\subsection{Concrete approaches}\label{concrete-approaches}
+
+The concrete or first-order approaches usually encode variables using
+names (like strings or natural numbers). Encoding of terms and
+capture-avoiding substitution must be encoded explicitly. A survey by
+Aydemir et al. (\protect\hyperlink{ref-aydemir08}{2008}) details three
+main groups of concrete approaches, found in formalizations of the
+\(\lambda\)-calculus in the literature:
+
+\subsubsection{Named}\label{named}
+
+This approach generally defines terms in much the same way as the
+informal inductive definition given above. Using a functional language,
+such as Haskell or ML, such a definition might look like this:
+
+\begin{minted}[]{isabelle}
+datatype trm =
+  Var name
+| App trm trm
+| Lam name trm
+\end{minted}
+
+As was mentioned before, defining ``raw'' terms and the notion of
+\(\alpha\)-equivalence of ``raw'' terms separately carries a lot of
+overhead in a theorem prover and is therefore not favored.
+
+To obtain an inductive definition of \(\lambda\)-terms with a built in
+notion of \(\alpha\)-equivalence, one can instead use nominal sets
+(described in the section on nominal sets/Isabelle?). The nominal
+package in Isabelle provides tools to automatically define terms with
+binders, which generate inductive definitions of \(\alpha\)-equivalent
+terms. Using nominal sets in Isabelle results in a definition of terms
+which looks very similar to the informal presentation of the lambda
+calculus:
+
+\begin{minted}[]{isabelle}
+nominal_datatype trm =
+  Var name
+| App trm trm
+| Lam x::name l::trm  binds x in l
+\end{minted}
+
+Most importantly, this definition allows one to define functions over
+\(\alpha\)-equivalent terms using structural induction. The nominal
+package also provides freshness lemmas and a strengthened induction
+principle with name freshness for terms involving binders.
+
+\subsubsection{Nameless/de Bruijn}\label{namelessde-bruijn}
+
+Using a named representation of the lambda calculus in a fully formal
+setting can be inconvenient when dealing with bound variables. For
+example, substitution, as described in the introduction, with its
+side-condition of freshness of \(y\) in \(x\) and \(t\) is not
+structurally recursive on ``raw'' terms, but rather requires
+well-founded recursion over \(\alpha\)-equivalence classes of terms. To
+avoid this problem in the definition of substitution, the terms of the
+lambda calculus can be encoded using de Bruijn indices:
+
+\begin{minted}[]{isabelle}
+datatype trm =
+  Var nat
+| App trm trm
+| Lam trm
+\end{minted}
+
+This representation of terms uses indices instead of named variables.
+The indices are natural numbers, which encode an occurrence of a
+variable in a \(\lambda\)-term. For bound variables, the index indicates
+which \(\lambda\) it refers to, by encoding the number of
+\(\lambda\)-binders that are in the scope between the index and the
+\(\lambda\)-binder the variable corresponds to. For example, the term
+\(\lambda x.\lambda y. yx\) will be represented as
+\(\lambda\ \lambda\ 0\ 1\). Here, 0 stands for \(y\), as there are no
+binders in scope between itself and the \(\lambda\) it corresponds to,
+and \(1\) corresponds to \(x\), as there is one \(\lambda\)-binder in
+scope. To encode free variables, one simply choses an index greater than
+the number of \(\lambda\)'s currently in scope, for example,
+\(\lambda\ 4\).
+
+To see that this representation of \(\lambda\)-terms is isomorphic to
+the usual named definition, we can define two function \(f\) and \(g\),
+which translate the named representation to de Bruijn notation and vice
+versa. More precisely, since we are dealing with \(\alpha\)-equivalence
+classes, its is an isomorphism between these that we can formalize.
+
+To make things easier, we consider a representation of named terms,
+where we map named variables, \(x, y, z,...\) to indexed variables
+\(x_1,x_2,x_3,...\). Then, the mapping from named terms to de Bruijn
+term is given by \(f\), which we define in terms of an auxiliary
+function \(e\):
+
+\begin{align*} 
+e_k^m(x_n) &= \begin{cases}
+k-m(x_n)-1 & x_n \in \text{dom }m\\
+k+n & otherwise
+\end{cases}\\
+e_k^m(uv) &= e_k^m(u)\ e_k^m(v)\\
+e_k^m(\lambda x_n.u) &= \lambda\ e_{k+1}^{m \oplus (x_n,k)}(u)
+\end{align*}
+
+Then \(f(t) \equiv e_0^\emptyset(t)\)
+
+The function \(e\) takes two additional parameters, \(k\) and \(m\).
+\(k\) keeps track of the scope from the root of the term and \(m\) is a
+map from bound variables to the levels they were bound at. In the
+variable case, if \(x_n\) appears in \(m\), it is a bound variable, and
+it's index can be calculated by taking the difference between the
+current index and the index \(m(x_k)\), at which the variable was bound.
+If \(x_n\) is not in \(m\), then the variable is encoded by adding the
+current level \(k\) to \(n\).\\
+In the abstraction case, \(x_n\) is added to \(m\) with the current
+level \(k\), possibly overshadowing a previous binding of the same
+variable at a different level (like in
+\(\lambda x_1. (\lambda x_1. x_1)\)) and \(k\) is incremented, going
+into the body of the abstraction.
+
+The function \(g\), taking de Bruijn terms to named terms is a little
+more tricky. We need to replace indices encoding free variables (those
+that have a value greater than or equal to \(k\), where \(k\) is the
+number of binders in scope) with named variables, such that for every
+index \(n\), we substitute \(x_m\), where \(m = n-k\), without capturing
+these free variables.
+
+We need two auxiliary functions to define \(g\):
+
+\begin{align*} 
+h_k^b(n) &= \begin{cases}
+x_{n-k} & n \geq k\\
+x_{k+b-n-1} & otherwise
+\end{cases}\\
+h_k^b(uv) &= h_k^b(u)\ h_k^b(v)\\
+h_k^b(\lambda u) &= \lambda x_{k+b}.\ h_{k+1}^b(u)
+\end{align*}
+
+\begin{align*} 
+\Diamond_k(n) &= \begin{cases}
+n-k & n \geq k\\
+0 & otherwise
+\end{cases}\\
+\Diamond_k(uv) &= \max (\Diamond_k(u),\ \Diamond_k(v))\\
+\Diamond_k(\lambda u) &= \Diamond_{k+1}(u)
+\end{align*}
+
+The function \(g\) is then defined as
+\(g(t) \equiv h_0^{\Diamond_0(t)+1}(t)\). As mentioned above, the
+complicated definition has to do with avoiding free variable capture. A
+term like \(\lambda (\lambda\ 2)\) intuitively represents a named lambda
+term with two bound variables and a free variable \(x_0\) according to
+the definition above. If we started giving the bound variables names in
+a naive way, starting from \(x_0\), we would end up with a term
+\(\lambda x_0.(\lambda x_1.x_0)\), which is obviously not the term we
+had in mind, as \(x_0\) is no longer a free variable. To ensure we start
+naming the bound variables in such a way as to avoid this situation, we
+use \(\Diamond\) to compute the maximal value of any free variable in
+the given term, and then start naming bound variables with an index one
+higher than the value returned by \(\Diamond\).
+
+As one quickly notices, a term like \(\lambda x.x\) and \(\lambda y.y\)
+have a single unique representation as a \(de Bruijn term\)
+\(\lambda\ 0\). Indeed, since there are no named variables in a de
+Bruijn term, there is only one way to represent any \(\lambda\)-term,
+and the notion of \(\alpha\)-equivalence is no longer relevant. We thus
+get around our problem of having an inductive principle and
+\(\alpha\)-equivalent terms, by having a representation of
+\(\lambda\)-terms where every \(\alpha\)-equivalence class of
+\(\lambda\)-terms has a single representative term in the de Bruijn
+notation.
+
+In their comparison between named vs.~nameless/de Bruijn representations
+of lambda terms, Berghofer and Urban
+(\protect\hyperlink{ref-berghofer06}{2006}) give details about the
+definition of substitution, which no longer needs the variable
+convention and can therefore be defined using primitive structural
+recursion.\\
+The main disadvantage of using de Bruijn indices is the relative
+unreadability of both the terms and the formulation of properties about
+these terms. For example, the substitution lemma, which in the named
+setting would be stated as:
+
+\[\text{If }x \neq y\text{ and }x \not\in FV(L)\text{, then }
+M[N/x][L/y] \equiv M[L/y][N[L/y]/x].\]
+
+becomes the following statement in the nameless formalization:
+
+\[\text{For all indices }i, j\text{ with }i \leq j\text{, }M[N/i][L/j] = M[L/j + 1][N[L/j - i]/i]\]
+
+Clearly, the first version of this lemma is much more intuitive.
+
+\subsubsection{Locally Nameless}\label{locally-nameless}
+
+The locally nameless approach to binders is a mix of the two previous
+approaches. Whilst a named representation uses variables for both free
+and bound variables and the nameless encoding uses de Bruijn indices in
+both cases as well, a locally nameless encoding distinguishes between
+the two types of variables.\\
+Free variables are represented by names, much like in the named version,
+and bound variables are encoded using de Bruijn indices. By using de
+Bruijn indices for bound variables, we again obtain an inductive
+definition of terms which are already \(alpha\)-equivalent.
+
+While closed terms, like \(\lambda x.x\) and \(\lambda y.y\) are
+represented as de Bruijn terms, the term \(\lambda x.xz\) and
+\(\lambda x.xz\) are encoded as \(\lambda\ 0z\). The following
+definition captures the syntax of the locally nameless terms:
+
+\begin{minted}[]{isabelle}
+datatype ptrm =
+  Fvar name
+  BVar nat
+| App trm trm
+| Lam trm
+\end{minted}
+
+Note however, that this definition doesn't quite fit the notion of
+\(\lambda\)-terms, since a \texttt{pterm} like \texttt{(BVar 1)} does
+not represent a \(\lambda\)-term, since bound variables can only appear
+in the context of a lambda, such as in \texttt{(Lam (BVar 1))}.
+
+The advantage of using a locally nameless definition of
+\(\lambda\)-terms is a better readability of such terms, compared to
+equivalent de Bruijn terms. Another advantage is the fact that
+definitions of functions and reasoning about properties of these terms
+is much closer to the informal setting.
+
+\subsection{Higher-Order approaches}\label{higher-order-approaches}
+
+Unlike concrete approaches to formalizing the lambda calculus, where the
+notion of binding and substitution is defined explicitly in the host
+language, higher-order formalizations use the function space of the
+implementation language, which handles binding. HOAS, or higher-order
+abstract syntax (F. Pfenning and Elliott
+\protect\hyperlink{ref-pfenning88}{1988}, Harper, Honsell, and Plotkin
+(\protect\hyperlink{ref-harper93}{1993})), is a framework for defining
+logics based on the simply typed lambda calculus. A form of HOAS,
+introduced by Harper, Honsell, and Plotkin
+(\protect\hyperlink{ref-harper93}{1993}), called the Logical Framework
+(LF) has been implemented as Twelf by Frank Pfenning and Schürmann
+(\protect\hyperlink{ref-pfenning99}{1999}), which has been previously
+used to encode the \(\lambda\)-calculus.\\
+Using HOAS for encoding the \(\lambda\)-calculus comes down to encoding
+binders using the meta-language binders. This way, the definitions of
+capture avoiding substitution or notion of \(\alpha\)-equivalence are
+offloaded onto the meta-language. As an example, take the following
+definition of terms of the \(\lambda\)-calculus in Haskell:
+
+\begin{minted}[]{haskell}
+data Term where
+  Var :: Int -> Term
+  App :: Term -> Term -> Term
+  Lam :: (Term -> Term) -> Term
+\end{minted}
+
+This definition avoids the need for explicitly defining substitution,
+because it encodes a lambda term as a Haskell function
+\texttt{(Term -> Term)}, relying on Haskell's internal substitution and
+notion of \(\alpha\)-equivalence. As with the de Bruijn and locally
+nameless representations, this encoding gives us inductively defined
+terms with a built in notion of \(\alpha\)-equivalence.\\
+However, using HOAS only works if the notion of \(\alpha\)-equivalence
+and substitution of the meta-language coincide with these notions in the
+object-language.
+
+\chapter{Methodology}\label{methodology}
+
+\section{\texorpdfstring{\(\lambda\)-Y calculus -
+Definitions}{\textbackslash{}lambda-Y calculus - Definitions}}\label{lambda-y-calculus---definitions}
+
+\textbf{Syntax (nominal)}
+
+Types:
+\[\sigma ::= a\ |\ \sigma \to \sigma \text{ where }a \in \mathcal{TV}\]
+
+Terms:
+\[M::= x\ |\ MM\ |\ \lambda x.M\ |\ Y_\sigma \text{ where }x \in Var\]
+
+\textbf{Well typed terms (nominal)}
+
+\begin{center}
+    \AxiomC{}
+    \LeftLabel{$(var)$}
+    \RightLabel{$(x : \sigma \in \Gamma)$}
+    \UnaryInfC{$\Gamma \vdash x : \sigma$}
+    \DisplayProof
+    \hskip 1.5em
+    \AxiomC{}
+    \LeftLabel{$(Y)$}
+    \UnaryInfC{$\Gamma \vdash Y_\sigma : (\sigma \to \sigma) \to \sigma$}
+    \DisplayProof
+    \vskip 1.5em
+    \AxiomC{$\Gamma \cup \{x:\sigma\} \vdash M : \tau$}
+    \LeftLabel{$(abs)$}
+    \RightLabel{$(x\ \sharp\ \Gamma/ x \not\in Subjects(\Gamma))$}
+    \UnaryInfC{$\Gamma \vdash \lambda x. M : \sigma \to \tau$}
+    \DisplayProof
+    \hskip 1.5em
+    \AxiomC{$\Gamma \vdash M : \sigma \to \tau$}
+    \AxiomC{$\Gamma \vdash N : \sigma$}
+    \LeftLabel{$(app)$}
+    \BinaryInfC{$\Gamma \vdash MN : \tau$}
+    \DisplayProof
+\end{center}
+
+\textbf{\(\beta Y\)-Reduction(nominal, typed)}
+
+\begin{center}
+    \AxiomC{$\Gamma \vdash M \Rightarrow M' : \sigma \to \tau$}
+    \AxiomC{$\Gamma \vdash N : \sigma$}
+    \LeftLabel{$(red_L)$}
+    \BinaryInfC{$\Gamma \vdash MN \Rightarrow M'N : \tau$}
+    \DisplayProof
+    \hskip 1.5em
+    \AxiomC{$\Gamma \vdash M : \sigma \to \tau$}
+    \AxiomC{$\Gamma \vdash N \Rightarrow N' : \sigma$}
+    \LeftLabel{$(red_R)$}
+    \BinaryInfC{$\Gamma \vdash MN \Rightarrow M'N : \tau$}
+    \DisplayProof
+    \vskip 1.5em
+    \AxiomC{$\Gamma \cup \{x:\sigma\} \vdash M \Rightarrow M' : \tau$}
+    \LeftLabel{$(abs)$}
+    \RightLabel{$(x\ \sharp\ \Gamma)$}
+    \UnaryInfC{$\Gamma \vdash \lambda x. M \Rightarrow \lambda x. M' : \sigma \to \tau$}
+    \DisplayProof
+    \hskip 1.5em
+    \AxiomC{$\Gamma \cup \{x:\sigma\} \vdash M : \tau$}
+    \AxiomC{$\Gamma \vdash N : \sigma$}
+    \LeftLabel{$(\beta)$}
+    \RightLabel{$(x\ \sharp\ \Gamma, N)$}
+    \BinaryInfC{$\Gamma \vdash (\lambda x. M)N \Rightarrow M[N/x] : \tau$}
+    \DisplayProof
+    \vskip 1.5em
+    \AxiomC{$\Gamma \vdash M : \sigma \to \sigma$}
+    \LeftLabel{$(Y)$}
+    \UnaryInfC{$\Gamma \vdash Y_\sigma M \Rightarrow M (Y_\sigma M) : \sigma$}
+    \DisplayProof
+\end{center}
+
+\textbf{\(\beta Y\)-Reduction(nominal, untyped)}
+
+\begin{center}
+    \AxiomC{$M \Rightarrow M'$}
+    \LeftLabel{$(red_L)$}
+    \UnaryInfC{$MN \Rightarrow M'N$}
+    \DisplayProof
+    \hskip 1.5em
+    \AxiomC{$N \Rightarrow N'$}
+    \LeftLabel{$(red_R)$}
+    \UnaryInfC{$MN \Rightarrow M'N$}
+    \DisplayProof
+    \vskip 1.5em
+    \AxiomC{$M \Rightarrow M'$}
+    \LeftLabel{$(abs)$}
+    \UnaryInfC{$\lambda x. M \Rightarrow \lambda x. M'$}
+    \DisplayProof
+    \hskip 1.5em
+    \AxiomC{}
+    \LeftLabel{$(\beta)$}
+    \RightLabel{$(x\ \sharp\ N)$}
+    \UnaryInfC{$(\lambda x. M)N \Rightarrow M[N/x]$}
+    \DisplayProof
+    \hskip 1.5em
+    \AxiomC{}
+    \LeftLabel{$(Y)$}
+    \UnaryInfC{$M \Rightarrow M (Y_\sigma M)$}
+    \DisplayProof
+\end{center}
+
+\begin{center}\rule{0.5\linewidth}{\linethickness}\end{center}
+
+\textbf{Syntax (locally nameless)}
+
+Types:
+\[\sigma ::= a\ |\ \sigma \to \sigma \text{ where }a \in \mathcal{TV}\]
+
+Pre-terms:
+\[M::= x\ |\ n\ |\ MM\ |\ \lambda M\ |\ Y_\sigma \text{ where }x \in Var \text{ and } n \in Nat\]
+
+\textbf{Open (locally nameless)}
+
+\(M^N \equiv \{0 \to N\}M\\\)
+
+\begin{math}
+\{k \to U\}(x) = x\\
+\{k \to U\}(n) = \text{if }k = n \text{ then } U \text{ else } n\\
+\{k \to U\}(MN) = (\{k \to U\}M)(\{k \to U\}N)\\
+\{k \to U\}(\lambda M) = \lambda (\{k+1 \to U\}M)\\
+\{k \to U\}(Y \sigma) = Y \sigma
+\end{math}
+
+\textbf{Closed terms (locally nameless, cofinite)}
+
+\begin{center}
+    \AxiomC{}
+    \LeftLabel{$(fvar)$}
+    \UnaryInfC{term$(x)$}
+    \DisplayProof
+    \hskip 1.5em
+    \AxiomC{}
+    \LeftLabel{$(Y)$}
+    \UnaryInfC{term$(Y_\sigma)$}
+    \DisplayProof
+    \vskip 1.5em
+    \AxiomC{$\forall x \not\in L.\ \text{term}(M^x) $}
+    \LeftLabel{$(lam)$}
+    \RightLabel{(finite $L$)}
+    \UnaryInfC{term$(\lambda M)$}
+    \DisplayProof
+    \hskip 1.5em
+    \AxiomC{term$(M)$}
+    \AxiomC{term$(M)$}
+    \LeftLabel{$(app)$}
+    \BinaryInfC{term$(MN)$}
+    \DisplayProof
+\end{center}
+
+\textbf{\(\beta Y\)-Reduction(locally nameless, cofinite, untyped)}
+
+\begin{center}
+    \AxiomC{$M \Rightarrow M'$}
+    \AxiomC{term$(N)$}
+    \LeftLabel{$(red_L)$}
+    \BinaryInfC{$MN \Rightarrow M'N$}
+    \DisplayProof
+    \hskip 1.5em
+    \AxiomC{term$(M)$}
+    \AxiomC{$N \Rightarrow N'$}
+    \LeftLabel{$(red_R)$}
+    \BinaryInfC{$MN \Rightarrow M'N$}
+    \DisplayProof
+    \vskip 1.5em
+    \AxiomC{$\forall x \not\in L.\ M^x \Rightarrow M'^x$}
+    \LeftLabel{$(abs)$}
+    \RightLabel{(finite $L$)}
+    \UnaryInfC{$\lambda M \Rightarrow \lambda M'$}
+    \DisplayProof
+    \hskip 1.5em
+    \AxiomC{term$(\lambda M)$}
+    \AxiomC{term$(N)$}
+    \LeftLabel{$(\beta)$}
+    \BinaryInfC{$(\lambda M)N \Rightarrow M^N$}
+    \DisplayProof
+    \hskip 1.5em
+    \AxiomC{}
+    \LeftLabel{$(Y)$}
+    \UnaryInfC{$M \Rightarrow M (Y_\sigma M)$}
+    \DisplayProof
+\end{center}
+
+\chapter{Isabelle vs.~Isabelle}\label{isabelle-vs.isabelle}
+
+aaaa
+
+\chapter{Isabelle vs.~Agda}\label{isabelle-vs.agda}
+
+The formalization of the terms and reduction rules of the \(\lambda\)-Y
+calculus presented here is a locally nameless presentation due to
+Aydemir et al. (\protect\hyperlink{ref-aydemir08}{2008}). The basic
+definitions of \(\lambda\)-terms and \(\beta\)-reduction were borrowed
+from an implementation of the \(\lambda\)-calculus with the associated
+Church Rosser proof in Agda, by Mu
+(\protect\hyperlink{ref-shing-cheng}{2011}).
+
+The proofs of confluence/Church Rosser were formalized using the paper
+by R. Pollack (\protect\hyperlink{ref-pollack95}{1995}), which describes
+a coarser proof of Church Rosser than the one formalized by Mu
+(\protect\hyperlink{ref-shing-cheng}{2011}). This proof uses the notion
+of a maximal parallel reduction, introduced by Takahashi
+(\protect\hyperlink{ref-takahashi95}{1995}) to simplify the inductive
+proof of confluence.
+
+One of the most obvious differences between Agda and Isabelle is the
+treatment of functions and proofs in both languages. Whilst in Isabelle,
+there is always a clear syntactic distinction between programs and
+proofs, Agda's richer dependent-type system allows constructing proofs
+as programs. This distinction is especially apparent in inductive
+proofs, which have a completely distinct syntax in Isabelle. As proofs
+are not objects which can be directly manipulated in Isabelle, to modify
+the proof goal, user commands such as \texttt{apply rule} or
+\texttt{by auto} are used:
+
+\begin{minted}[]{isabelle}
+lemma subst_fresh: "x ∉ FV t ⟹ t[x ::= u] = t"
+apply (induct t)
+by auto
+\end{minted}
+
+In the proof above, the command \texttt{apply (induct t)} takes a proof
+object with the goal \texttt{x ∉ FV t ⟹ t[x ::= u] = t}, and applies the
+induction principle for \texttt{t}, generating 5 new proof obligations:
+
+\begin{minted}[]{idris}
+proof (prove)
+goal (5 subgoals):
+1. ⋀xa. x ∉ FV (FVar xa) ⟹ FVar xa [x ::= u] = FVar xa
+2. ⋀xa. x ∉ FV (BVar xa) ⟹ BVar xa [x ::= u] = BVar xa
+3. ⋀t1 t2.
+    (x ∉ FV t1 ⟹ t1 [x ::= u] = t1) ⟹
+    (x ∉ FV t2 ⟹ t2 [x ::= u] = t2) ⟹
+    x ∉ FV (App t1 t2) ⟹ App t1 t2 [x ::= u] = App t1 t2
+4. ⋀t. (x ∉ FV t ⟹ t [x ::= u] = t) ⟹ x ∉ FV (Lam t) ⟹ 
+    Lam t [x ::= u] = Lam t
+5. ⋀xa. x ∉ FV (Y xa) ⟹ Y xa [x ::= u] = Y xa
+\end{minted}
+
+These can then discharged by the call to \texttt{auto}, which is another
+command that invokes the automatic solver, which tries to prove all the
+goals in the given context.
+
+In comparison, in an Agda proof the proof objects are available to the
+user directly. Instead of using commands modifying the proof state, one
+begins with a definition of the lemma:
+
+\begin{minted}[]{agda}
+subst-fresh : ∀ x t u -> (x∉FVt : x ∉ (FV t)) -> (t [ x ::= u ]) ≡ t
+subst-fresh x t u x∉FVt = ?
+\end{minted}
+
+The \texttt{?} acts as a `hole' which the user needs to fill in, to
+construct the proof. Using the emacs/atom agda-mode, once can apply a
+case split to \texttt{t}, corresponding to the \texttt{apply (induct t)}
+call in Isabelle, generating the following definition:
+
+\begin{minted}[]{agda}
+subst-fresh : ∀ x t u -> (x∉FVt : x ∉ (FV t)) -> (t [ x ::= u ]) ≡ t
+subst-fresh x (bv i) u x∉FVt = {!   0!}
+subst-fresh x (fv x₁) u x∉FVt = {!   1!}
+subst-fresh x (lam t) u x∉FVt = {!   2!}
+subst-fresh x (app t t₁) u x∉FVt = {!   3!}
+subst-fresh x (Y t₁) u x∉FVt = {!   4!}
+\end{minted}
+
+When the above definition is compiled, Agda generates 5 goals needed to
+`fill' each hole:
+
+\begin{minted}[]{agda}
+?0  :  (bv i [ x ::= u ]) ≡ bv i
+?1  :  (fv x₁ [ x ::= u ]) ≡ fv x₁
+?2  :  (lam t [ x ::= u ]) ≡ lam t
+?3  :  (app t t₁ [ x ::= u ]) ≡ app t t₁
+?4  :  (Y t₁ [ x ::= u ]) ≡ Y t₁
+\end{minted}
+
+As one can see, there is a clear correspondence between the 5 generated
+goals in Isabelle and the cases of the Agda proof above.
+
+Due to this correspondence, reasoning in both systems is often largely
+similar. Whereas in Isabelle, one modifies the proof indirectly by
+issuing commands to modify proof goals, in Agda, one generates proofs
+directly by writing a program-as-proof, which satisfies the type
+constraints given in the definition.
+
+\section{Automation}\label{automation}
+
+As seen previously, Isabelle includes several automatic provers of
+varying complexity, including \texttt{simp}, \texttt{auto},
+\texttt{blast}, \texttt{metis} and others. These are tactics/programs
+which automatically apply rewrite-rules until the goal is discharged. If
+the tactic fails to discharge a goal within a set number of steps, it
+stops and lets the user direct the proof. The use of tactics in Isabelle
+is common to prove trivial goals, which usually follow from simple
+rewriting of definitions or case analysis of certain variables.\\
+For example, the proof goal
+
+\begin{minted}[]{idris}
+⋀xa. x ∉ FV (FVar xa) ⟹ FVar xa [x ::= u] = FVar xa
+\end{minted}
+
+will be proved by first unfolding the definition of substitution for
+\texttt{FVar}
+
+\begin{minted}[]{idris}
+(FVar xa)[x ::= u] = (if xa = x then u else FVar xa)
+\end{minted}
+
+and then deriving \texttt{x ≠ xa} from the assumption
+\texttt{x ∉ FV (FVar xa)}. Applying these steps explicitly, we get:
+
+\begin{minted}[]{isabelle}
+lemma subst_fresh: "x ∉ FV t ⟹ t[x ::= u] = t"
+apply (induct t)
+apply (subst subst.simps(1))
+apply (drule subst[OF FV.simps(1)])
+apply (drule subst[OF Set.insert_iff])
+apply (drule subst[OF Set.empty_iff])
+apply (drule subst[OF HOL.simp_thms(31)])
+...
+\end{minted}
+
+where the goal now has the following shape:
+
+\begin{minted}[]{idris}
+1. ⋀xa. x ≠ xa ⟹ (if xa = x then u else FVar xa) = FVar xa
+\end{minted}
+
+From this point, the simplifier rewrites \texttt{xa = x} to
+\texttt{False} and \texttt{(if False then u else FVar xa)} to
+\texttt{FVar xa} in the goal. The use of tactics and automated tools is
+heavily ingrained in Isabelle and it is actually impossible
+(i.e.~impossible for me) to not use \texttt{simp} at this point in the
+proof, partly because one gets so used to discharging such trivial goals
+automatically and partly because it becomes nearly impossible to do the
+last two steps explicitly without having a detailed knowledge of the
+available commands and tactics in Isabelle (i.e.~I don't).\\
+Doing these steps explicitly, quickly becomes cumbersome, as one needs
+to constantly look up the names of basic lemmas, such as
+\texttt{Set.empty\_iff}, which is a simple rewrite rule
+\texttt{(?c ∈ \{\}) = False}.
+
+Unlike Isabelle, Agda does not include nearly as much automation. The
+only proof search tool included with Agda is Agsy, which is similar,
+albeit often weaker than the \texttt{simp} tactic. It may therefore seem
+that Agda will be much more cumbersome to reason in than Isabelle. This,
+however, turns out not to be the case in this formalization, in part due
+to Agda's type system and the powerful pattern matching as well as
+direct access to the proof goals.
+
+\subsection{Proofs-as-programs}\label{proofs-as-programs}
+
+As was already mentioned, Agda treats proofs as programs, and therefore
+provides direct access to proof objects. In Isabelle, the proof goal is
+of the form:
+
+\begin{minted}[]{idris}
+lemma x: "assm-1 ⟹ ... ⟹ assm-n ⟹ concl"
+\end{minted}
+
+using the `apply-style' reasoning in Isabelle can become burdensome, if
+one needs to modify or reason with the assumptions, as was seen in the
+example above. In the example, the \texttt{drule} tactic, which is used
+to apply rules to the premises rather than the conclusion, was applied
+repeatedly. Other times, we might have to use structural rules for
+exchange or weakening, which are necessary purely for
+\texttt{organizational} purposes of the proof.\\
+In Agda, such rules are not necessary, since the example above looks
+like a functional definition:
+
+\begin{minted}[]{idris}
+x assm-1 ... assm-n = ?
+\end{minted}
+
+Here, \texttt{assm-1} to \texttt{assm-n} are simply arguments to the
+function x, which expects something of type \texttt{concl} in the place
+of \texttt{?}. This presentation allows one to use the given assumptions
+arbitrarily, perhaps passing them to another function/proof or
+discarding them if not needed.\\
+This way of reasoning is also supported in Isabelle to some extent via
+the use of the Isar proof language, where (the previous snippet of) the
+proof of \texttt{subst\_fresh} can be expressed in the following way:
+
+\begin{minted}[]{isabelle}
+lemma subst_fresh': 
+  assumes "x ∉ FV t"
+  shows "t[x ::= u] = t"
+using assms proof (induct t)
+case (FVar y)
+  from FVar.prems have "x ∉ {y}" unfolding FV.simps(1) .
+  then have "x ≠ y" unfolding Set.insert_iff Set.empty_iff HOL.simp_thms(31) .
+  then show ?case unfolding subst.simps(1) by simp
+next
+...
+qed
+\end{minted}
+
+This representation is more natural (and readable) to humans, as the
+assumptions have been separated and can be referenced and used in a
+clearer manner. For example, in the line
+
+\begin{minted}[]{isabelle}
+from FVar.prems have "x ∉ {y}"
+\end{minted}
+
+the premise \texttt{FVar.prems} is added to the context of the goal
+\texttt{x ∉ \{y\}}:
+
+\begin{minted}[]{idris}
+proof (prove)
+using this:
+  x ∉ FV (FVar y)
+
+goal (1 subgoal):
+ 1. x ∉ {y}
+\end{minted}
+
+The individual reasoning steps described in the previous section have
+also been separated out into `mini-lemmas' (the command \texttt{have}
+creates an new proof goal which has to be proved and then becomes
+available as an assumption in the current context) along the lines of
+the intuitive reasoning discussed initially. While this proof is more
+human readable, it is also more verbose and potentially harder to
+automate, as generating valid Isar style proofs is more difficult, due
+to `Isar-style' proofs being obviously more complex than `apply-style'
+proofs.
+
+Whilst using the Isar proof language gives us a finer control and better
+structuring of proofs, one still references proofs only indirectly.
+Looking at the same proof in Agda, we have the following definition for
+the case of free variables:
+
+\begin{minted}[]{agda}
+subst-fresh' x (fv y) u x∉FVt = {!   0!}
+\end{minted}
+
+\noindent\rule{8cm}{0.4pt}
+
+\begin{minted}[]{agda}
+?0  :  fv y [ x ::= u ] ≡ fv y
+\end{minted}
+
+The proof of this case is slightly different from the Isabelle proof. In
+order to understand why, we need to look at the definition of
+substitution for free variables in Agda:
+
+\begin{minted}[]{agda}
+fv y [ x ::= u ] with x ≟ y
+... | yes _ = u
+... | no _ = fv y
+\end{minted}
+
+This definition corresponds to the Isabelle definition, however, instead
+of using an if-then-else conditional, the Agda definition uses the
+\texttt{with} abstraction to pattern match on \texttt{x ≟ y}. The
+\texttt{\_≟\_} function takes the arguments \texttt{x} and \texttt{y},
+which are natural numbers, and decides syntactic equality, returning a
+\texttt{yes p} or \texttt{no p}, where \texttt{p} is the proof object
+showing their in/equality.\\
+Since the definition of substitution does not require the proof object
+of the equality of \texttt{x} and \texttt{y}, it is discarded in both
+cases. If \texttt{x} and \texttt{y} are equal, \texttt{u} is returned
+(case \texttt{... | yes \_ = u}), otherwise \texttt{fv y} is returned.
+
+In order for Agda to be able to unfold the definition of
+\texttt{fv y [ x ::= u ]}, it needs the case analysis on \texttt{x ≟ y}:
+
+\begin{minted}[]{agda}
+subst-fresh' x (fv y) u x∉FVt with x ≟ y
+... | yes p = {!   0!}
+... | no ¬p = {!   1!}
+\end{minted}
+
+\noindent\rule{8cm}{0.4pt}
+
+\begin{minted}[]{agda}
+?0  :  (fv y [ x ::= u ] | yes p) ≡ fv y
+?1  :  (fv y [ x ::= u ] | no ¬p) ≡ fv y
+\end{minted}
+
+In the second case, when \texttt{x} and \texttt{y} are different, Agda
+can automatically fill in the hole with \texttt{refl}. Notice that
+unlike in Isabelle, where the definition of substitution had to be
+manually unfolded (the command \texttt{unfolding subst.simps(1)}), Agda
+performs type reduction automatically and can rewrite the term
+\texttt{(fv y [ x ::= u ] | no .¬p)} to \texttt{fv y} when type-checking
+the expression. Since all functions in Agda terminate, this operation on
+types is safe (not sure this is clear enough\ldots{} im not entirely
+sure why\ldots{} found here:
+http://people.inf.elte.hu/divip/AgdaTutorial/Functions.Equality\_Proofs.html\#automatic-reduction-of-types).
+
+For the case where \texttt{x} and \texttt{y} are equal, one can
+immediately derive a contradiction from the fact that \texttt{x} cannot
+be equal to \texttt{y}, since \texttt{x} is not a free variable in
+\texttt{fv y}. The type of false propositions is \texttt{⊥} in Agda.
+Given \texttt{⊥}, one can derive any proposition. To derive \texttt{⊥},
+we first inspect the type of x∉FVt, which is \texttt{x ∉ y ∷ []}.
+Further examining the definition of \texttt{∉}, we find that
+\texttt{x ∉ xs = ¬ x ∈ xs}, which further unfolds to
+\texttt{x ∉ xs = x ∈ xs → ⊥}. Thus to obtain \texttt{⊥}, we simply have
+to show that \texttt{x ∈ xs}, or in this specific instance
+\texttt{x ∈ y ∷ []}. The definition of \texttt{∈} is itself just sugar
+for \texttt{x ∈ xs = Any (\_≈\_ x) xs}, where \texttt{Any P xs} means
+that there is an element of the list \texttt{xs} which satisfies
+\texttt{P}. In this instance, \texttt{P = (\_≈\_ x)}, thus an inhabitant
+of the type \texttt{Any (\_≈\_ x) (y ∷ [])} can be constructed if one
+has a proof that at least one element in \texttt{y ∷ []} is equivalent
+to \texttt{x}. As it happens, such a proof was given as an argument in
+\texttt{yes p}:
+
+\begin{minted}[]{agda}
+False : ⊥
+False = x∉FVt (here p)
+\end{minted}
+
+The finished case looks like this (note that \texttt{⊥-elim} takes
+\texttt{⊥} and produces something of arbitrary type):
+
+\begin{minted}[]{agda}
+subst-fresh' x (fv y) u x∉FVt with x ≟ y
+... | yes p = ⊥-elim False
+  where
+  False : ⊥
+  False = x∉FVt (here p)
+... | no ¬p = refl
+\end{minted}
+
+We can even tranform the Isabelle proof to closer match the Agda proof:
+
+\begin{minted}[]{isabelle}
+case (FVar y)
+  show ?case
+  proof (cases "x = y")
+  case True
+    with FVar have False by simp
+    thus ?thesis ..
+  next
+  case False then show ?thesis unfolding subst.simps(1) by simp
+  qed
+\end{minted}
+
+We can thus see that using Isar style proofs and Agda reasoning ends up
+being rather similar in practice.
+
+\subsection{Pattern matching}\label{pattern-matching}
+
+Another reason why automation in the form of explicit proof search
+tactics needn't play such a significant role in Agda, is the more
+sophisticated type system of Agda (compared to Isabelle). Since Agda
+uses a dependent type system, there are often instances where the type
+system imposes certain constraints on the arguments/assumptions in a
+definition/proof and partially acts as a proof search tactic, by guiding
+the user through simple reasoning steps. Since Agda proofs are programs,
+unlike Isabelle `apply-style' proofs, which are really proof scripts,
+one cannot intuitively view and step through the intermediate reasoning
+steps done by the user to prove a lemma. The way one proves a lemma in
+Agda is to start with a lemma with a `hole', which is the proof goal,
+and iteratively refine the goal until this proof object is constructed.
+The way Agda's pattern matching makes constructing proofs easier can be
+demonstrated with the following example.
+
+The following lemma states that the parallel-\(\beta\) maximal reduction
+preserves local closure:
+
+\[t >>> t' \implies \text{term }t \land \text{term }t'\]
+
+For simplicity, we will prove a slightly simpler version, namely:
+\(t >>> t' \implies \text{term }t\). For comparison, this is a short,
+highly automated proof in Isabelle:
+
+\begin{minted}[]{isabelle}
+lemma pbeta_max_trm_r : "t >>> t' ⟹ trm t"
+apply (induct t t' rule:pbeta_max.induct)
+apply (subst trm.simps, simp)+
+by (auto simp add: lam trm.Y trm.app)
+\end{minted}
+
+In Agda, we start with the following definition:
+
+\begin{minted}[]{agda}
+>>>-Term-l : ∀ {t t'} -> t >>> t' -> Term t
+>>>-Term-l t>>>t' = {!   0!}
+\end{minted}
+
+\noindent\rule{8cm}{0.4pt}
+
+\begin{minted}[]{agda}
+?0  :  Term .t
+\end{minted}
+
+Construction of this proof follows the Isabelle script, in that the
+proof proceeds by induction on \(t >>> t'\), which corresponds to the
+command \texttt{apply (induct t t' rule:pbeta\_max.induct)}. As seen
+earlier, induction in Agda simply corresponds to a case split. The
+agda-mode in Emacs/Atom can perform a case split automatically, if
+supplied with the variable which should be used for the case analysis,
+in this case \texttt{t>>>t'}. Note that Agda is very liberal with
+variable names, allowing almost any ASCII or Unicode characters, and it
+is customary to give descriptive names to the variables, usually
+denoting their type. In this instance, \texttt{t>>>t'} is a variable of
+type \texttt{t >>> t'}. Due to Agda's relative freedom in variable
+names, whitespace is important, as \texttt{t>> t'} is very different
+from \texttt{t >> t'}.
+
+\begin{minted}[]{agda}
+>>>-Term-l : ∀ {t t'} -> t >>> t' -> Term t
+>>>-Term-l refl = {!   0!}
+>>>-Term-l reflY = {!   1!}
+>>>-Term-l (app x t>>>t' t>>>t'') = {!   2!}
+>>>-Term-l (abs L x) = {!   3!}
+>>>-Term-l (beta L cf t>>>t') = {!   4!}
+>>>-Term-l (Y t>>>t') = {!   5!}
+\end{minted}
+
+\noindent\rule{8cm}{0.4pt}
+
+\begin{minted}[]{agda}
+?0  :  Term (fv .x)
+?1  :  Term (Y .σ)
+?2  :  Term (app .m .n)
+?3  :  Term (lam .m)
+?4  :  Term (app (lam .m) .n)
+?5  :  Term (app (Y .σ) .m)
+\end{minted}
+
+The newly expanded proof now contains 5 `holes', corresponding to the 5
+constructors for the \(>>>\) reduction. The first two goals are trivial,
+since any free variable or Y is a closed term. Here, one can use the
+agda-mode again, applying `Refine', which is like a simple proof search,
+in that it will try to advance the proof by supplying an object of the
+correct type for the specified `hole'. Applying `Refine' to
+\texttt{\{!\ \ \ 0!\}} and \texttt{\{!\ \ \ 1!\}} yields:
+
+\begin{minted}[]{agda}
+>>>-Term-l : ∀ {t t'} -> t >>> t' -> Term t
+>>>-Term-l refl = var
+>>>-Term-l reflY = Y
+>>>-Term-l (app x t>>>t' t>>>t'') = {!   0!}
+>>>-Term-l (abs L x) = {!   1!}
+>>>-Term-l (beta L cf t>>>t') = {!   2!}
+>>>-Term-l (Y t>>>t') = {!   3!}
+\end{minted}
+
+\noindent\rule{8cm}{0.4pt}
+
+\begin{minted}[]{agda}
+?0  :  Term (app .m .n)
+?1  :  Term (lam .m)
+?2  :  Term (app (lam .m) .n)
+?3  :  Term (app (Y .σ) .m)
+\end{minted}
+
+Since the constructor for \texttt{var} is
+\texttt{var : ∀ {x} -> Term (fv x)}, it is easy to see that the
+\texttt{hole} can be closed by supplying \texttt{var} as the proof of
+\texttt{Term (fv .x)}.\\
+A more interesting case is the \texttt{app} case, where using `Refine'
+yields:
+
+\begin{minted}[]{agda}
+>>>-Term-l : ∀ {t t'} -> t >>> t' -> Term t
+>>>-Term-l refl = var
+>>>-Term-l reflY = Y
+>>>-Term-l (app x t>>>t' t>>>t'') = app {!   0!} {!   1!}
+>>>-Term-l (abs L x) = {!   2!}
+>>>-Term-l (beta L cf t>>>t') = {!   3!}
+>>>-Term-l (Y t>>>t') = {!   4!}
+\end{minted}
+
+\noindent\rule{8cm}{0.4pt}
+
+\begin{minted}[]{agda}
+?0  :  Term .m
+?1  :  Term .n
+?2  :  Term (lam .m)
+?3  :  Term (app (lam .m) .n)
+?4  :  Term (app (Y .σ) .m)
+\end{minted}
+
+Here, the refine tactic supplied the constructor \texttt{app}, as it's
+type \texttt{app : ∀ {e₁ e₂} -> Term e₁ -> Term e₂ -> Term (app e₁ e₂)}
+fit the `hole' (\texttt{Term (app .m .n)}), generating two new `holes',
+with the goal \texttt{Term .m} and \texttt{Term .n}. However, trying
+`Refine' again on either of the `holes' yields no result. This is where
+one applies the induction hypothesis, by adding
+\texttt{>>>-Term-l t>>>t'} to \texttt{\{!\ \ \ 0!\}} and applying
+`Refine' again, which closes the `hole' \texttt{\{!\ \ \ 0!\}}. Perhaps
+confusingly, \texttt{>>>-Term-l t>>>t'} produces a proof of
+\texttt{Term .m}. To see why this is, one has to inspect the type of
+\texttt{t>>>t'} in this context. Helpfully, the agda-mode provides just
+this function, which infers the type of \texttt{t>>>t'} to be
+\texttt{.m >>> .m'}. Similarly, \texttt{t>>>t''} has the type
+\texttt{.n >>> .n'}. Renaming \texttt{t>>>t'} and \texttt{t>>>t''} to
+\texttt{m>>>m'} and \texttt{n>>>n'} respectively, now makes the
+recursive call obvious:
+
+\begin{minted}[]{agda}
+>>>-Term-l : ∀ {t t'} -> t >>> t' -> Term t
+>>>-Term-l refl = var
+>>>-Term-l reflY = Y
+>>>-Term-l (app x m>>>m' n>>>n') = app (>>>-Term-l m>>>m') {!   0!}
+>>>-Term-l (abs L x) = {!   1!}
+>>>-Term-l (beta L cf t>>>t') = {!   2!}
+>>>-Term-l (Y t>>>t') = {!   3!}
+\end{minted}
+
+\noindent\rule{8cm}{0.4pt}
+
+\begin{minted}[]{agda}
+?0  :  Term .n
+?1  :  Term (lam .m)
+?2  :  Term (app (lam .m) .n)
+?3  :  Term (app (Y .σ) .m)
+\end{minted}
+
+The goal \texttt{Term .n} follows in exactly the same fashion. Applying
+`Refine' to the next `hole' yields:
+
+\begin{minted}[]{agda}
+>>>-Term-l : ∀ {t t'} -> t >>> t' -> Term t
+>>>-Term-l refl = var
+>>>-Term-l reflY = Y
+>>>-Term-l (app x m>>>m' n>>>n') = app (>>>-Term-l m>>>m') (>>>-Term-l n>>>n')
+>>>-Term-l (abs L x) = lam {!   0!} {!   1!}
+>>>-Term-l (beta L cf t>>>t') = {!   2!}
+>>>-Term-l (Y t>>>t') = {!   3!}
+\end{minted}
+
+\noindent\rule{8cm}{0.4pt}
+
+\begin{minted}[]{agda}
+?0  :  FVars
+?1  :  {x = x₁ : ℕ} → x₁ ∉ ?0 L x → Term (.m ^' x₁)
+?2  :  Term (app (lam .m) .n)
+?3  :  Term (app (Y .σ) .m)
+\end{minted}
+
+At this stage, the interesting goal is \texttt{?1}, due to the fact that
+it is dependent on \texttt{?0}. Indeed, replacing \texttt{?0} with
+\texttt{L} (which is the only thing of the type \texttt{FVars} available
+in this context) changes goal \texttt{?1} to
+\texttt{\{x = x₁ : ℕ\} → x₁ ∉ L → Term (.m \textasciicircum' x₁)}:
+
+\begin{minted}[]{agda}
+>>>-Term-l : ∀ {t t'} -> t >>> t' -> Term t
+>>>-Term-l refl = var
+>>>-Term-l reflY = Y
+>>>-Term-l (app x m>>>m' n>>>n') = app (>>>-Term-l m>>>m') (>>>-Term-l n>>>n')
+>>>-Term-l (abs L x) = lam L {!   0!}
+>>>-Term-l (beta L cf t>>>t') = {!   1!}
+>>>-Term-l (Y t>>>t') = {!   2!}
+\end{minted}
+
+\noindent\rule{8cm}{0.4pt}
+
+\begin{minted}[]{agda}
+?0  :  {x = x₁ : ℕ} → x₁ ∉ L → Term (.m ^' x₁)
+?1  :  Term (app (lam .m) .n)
+?2  :  Term (app (Y .σ) .m)
+\end{minted}
+
+Since the goal/type of \texttt{\{!\ \ \ 0!\}} is
+\texttt{\{x = x₁ : ℕ\} → x₁ ∉ L → Term (.m \textasciicircum' x₁)},
+applying `Refine' will generate a lambda expression
+\texttt{(λ x∉L → \{!\ \ \ 0!\})}, as this is obviously the only
+`constructor' for a function type. Again, confusingly, we supply the
+recursive call \texttt{>>>-Term-l (x x∉L)} to \texttt{\{!\ \ \ 0!\}}. By
+examining the type of \texttt{x}, we get that \texttt{x} has the type
+\texttt{\{x = x₁ : ℕ\} → x₁ ∉ L → (.m \textasciicircum' x₁) >>> (.m' \textasciicircum' x₁)}.
+Then \texttt{(x x∉L)} is clearly of the type
+\texttt{(.m \textasciicircum' x₁) >>> (.m' \textasciicircum' x₁)}. Thus
+\texttt{>>>-Term-l (x x∉L)} has the desired type
+\texttt{Term (.m \textasciicircum' .x)} (note that \texttt{.x} and
+\texttt{x} are not the same in this context).
+
+Doing these steps explicitly was not in fact necessary, as the automatic
+proof search `Agsy' is capable of automatically constructing proof
+objects for all of the cases above. Using `Agsy' in both of the last two
+cases, the completed proof is given below:
+
+\begin{minted}[]{agda}
+>>>-Term-l : ∀ {t t'} -> t >>> t' -> Term t
+>>>-Term-l refl = var
+>>>-Term-l reflY = Y
+>>>-Term-l (app x m>>>m' n>>>n') = app (>>>-Term-l m>>>m') (>>>-Term-l n>>>n')
+>>>-Term-l (abs L x) = lam L (λ x∉L → >>>-Term-l (x x∉L))
+>>>-Term-l (beta L cf t>>>t') = app 
+  (lam L (λ {x} x∉L → >>>-Term-l (cf x∉L))) 
+  (>>>-Term-l t>>>t')
+>>>-Term-l (Y t>>>t') = app Y (>>>-Term-l t>>>t')
+\end{minted}
+
+\newpage
+
+\chapter{Intersection types}\label{intersection-types}
+
+In this section, we will work with both the simple types introduced
+earlier (definition given again below), as well as intersection types,
+defined in the following way: \(\\\)
+
+\textbf{Definition} (Types) - Note that \(\mathsf{o}\) and \(\phi\) are
+constants. \(\omega\) is used to denote an empty list of strict
+intersection types. The following sugar notation will also occasionally
+be used: \(\bigcap \tau \equiv [ \tau ]\) and
+\(\tau \cap \tau' \equiv \bigcap \tau \concat \bigcap \tau' \equiv [ \tau, \tau' ]\).
+
+\begin{enumerate}
+\def\labelenumi{\roman{enumi})}
+\tightlist
+\item
+  Simple types: \[\sigma ::= \mathsf{o}\ |\ \sigma \to \sigma\]
+\item
+  Intersection types:
+  \[\mathcal{T}_s ::= \phi\ |\ \mathcal{T} \leadsto \mathcal{T}\]
+  \[\mathcal{T} ::= \mathsf{List}\ \mathcal{T}_s\]
+\end{enumerate}
+
+The reason why \(\mathcal{T}\) is defined as a list of strict types
+\(\mathcal{T}_s\) is due to the requirement that the types in
+\(\mathcal{T}\) be finite. The decision to use lists was taken because
+the Agda standard library includes a definition of lists along with
+definitions of list membership \(\in\) for lists and other associated
+lemmas.
+
+Next, we redefine the \(\lambda\)-terms slightly, by annotating the
+terms with simple types. The reason for this will be clear later on.
+
+\textbf{Definition} (Terms) - Let \(\sigma\) range over simple types in
+the following definition:
+
+\begin{enumerate}
+\def\labelenumi{\roman{enumi})}
+\tightlist
+\item
+  Simply-typed terms:
+  \[M::= x_\sigma\ |\ MM\ |\ \lambda x_\sigma.M\ |\ Y_\sigma \text{ where }x \in Var\]
+\item
+  Simply-typed pre-terms:
+  \[M'::= x_\sigma\ |\ i\ |\ M'M'\ |\ \lambda_\sigma.M'\ |\ Y_\sigma \text{ where }x \in Var\text{ and }i \in \mathbb{N}\]
+\end{enumerate}
+
+Note that both definitions implicitly assume that in the case of
+application, a well formed simply-typed term will be of the form \(st\),
+where \(s\) has some simple type \(A \to B\) and \(t\) is typed with the
+simple type \(A\). Sometimes the same subscript notation will be used to
+indicate the simple type of a given pre-/term, for example:
+\(m_{A \to B}\). Also, rather confusingly, the simple type of \(Y_A\) is
+\((A \to A) \to A\), and thus \(Y_A\) should not be confused with a
+constant \(Y\) having a simple type \(A\). \textbf{Maybe use something
+like this instead?:} \(m_{:A \to B}\) i.e. \(Y_{A:(A \to A) \to A}\).\\
+The typed versions of substitution and the open and close operations are
+virtually identical to the untyped versions.
+
+\section{Type refinement}\label{type-refinement}
+
+Next, we introduce the notion of type refinement by defining the
+refinement relation \(::\), between simple types and intersection types.
+
+\textbf{Definition} (\(::\)) - Since intersection types are defined in
+terms of strict (\(\mathcal{T}_s\)) and non-strict (\(\mathcal{T}\))
+intersection types, for correct typing, the definition of \(::\) is
+split into two versions, one for strict and another for non-strict
+types. In the definition below, \(\tau\) ranges over strict intersection
+types \(\mathcal{T}_s\), with \(\tau_i, \tau_j\) ranging over non-strict
+intersection types \(\mathcal{T}\), and \(A, B\) range over simple types
+\(\sigma\):
+
+\begin{center}
+  \AxiomC{}
+  \LeftLabel{$(base)$}
+  \UnaryInfC{$\phi ::_s \mathsf{o}$}
+  \DisplayProof
+  \hskip 1.5em
+  \AxiomC{$\tau_i :: A$}
+  \AxiomC{$\tau_j :: B$}
+  \LeftLabel{$(arr)$}
+  \BinaryInfC{$\tau_i \leadsto \tau_j ::_s A \to B$}
+  \DisplayProof
+  \vskip 1.5em
+  \AxiomC{}
+  \LeftLabel{$(nil)$}
+  \UnaryInfC{$\omega :: A$}
+  \DisplayProof
+  \hskip 1.5em
+  \AxiomC{$\tau ::_s A$}
+  \AxiomC{$\tau_i :: A$}
+  \LeftLabel{$(cons)$}
+  \BinaryInfC{$\tau , \tau_i :: A$}
+  \DisplayProof
+\end{center}
+
+Having a notion of refinement, we define a restricted version of a
+subset relation on intersection types, which is defined only for pairs
+of intersection types, which refine the same simple type.
+
+\textbf{Definition} (\(\subseteq^A\)) - In the definition below,
+\(\tau, \tau'\) range over \(\mathcal{T}_s\), \(\tau_i, \hdots, \tau_n\)
+range over \(\mathcal{T}\) and \(A, B\) range over \(\sigma\):
+
+\begin{center}
+  \AxiomC{}
+  \LeftLabel{$(base)$}
+  \UnaryInfC{$\phi \subseteq^\mathsf{o}_s \phi$}
+  \DisplayProof
+  \hskip 1.5em
+  \AxiomC{$\tau_i \subseteq^A \tau_j$}
+  \AxiomC{$\tau_m \subseteq^B \tau_n$}
+  \LeftLabel{$(arr)$}
+  \BinaryInfC{$\tau_j \leadsto \tau_m \subseteq^{A \to B}_s \tau_i \leadsto \tau_n$}
+  \DisplayProof
+  \vskip 1.5em
+  \AxiomC{$\tau_i :: A$}
+  \LeftLabel{$(nil)$}
+  \UnaryInfC{$\omega \subseteq^A \tau_i$}
+  \DisplayProof
+  \hskip 1.5em
+  \AxiomC{$\exists \tau' \in \tau_j.\ \tau \subseteq^A_s \tau'$}
+  \AxiomC{$\tau_i \subseteq^A \tau_j$}
+  \LeftLabel{$(cons)$}
+  \BinaryInfC{$\tau , \tau_i \subseteq^A \tau_j$}
+  \DisplayProof
+  \vskip 1.5em
+  \AxiomC{$(\tau_i \leadsto (\tau_j \concat \tau_k) ,\ \tau_m) :: A \to B$}
+  \LeftLabel{$(\tocap)$}
+  \UnaryInfC{$(\tau_i \leadsto (\tau_j \concat \tau_k) ,\ \tau_m) \subseteq^{A \to B} (\tau_i \leadsto \tau_j ,\ \tau_i \leadsto \tau_k ,\ \tau_m)$}
+  \DisplayProof
+  \hskip 1.5em
+  \AxiomC{$\tau_i \subseteq^A \tau_j$}
+  \AxiomC{$\tau_j \subseteq^A \tau_k$}
+  \LeftLabel{$(trans)$}
+  \BinaryInfC{$\tau_i \subseteq^A \tau_k$}
+  \DisplayProof
+  \vskip 1.5em
+\end{center}
+
+It's easy to show the following properties hold for the \(\subseteq^A\)
+and \(::\) relations:
+
+\textbf{Lemma} (\(\subseteq\implies::\))
+
+\begin{enumerate}
+\def\labelenumi{\roman{enumi})}
+\tightlist
+\item
+  \(\tau \subseteq^A_s \delta \implies \tau ::_s A \land \delta ::_s A\)
+\item
+  \(\tau_i \subseteq^A \delta_i \implies \tau_i :: A \land \delta_i :: A\)
+\end{enumerate}
+
+\emph{Proof:} By \textbf{?mutual?} induction on the relations
+\(\subseteq^A_s\) and \(\subseteq^A\).
+
+\textbf{Lemma} (\(\subseteq\) admissible) The following rules are
+admissible in \(\subseteq^A_s/\subseteq^A\):
+
+\begin{enumerate}
+\def\labelenumi{\roman{enumi})}
+\item
+  \AxiomC{$\tau ::_s A$} \LeftLabel{$(refl_s)$}
+  \UnaryInfC{$\tau \subseteq^A_s \tau$} \DisplayProof
+   \hskip 1.5em \AxiomC{$\tau_i :: A$} \LeftLabel{$(refl)$}
+  \UnaryInfC{$\tau_i \subseteq^A \tau_i$} \DisplayProof
+   \hskip 1.5em \AxiomC{$\tau \subseteq^A_s \tau'$}
+  \AxiomC{$\tau' \subseteq^A_s \tau''$} \LeftLabel{$(trans_s)$}
+  \BinaryInfC{$\tau \subseteq^A_s \tau''$} \DisplayProof
+   \hskip 1.5em \AxiomC{$\tau_i \subseteq \tau_j$}
+  \LeftLabel{$(\subseteq)$} \RightLabel{$(\tau_j :: A)$}
+  \UnaryInfC{$\tau_i \subseteq^A \tau_j$} \DisplayProof
+\item
+  \AxiomC{$\tau_i :: A$} \AxiomC{$\tau_j \subseteq^A \tau_{j'}$}
+  \LeftLabel{$(\conL)$}
+  \BinaryInfC{$\tau_i \concat \tau_j \subseteq^A \tau_i \concat \tau_{j'}$}
+  \DisplayProof
+   \hskip 1.5em \AxiomC{$\tau_i \subseteq^A \tau_{i'}$}
+  \AxiomC{$\tau_j :: A$} \LeftLabel{$(\conR)$}
+  \BinaryInfC{$\tau_i \concat \tau_j \subseteq^A \tau_{i'} \concat \tau_j$}
+  \DisplayProof
+   \hskip 1.5em \AxiomC{$\tau_i \subseteq^A \tau_{k}$}
+  \AxiomC{$\tau_j \subseteq^A \tau_{k}$} \LeftLabel{$(glb)$}
+  \BinaryInfC{$\tau_i \concat \tau_j \subseteq^A \tau_k$} \DisplayProof
+\item
+  \AxiomC{$\tau_i \subseteq^A \tau_j$}
+  \AxiomC{$\tau_{i'} \subseteq^A \tau_{j'}$} \LeftLabel{$(mon)$}
+  \BinaryInfC{$\tau_i \concat \tau_{i'} \subseteq^A \tau_j \concat \tau_{j'}$}
+  \DisplayProof
+\item
+  \AxiomC{$\tau_i :: A$} \AxiomC{$\tau_j :: A$} \LeftLabel{$(\tocap')$}
+  \BinaryInfC{$\bigcap ((\tau_i \concat \tau_j) \leadsto (\tau_i \concat \tau_j)) \subseteq^{A \to B} \tau_i \leadsto \tau_i \cap \tau_j \leadsto \tau_j$}
+  \DisplayProof
+\end{enumerate}
+
+\emph{Proof:}
+
+\begin{enumerate}
+\def\labelenumi{\roman{enumi})}
+\item
+  By induction on \(\tau\) and \(\tau_i\).
+\item
+  By induction on \(\tau_i \subseteq^A \tau_{i'}\).
+\item
+  \vskip 1em \AxiomC{$\tau_i \subseteq^A \tau_j$} \AxiomC{}
+  \UnaryInfC{$\tau_j \subseteq \tau_j \concat \tau_{j'}$}
+  \LeftLabel{$(\subseteq)$}
+  \UnaryInfC{$\tau_j \subseteq^A \tau_j \concat \tau_{j'}$}
+  \LeftLabel{$(trans)$}
+  \BinaryInfC{$\tau_i \subseteq^A \tau_j \concat \tau_{j'}$}
+  \AxiomC{$\tau_{i'} \subseteq^A \tau_{j'}$} \AxiomC{}
+  \UnaryInfC{$\tau_{j'} \subseteq \tau_j \concat \tau_{j'}$}
+  \LeftLabel{$(\subseteq)$}
+  \UnaryInfC{$\tau_{j'} \subseteq^A \tau_j \concat \tau_{j'}$}
+  \LeftLabel{$(trans)$}
+  \BinaryInfC{$\tau_{i'} \subseteq^A \tau_j \concat \tau_{j'}$}
+  \LeftLabel{$(glb)$}
+  \BinaryInfC{$\tau_i \concat \tau_{i'} \subseteq^A \tau_j \concat \tau_{j'}$}
+  \DisplayProof
+\item
+  Follows from \((\tocap)\), \((cons)\) and \((trans)\).
+\end{enumerate}
+
+\section{Intersection-type
+assignment}\label{intersection-type-assignment}
+
+Having annotated the \(\lambda\)-terms with simple types, the following
+type assignment only permits the typing of simply-typed
+\(\lambda\)-terms with an intersection type, which refines the simple
+type of the \(\lambda\)-term:
+
+\textbf{Definition} (Intersection-type assignment)
+
+\begin{center}
+  \AxiomC{$\exists (x, \tau_i, A) \in \Gamma.\ \bigcap \tau \subseteq^A \tau_i$}
+  \LeftLabel{$(var)$}
+  \UnaryInfC{$\Gamma \Vdash_s x_A : \tau$}
+  \DisplayProof
+  %------------------------------------
+  \hskip 1.5em
+  \AxiomC{$\Gamma \Vdash_s u_{A \to B} : \tau_i \leadsto \tau_j$}
+  \AxiomC{$\Gamma \Vdash v_A : \tau_i$}
+  \LeftLabel{$(app)$}
+  \RightLabel{$(\bigcap \tau \subseteq^B \tau_j)$}
+  \BinaryInfC{$\Gamma \Vdash_s uv_B : \tau$}
+  \DisplayProof
+  %------------------------------------
+  \vskip 1.5em
+  \AxiomC{$\forall x \not\in L.\ (x, \tau_i, A),\Gamma \Vdash m^x : \tau_j$}
+  \LeftLabel{$(abs)$}
+  \UnaryInfC{$\Gamma \Vdash_s \lambda_A.m : \tau_i \leadsto \tau_j$}
+  \DisplayProof
+  %------------------------------------
+  \hskip 1.5em
+  \AxiomC{$\exists \tau_x.\ \bigcap (\tau_x \leadsto \tau_x) \subseteq^{A \to A} \tau_i \land \tau_j \subseteq^A \tau_x$}
+  \LeftLabel{$(Y)$}
+  \UnaryInfC{$\Gamma \Vdash_s Y_{A} : \tau_i \leadsto \tau_j$}
+  \DisplayProof
+  %------------------------------------
+  \vskip 1.5em
+  \AxiomC{$\Gamma \Vdash_s m_{A \to B} : \tau_i \leadsto \tau_j$}
+  \AxiomC{$\Gamma \Vdash_s m_{A \to B} : \tau_i \leadsto \tau_k$}
+  \LeftLabel{$(\tocap)$}
+  \RightLabel{$(\tau_{jk} \subseteq^B \tau_j \concat \tau_k)$}
+  \BinaryInfC{$\Gamma \Vdash_s m_{A \to B} : \tau_i \leadsto \tau_{jk}$}
+  \DisplayProof
+  %------------------------------------
+  \vskip 1.5em
+  \AxiomC{}
+  \LeftLabel{$(nil)$}
+  \UnaryInfC{$\Gamma \Vdash m : \omega$}
+  \DisplayProof
+  %------------------------------------
+  \hskip 1.5em
+  \AxiomC{$\Gamma \Vdash_s m : \tau$}
+  \AxiomC{$\Gamma \Vdash m : \tau_i$}
+  \LeftLabel{$(cons)$}
+  \BinaryInfC{$\Gamma \Vdash m : \tau , \tau_i$}
+  \DisplayProof
+  \vskip 1.5em
+\end{center}
+
+In the definition above, \(\Gamma\) is the typing context, consisting of
+triples of the variable name and the corresponding intersection and
+simple types. \(\Gamma\) is defined as a list of these triples in the
+Agda implementation. It is assumed in the typing system, that \(\Gamma\)
+is well-formed. Formally, this can be expressed in the following way:
+
+\textbf{Definition} (Well-formed intersection-type context)
+
+\begin{center}
+  \AxiomC{}
+  \LeftLabel{$(nil)$}
+  \UnaryInfC{$\wf [\ ]$}
+  \DisplayProof
+  %------------------------------------
+  \hskip 1.5em
+  \AxiomC{$x \not\in \mathsf{dom}\ \Gamma$}
+  \AxiomC{$\tau_i :: A$}
+  \AxiomC{$\wf \Gamma$}
+  \LeftLabel{$(cons)$}
+  \TrinaryInfC{$\wf (x,\tau_i,A),\Gamma$}
+  \DisplayProof
+  \vskip 1.5em
+\end{center}
+
+\subsection{Subtyping}\label{subtyping}
+
+In the typing system, the rules \((Y)\) and \((\tocap)\) are defined in
+a slightly more complicated way than might be necessary. For example,
+one might assume, the \((Y)\) rule could simply be:
+
+\begin{center}
+  \vskip 1em
+  \AxiomC{}
+  \LeftLabel{$(Y)$}
+  \UnaryInfC{$\Gamma \Vdash_s Y_{A} : \bigcap (\tau_x \leadsto \tau_x) \leadsto \tau_x$}
+  \DisplayProof
+  \vskip 1.5em
+\end{center}
+
+The reason why the more complicated forms of both rules were introduced
+was purely an engineering one, namely to make the proof of
+sub-typing/weakening possible, as the sub-typing rule is required in
+multiple further proofs:
+
+\textbf{Lemma} (Sub-typing) The following rule(s) are admissible in
+\(\Vdash_s\)/\(\Vdash\):
+
+\begin{center}
+  \AxiomC{$\Gamma \Vdash_s m_A : \tau$}
+  \LeftLabel{$(\supseteq_s)$}
+  \RightLabel{$(\Gamma' \subseteq_\Gamma \Gamma, \tau \supseteq^A_s \tau')$}
+  \UnaryInfC{$\Gamma' \Vdash_s m_A : \tau'$}
+  \DisplayProof
+  \hskip 1.5em
+  \AxiomC{$\Gamma \Vdash m_A : \tau_i$}
+  \LeftLabel{$(\supseteq)$}
+  \RightLabel{$(\Gamma' \subseteq_\Gamma \Gamma, \tau_i \supseteq^A_s \tau_j)$}
+  \UnaryInfC{$\Gamma' \Vdash m_A : \tau_j$}
+  \DisplayProof
+\end{center}
+
+\emph{Proof:} Ommited.
+
+The relation \(\Gamma \subseteq_\Gamma \Gamma'\) is defined for any
+well-formed contexts \(\Gamma, \Gamma'\), where for each triple
+\((x ,\tau_i, A) \in \Gamma\), there is a corresponding triple
+\((x ,\tau_j, A) \in \Gamma'\) s.t. \(\tau_i \subseteq^A \tau_j\).
+
+\subsection{Inversion lemmas}\label{inversion-lemmas}
+
+The shape of the derivation tree is not always unique for arbitrary
+typed term \(\Gamma \Vdash_s m :\tau\). For example, given a typed term
+\(\Gamma \Vdash_s \lambda_A.m :\tau_i \leadsto \tau_j\), either of the
+following two derivation trees, could be valid:
+
+\begin{center}\hskip 1.5em
+  \AxiomC{$\vdots$}
+  \UnaryInfC{$\forall x \not\in L.\ (x, \tau_i, A),\Gamma \Vdash m^x : \tau_j$}
+  \LeftLabel{$(abs)$}
+  \UnaryInfC{$\Gamma \Vdash_s \lambda_A.m : \tau_i \leadsto \tau_j$}
+  \DisplayProof
+  %------------------------------------
+  \vskip 1.5em
+  \AxiomC{$\vdots$}
+  \UnaryInfC{$\Gamma \Vdash_s \lambda_A.m_B : \tau_i \leadsto \tau_p$}
+
+  \AxiomC{$\vdots$}
+  \UnaryInfC{$\Gamma \Vdash_s \lambda_A.m_B : \tau_i \leadsto \tau_q$}
+  \LeftLabel{$(\tocap)$}
+  \RightLabel{$(\tau_j \subseteq^B \tau_p \concat \tau_q)$}
+  \BinaryInfC{$\Gamma \Vdash_s \lambda_A.m_B : \tau_i \leadsto \tau_j$}
+  \DisplayProof
+\end{center}
+
+However, it is obvious that the second tree will always necessarily have
+to have an application of \((abs)\) in all its branches. Because it will
+be necessary to reason about the shape of the typing derivation trees,
+it is useful to prove the following inversion lemmas:
+
+\textbf{Lemma} (\(Y\)-inv, \(abs\)-inv)
+
+\begin{enumerate}
+\def\labelenumi{\roman{enumi})}
+\tightlist
+\item
+  \(\Gamma \Vdash_s Y_{A} : \tau_i \leadsto \tau_j \implies \exists \tau_x.\ \bigcap (\tau_x \leadsto \tau_x) \subseteq^{A \to A} \tau_i \land \tau_j \subseteq^A \tau_x\)
+\item
+  \(\Gamma \Vdash_s \lambda_A.m : \tau_i \leadsto \tau_j \implies \exists L.\ \forall x \not\in L.\ (x, \tau_i, A),\Gamma \Vdash m^x : \tau_j\)
+\end{enumerate}
+
+\emph{Proof}:
+
+\begin{enumerate}
+\def\labelenumi{\roman{enumi})}
+\item
+  There are two cases to consider, one, where the last rule in the
+  derivation tree of \(\Gamma \Vdash_s Y_{A} : \tau_i \leadsto \tau_j\)
+  was \((Y)\). Otherwise, the last rule was \((\tocap)\):
+
+  \((Y)\): Follows immediately.\\
+  \((\tocap)\): We must have a derivation tree of the shape:
+
+  \begin{center}
+    \AxiomC{$\vdots$}
+    \UnaryInfC{$\Gamma \Vdash_s Y_A : \tau_i \leadsto \tau_p$}
+
+    \AxiomC{$\vdots$}
+    \UnaryInfC{$\Gamma \Vdash_s Y_A : \tau_i \leadsto \tau_q$}
+    \LeftLabel{$(\tocap)$}
+    \RightLabel{$(\tau_j \subseteq^B \tau_p \concat \tau_q)$}
+    \BinaryInfC{$\Gamma \Vdash_s Y_A : \tau_i \leadsto \tau_j$}
+    \DisplayProof
+  \end{center}
+
+  Then by IH, we have:
+
+  \begin{itemize}
+  \item
+    \(\exists \tau_{xp}.\ \bigcap (\tau_{xp} \leadsto \tau_{xp}) \subseteq^{A \to A} \tau_i \land \tau_p \subseteq^A \tau_{xp}\)
+    and
+  \item
+    \(\exists \tau_{xq}.\ \bigcap (\tau_{xq} \leadsto \tau_{xq}) \subseteq^{A \to A} \tau_i \land \tau_q \subseteq^A \tau_{xq}\)
+  \end{itemize}
+
+  We then take \(\tau_x \equiv \tau_{xp} \concat \tau_{xq}\):
+\end{enumerate}
+
+\begin{center}
+  \tiny
+  \AxiomC{}
+  \LeftLabel{$(\tocap')$}
+  \UnaryInfC{$\bigcap (\tau_{x} \leadsto \tau_{x}) \subseteq^{A \to A} \tau_{xp}\leadsto \tau_{xp} \cap \tau_{xq} \leadsto \tau_{xq}$}
+
+  \AxiomC{}
+  \LeftLabel{$(IH)$}
+  \UnaryInfC{$\tau_{xp} \leadsto \tau_{xp} \subseteq^{A \to A} \tau_i$}
+  \AxiomC{}
+  \LeftLabel{$(IH)$}
+  \UnaryInfC{$\tau_{xq} \leadsto \tau_{xq} \subseteq^{A \to A} \tau_i$}
+  \LeftLabel{$(mon)$}
+  \BinaryInfC{$\tau_{xp}\leadsto \tau_{xp} \cap \tau_{xq} \leadsto \tau_{xq} \subseteq^{A \to A} \tau_i \concat \tau_i$}
+  \LeftLabel{$(trans)$}
+  \BinaryInfC{$\bigcap (\tau_{x} \leadsto \tau_{x}) \subseteq^{A \to A} \tau_i \concat \tau_i$}
+
+  \AxiomC{}
+  \UnaryInfC{$\tau_i \concat \tau_i \subseteq \tau_i$}
+  \LeftLabel{$(\subseteq)$}
+  \UnaryInfC{$\tau_i \concat \tau_i \subseteq^{A \to A} \tau_i$}
+  \LeftLabel{$(trans)$}
+  \BinaryInfC{$\bigcap (\tau_{x} \leadsto \tau_{x}) \subseteq^{A \to A} \tau_i$}
+  \DisplayProof
+\end{center}
+
+\begin{center}
+  \vskip 1.5em
+  \AxiomC{}
+  \UnaryInfC{$\tau_j \subseteq^A \tau_p \concat \tau_q$}
+
+  \AxiomC{}
+  \LeftLabel{$(IH)$}
+  \UnaryInfC{$\tau_p \concat \subseteq^A \tau_{xp}$}
+  \AxiomC{}
+  \LeftLabel{$(IH)$}
+  \UnaryInfC{$\tau_q \concat \subseteq^A \tau_{xq}$}
+  \LeftLabel{$(mon)$}
+  \BinaryInfC{$\tau_p \concat \tau_q \subseteq^A \tau_x$}
+  \LeftLabel{$(trans)$}
+  \BinaryInfC{$\tau_j \subseteq^A \tau_x$}
+  \DisplayProof
+  \vskip 1.5em
+\end{center}
+
+\begin{enumerate}
+\def\labelenumi{\roman{enumi})}
+\setcounter{enumi}{1}
+\tightlist
+\item
+  Follows in a similar fashion.
+\end{enumerate}
+
+\section{Proofs of subject expansion and
+reduction}\label{proofs-of-subject-expansion-and-reduction}
+
+An interesting property of the intersection types, is the fact that they
+admit both subject expansion and subject reduction, namely \(\Vdash\) is
+closed under \(\beta\)-equality. Subject expansion and reduction are
+proved in two separate lemmas:
+
+\textbf{Theorem} (\(\Vdash\) closed under \(=_\beta\))
+
+\begin{enumerate}
+\def\labelenumi{\roman{enumi})}
+\tightlist
+\item
+  \(\Gamma \Vdash_s m : \tau \implies m \Rightarrow_\beta m' \implies \Gamma \Vdash_s m' : \tau\)
+\item
+  \(\Gamma \Vdash m : \tau_i \implies m \Rightarrow_\beta m' \implies \Gamma \Vdash m' : \tau_i\)
+\item
+  \(\Gamma \Vdash_s m' : \tau \implies m \Rightarrow_\beta m' \implies \Gamma \Vdash_s m : \tau\)
+\item
+  \(\Gamma \Vdash m' : \tau_i \implies m \Rightarrow_\beta m' \implies \Gamma \Vdash m : \tau_i\)
+\end{enumerate}
+
+\emph{Proof:} By induction on \(\Rightarrow_\beta\). The proofs in both
+directions follow by straightforward induction for all the rules except
+for \((Y)\) and \((beta)\). Note that the \((Y)\) rule here is not the
+typing rule, but rather the reduction rule
+\(Y_A m \Rightarrow_\beta m(Y_A m)\).
+
+\begin{enumerate}
+\def\labelenumi{\roman{enumi})}
+\tightlist
+\item
+  \((Y)\): By assumption, we have \(Y_A m \Rightarrow_\beta m(Y_A m)\)
+  and \(\Gamma \Vdash_s Y_A m : \tau\). By case analysis of the last
+  rule applied in the derivation tree of
+  \(\Gamma \Vdash_s Y_A m : \tau\), we have two cases:
+
+  \begin{itemize}
+  \item
+    \((app)\) We have:
+
+    \begin{center}
+      \vskip 1em
+      \AxiomC{$\vdots$}
+      \UnaryInfC{$\Gamma \Vdash_s Y_A : \tau_i \leadsto \tau_j$}
+      \AxiomC{$\vdots$}
+      \UnaryInfC{$\Gamma \Vdash m_{A \to A} : \tau_i$}
+      \LeftLabel{$(app)$}
+      \RightLabel{$(\bigcap \tau \subseteq^A \tau_j)$}
+      \BinaryInfC{$\Gamma \Vdash_s Y_{A} m : \tau$}
+      \DisplayProof
+      \vskip 1em
+    \end{center}
+
+    Then, by (\(Y\)-inv) we have some \(\tau_x\) s.t
+    \(\bigcap (\tau_x \leadsto \tau_x) \subseteq^{A \to A} \tau_i \land \tau_j \subseteq^A \tau_x\).
+  \item
+    \((\tocap)\) Then we have:
+
+    \begin{center}
+      \vskip 1em
+      \AxiomC{$\vdots$}
+      \UnaryInfC{$\Gamma \Vdash_s Y_{B \to C} m : \tau_i \leadsto \tau_j$}
+      \AxiomC{$\vdots$}
+      \UnaryInfC{$\Gamma \Vdash_s Y_{B \to C} m : \tau_i \leadsto \tau_k$}
+      \LeftLabel{$(\tocap)$}
+      \RightLabel{$(\tau_{jk} \subseteq^C \tau_j \concat \tau_k)$}
+      \BinaryInfC{$\Gamma \Vdash_s Y_{B \to C} m : \tau_i \leadsto \tau_{jk}$}
+      \DisplayProof
+      \vskip 1em
+    \end{center}
+
+    Where \(A \equiv B \to C\).
+
+    By IH, we get
+    \(\Gamma \Vdash_s m (Y_{B \to C} m) : \tau_i \leadsto \tau_j\) and
+    \(\Gamma \Vdash_s m (Y_{B \to C} m) : \tau_i \leadsto \tau_k\), thus
+    from \((\tocap)\) it follows that
+    \(\Gamma \Vdash_s m (Y_{B \to C} m) : \tau_i \leadsto \tau_{jk}\)
+  \end{itemize}
+\end{enumerate}
+
+\footnotesize
+
+\chapter*{References}\label{references}
+\addcontentsline{toc}{chapter}{References}
+
+\hypertarget{refs}{}
+\hypertarget{ref-aydemir08}{}
+Aydemir, Brian, Arthur Charguéraud, Benjamin C. Pierce, Randy Pollack,
+and Stephanie Weirich. 2008. ``Engineering Formal Metatheory.'' In
+\emph{Proceedings of the 35th Annual Acm Sigplan-Sigact Symposium on
+Principles of Programming Languages}, 3--15. POPL '08. New York, NY,
+USA: ACM.
+doi:\href{https://doi.org/10.1145/1328438.1328443}{10.1145/1328438.1328443}.
+
+\hypertarget{ref-berghofer06}{}
+Berghofer, Stefan, and Christian Urban. 2006. ``A Head-to-Head
+Comparison of de Bruijn Indices and Names.'' In \emph{IN Proc. Int.
+Workshop on Logical Frameworks and Metalanguages: THEORY and Practice},
+46--59.
+
+\hypertarget{ref-harper93}{}
+Harper, Robert, Furio Honsell, and Gordon Plotkin. 1993. ``A Framework
+for Defining Logics.'' \emph{J. ACM} 40 (1). New York, NY, USA: ACM:
+143--84.
+doi:\href{https://doi.org/10.1145/138027.138060}{10.1145/138027.138060}.
+
+\hypertarget{ref-shing-cheng}{}
+Mu, Shin-Cheng. 2011. ``Proving the Church-Rosser Theorem Using a
+Locally Nameless Representation.'' Blog.
+\url{http://www.iis.sinica.edu.tw/~scm/2011/proving-the-church-rosser-theorem}.
+
+\hypertarget{ref-pfenning88}{}
+Pfenning, F., and C. Elliott. 1988. ``Higher-Order Abstract Syntax.'' In
+\emph{Proceedings of the Acm Sigplan 1988 Conference on Programming
+Language Design and Implementation}, 199--208. PLDI '88. New York, NY,
+USA: ACM.
+doi:\href{https://doi.org/10.1145/53990.54010}{10.1145/53990.54010}.
+
+\hypertarget{ref-pfenning99}{}
+Pfenning, Frank, and Carsten Schürmann. 1999. ``Automated Deduction ---
+Cade-16: 16th International Conference on Automated Deduction Trento,
+Italy, July 7--10, 1999 Proceedings.'' In, 202--6. Berlin, Heidelberg:
+Springer Berlin Heidelberg.
+doi:\href{https://doi.org/10.1007/3-540-48660-7_14}{10.1007/3-540-48660-7\_14}.
+
+\hypertarget{ref-pollack95}{}
+Pollack, Robert. 1995. ``Polishing up the Tait-Martin-Löf Proof of the
+Church-Rosser Theorem.''
+
+\hypertarget{ref-takahashi95}{}
+Takahashi, M. 1995. ``Parallel Reductions in λ-Calculus.''
+\emph{Information and Computation} 118 (1): 120--27.
+doi:\href{https://doi.org/http://dx.doi.org/10.1006/inco.1995.1057}{http://dx.doi.org/10.1006/inco.1995.1057}.
+
+% - Back matter ----------------------------------------------------------------
+
+
+
+
+\end{document}

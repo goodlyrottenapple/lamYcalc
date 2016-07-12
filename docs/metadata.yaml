@@ -1,0 +1,76 @@
+---
+title:      A formalization of the $\lamy$ calculus
+
+author:     Samuel Balco
+
+college:    GTC
+
+supervisor: Faris Abou-Saleh, Luke Ong and Steven Ramsay
+
+degree:     MSc in Computer Science
+
+degreedate: Trinity 2016
+
+# -----------------------------------------------------------------------------
+# -- Front matter -------------------------------------------------------------
+# You can either include a file e.g. \input{source/abstract} where abstract is a
+# .tex file or you can simply write the text directly here.
+# -----------------------------------------------------------------------------
+abstract: |
+  This is the abstract.
+  For this and the other front-matter options you can either include the text directly on the metadata file or
+  you can use in order to include your text.
+
+dedication: |
+  This is a dedication
+
+acknowledgements: |
+  Say thanks to whoever listened to your rants for 2 months
+
+originality: |
+  This is the statement of originality
+
+# -----------------------------------------------------------------------------
+# -- Other Pandoc Options -----------------------------------------------------
+# -- don't change unless you know what you're doing ---------------------------
+# -----------------------------------------------------------------------------
+toc:            yes                                           # Generate Table of Contents
+toc-depth:      2                                             # Depth of TOC
+link-citations: yes                                           # generates links for all references
+links-as-notes: yes                                           # renders url links are footnotes
+geometry:       margin=2cm                                    # Adjust margins
+# highlight:      tango                                         # Syntax highlighting for code blocks
+# listings:       yes                                           # use listings package (code blocks with tex instead of pandoc)
+counter:        yes                                           # Use same counter for all figures/tables/listings (y/n)
+citecolor:                                                    # color of citations. Default is blue
+urlcolor:       cyan                                          # color of urls. Default is blue
+linkcolor:      cyan                                          # color of links. Default is magenta
+
+# -----------------------------------------------------------------------------
+# -- Latex options ------------------------------------------------------------
+# -----------------------------------------------------------------------------
+thesis_class: style/ociamthesis      # The thesis style (Oxford default class)
+figures:      style/logobar # The Oxford Logo to use in the title
+mainfont: Fira Sans Light
+sansfont: Fira Sans
+mathfont: Fira Sans Light
+monofont: FreeMono
+monofontoptions: Scale=0.8
+
+header-includes: # Things you may want to include in the latex header
+- \usepackage{bussproofs}
+- \usepackage{amsthm}
+- \usepackage{minted}
+- \let\OldTexttt\texttt
+- \renewcommand{\texttt}[1]{\small\OldTexttt{#1}}
+- \newcommand{\lamy}{\lambda\text{-}Y}
+- \newcommand{\concat}{\ensuremath{+\!\!\!\!+\,}}
+- \newcommand{\wf}{\textsf{Wf-ICtxt}\ }
+- \newcommand{\tocap}{\leadsto\kern-.5ex\cap}
+- \newcommand{\conR}{\concat_{\kern-1ex R}}
+- \newcommand{\conL}{\concat_{\kern-1ex L}}
+- \newcommand{\poplm}{\textsc{PoplMark}}
+- \renewcommand{\max}{\textsf{max}\ }
+include-before:  # Options to insert before the TOC
+include-after:   # Options to insert after the last page
+---
