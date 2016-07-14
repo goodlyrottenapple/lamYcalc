@@ -3,25 +3,28 @@
 In this section, we will work with both the simple types introduced earlier (definition given again below), as well as intersection types, defined in the following way:
 $\\$
 
-**Definition** (Types) - Note that $\mathsf{o}$ and $\phi$ are constants. $\omega$ is used to denote an empty list of strict intersection types. The following sugar notation will also occasionally be used: $\bigcap \tau \equiv [ \tau ]$ and $\tau \cap \tau' \equiv \bigcap \tau \concat \bigcap \tau' \equiv [ \tau, \tau' ]$.
+<div class="Definition" head="Intersection Types">
+Note that $\mathsf{o}$ and $\phi$ are constants. $\omega$ is used to denote an empty list of strict intersection types. The following sugar notation will also occasionally be used: $\bigcap \tau \equiv [ \tau ]$ and $\tau \cap \tau' \equiv \bigcap \tau \concat \bigcap \tau' \equiv [ \tau, \tau' ]$.
 
 i)  Simple types:
     $$\sigma ::= \mathsf{o}\ |\ \sigma \to \sigma$$
 ii) Intersection types:
     $$\mathcal{T}_s ::= \phi\ |\ \mathcal{T} \leadsto \mathcal{T}$$
     $$\mathcal{T} ::= \mathsf{List}\ \mathcal{T}_s$$
-
+</div>
 
 The reason why $\mathcal{T}$ is defined as a list of strict types $\mathcal{T}_s$ is due to the requirement that the types in $\mathcal{T}$ be finite. The decision to use lists was taken because the Agda standard library includes a definition of lists along with definitions of list membership $\in$ for lists and other associated lemmas.
 
 Next, we redefine the $\lambda$-terms slightly, by annotating the terms with simple types. The reason for this will be clear later on.
 
-**Definition** (Terms) - Let $\sigma$ range over simple types in the following definition:
+<div class="Definition" head="Terms">
+Let $\sigma$ range over simple types in the following definition:
 
 i)  Simply-typed terms:
     $$M::= x_\sigma\ |\ MM\ |\ \lambda x_\sigma.M\ |\ Y_\sigma \text{ where }x \in Var$$
 ii) Simply-typed pre-terms:
     $$M'::= x_\sigma\ |\ i\ |\ M'M'\ |\ \lambda_\sigma.M'\ |\ Y_\sigma \text{ where }x \in Var\text{ and }i \in \mathbb{N}$$
+</div>
 
 Note that both definitions implicitly assume that in the case of application, a well formed simply-typed term will be of the form $st$, where $s$ has some simple type $A \to B$ and $t$ is typed with the simple type $A$. Sometimes the same subscript notation will be used to indicate the simple type of a given pre-/term, for example: $m_{A \to B}$. Also, rather confusingly, the simple type of $Y_A$ is $(A \to A) \to A$, and thus $Y_A$ should not be confused with a constant $Y$ having a simple type $A$. **Maybe use something like this instead?:** $m_{:A \to B}$ i.e. $Y_{A:(A \to A) \to A}$.   
 The typed versions of substitution and the open and close operations are virtually identical to the untyped versions.
@@ -30,7 +33,8 @@ The typed versions of substitution and the open and close operations are virtual
 
 Next, we introduce the notion of type refinement by defining the refinement relation $::$, between simple types and intersection types.
 
-**Definition** ($::$) - Since intersection types are defined in terms of strict ($\mathcal{T}_s$) and non-strict ($\mathcal{T}$) intersection types, for correct typing, the definition of $::$ is split into two versions, one for strict and another for non-strict types. In the definition below, $\tau$ ranges over strict intersection types $\mathcal{T}_s$, with $\tau_i, \tau_j$ ranging over non-strict intersection types $\mathcal{T}$, and $A, B$ range over simple types $\sigma$:
+<div class="Definition" head="$::$">
+Since intersection types are defined in terms of strict ($\mathcal{T}_s$) and non-strict ($\mathcal{T}$) intersection types, for correct typing, the definition of $::$ is split into two versions, one for strict and another for non-strict types. In the definition below, $\tau$ ranges over strict intersection types $\mathcal{T}_s$, with $\tau_i, \tau_j$ ranging over non-strict intersection types $\mathcal{T}$, and $A, B$ range over simple types $\sigma$:
 
 \begin{center}
   \AxiomC{}
@@ -55,10 +59,12 @@ Next, we introduce the notion of type refinement by defining the refinement rela
   \BinaryInfC{$\tau , \tau_i :: A$}
   \DisplayProof
 \end{center}
+</div>
 
 Having a notion of refinement, we define a restricted version of a subset relation on intersection types, which is defined only for pairs of intersection types, which refine the same simple type.
 
-**Definition** ($\subseteq^A$) - In the definition below, $\tau, \tau'$ range over $\mathcal{T}_s$, $\tau_i, \hdots, \tau_n$ range over $\mathcal{T}$ and $A, B$ range over $\sigma$:
+<div class="Definition" head="$\subseteq^A$">
+In the definition below, $\tau, \tau'$ range over $\mathcal{T}_s$, $\tau_i, \hdots, \tau_n$ range over $\mathcal{T}$ and $A, B$ range over $\sigma$:
 
 \begin{center}
   \AxiomC{}
@@ -95,15 +101,18 @@ Having a notion of refinement, we define a restricted version of a subset relati
   \DisplayProof
   \vskip 1.5em
 \end{center}
+</div>
 
 It's easy to show the following properties hold for the $\subseteq^A$ and $::$ relations:
 
-**Lemma** ($\subseteq\implies::$)
-
+<div class="Lemma" head="$\subseteq\implies::$">
 i)  $\tau \subseteq^A_s \delta \implies \tau ::_s A \land \delta ::_s A$
 ii) $\tau_i \subseteq^A \delta_i \implies \tau_i :: A \land \delta_i :: A$
-
-_Proof:_ By **?mutual?** induction on the relations $\subseteq^A_s$ and $\subseteq^A$.
+</div>
+<div class="proof">
+\label{test}
+By **?mutual?** induction on the relations $\subseteq^A_s$ and $\subseteq^A$.
+</div>
 
 **Lemma** ($\subseteq$ admissible) The following rules are admissible in $\subseteq^A_s/\subseteq^A$:
 
@@ -456,3 +465,6 @@ i)
         Where $A \equiv B \to C$.
 
         By IH, we get $\Gamma \Vdash_s m (Y_{B \to C} m) : \tau_i \leadsto \tau_j$ and $\Gamma \Vdash_s m (Y_{B \to C} m) : \tau_i \leadsto \tau_k$, thus from $(\tocap)$ it follows that $\Gamma \Vdash_s m (Y_{B \to C} m) : \tau_i \leadsto \tau_{jk}$
+
+
+Test reference to lemma \ref{test}.

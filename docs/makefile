@@ -2,6 +2,7 @@ basedir=$(PWD)
 
 sources := $(filter-out proposal/prop.md,$(wildcard */*.md))
 styledir=$(basedir)/style
+scriptedir=$(basedir)/scripts
 
 meta=$(basedir)/metadata.yaml
 
@@ -31,16 +32,14 @@ define pandoc
 	$(sources) \
 	-o "$(1)" \
 	--template="$(styledir)/template.tex" \
-	--filter pandoc-minted.py \
+	--filter "$(scriptedir)/pandoc-amsthm.py" \
+	--filter "$(scriptedir)/pandoc-minted.py" \
 	--bibliography="$(bibfile)"  \
 	--chapters \
 	-N \
 	--latex-engine=xelatex \
 	$(2) 2>"$(basedir)"/pandoc.log
 endef
-
-remove := $(wildcard _minted*)
-remove2 := $(wildcard out*)
 
 default: all
 
@@ -49,4 +48,5 @@ all:
 	xelatex -shell-escape "$(out_name).tex"
 
 clean: 
-	rm -r $(remove)
+	rm $(out_name).*
+	rm -r _minted*

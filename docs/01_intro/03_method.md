@@ -1,15 +1,42 @@
 #Methodology
 
-##$\lambda$-Y calculus - Definitions
+##Comparison of formalizations
+
+The idea of formalizing a functional language in multiple theorem provers and objectively assesing the merits and pitfalls of the different formalizations is definitely not a new idea. The most well known attempt to do so on a larger scale is the $\poplm$ challenge, proposed in the "Mechanized Metatheory for the Masses: The $\poplm$ Challenge" paper by @aydemir05.   
+Whilst this paper prompted several formalizations of the benchmark typed $\lambda$-calculus, proposed by the authors of the challenge, in multiple theorem provers, such as Coq, Isabelle, Matita or Twelf, there seems to have been no attempt made at analyzing and comparing the different formalizations and drawing any conclusions with regards to the stated aims of the challenge.
+
+Whilst this project does not aim to answer the same question as the original challenge, namely: 
+
+> "How close are we to a world where every paper on programming languages is accompanied by an electronic appendix with machine- checked proofs?" (@aydemir05)
+
+It draws inspiration from the criteria for the "benchmark mechanization", specified by the challenge and tries apply them in the assessment of the two different mechanizations of binders for the $\lamy$ calculus (Chapter 4), namely nominal and locally nameless implementations, as well as in the comparison two different theorem provers (Chapter 5), Isabelle and Agda.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<!--##$\lamy$ calculus - Definitions
 
 **Syntax (nominal)**
-
-Types: 
-$$\sigma ::= a\ |\ \sigma \to \sigma \text{ where }a \in \mathcal{TV}$$
-
-Terms:
-$$M::= x\ |\ MM\ |\ \lambda x.M\ |\ Y_\sigma \text{ where }x \in Var$$
-
 
 **Well typed terms (nominal)**
 
@@ -100,7 +127,7 @@ $$M::= x\ |\ MM\ |\ \lambda x.M\ |\ Y_\sigma \text{ where }x \in Var$$
     \hskip 1.5em
     \AxiomC{}
     \LeftLabel{$(Y)$}
-    \UnaryInfC{$M \Rightarrow M (Y_\sigma M)$}
+    \UnaryInfC{$Y_\sigma M \Rightarrow M (Y_\sigma M)$}
     \DisplayProof
 \end{center}
 
@@ -190,4 +217,4 @@ $M^N \equiv \{0 \to N\}M\\$
     \LeftLabel{$(Y)$}
     \UnaryInfC{$M \Rightarrow M (Y_\sigma M)$}
     \DisplayProof
-\end{center}
+\end{center} -->

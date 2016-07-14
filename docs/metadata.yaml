@@ -38,7 +38,7 @@ toc:            yes                                           # Generate Table o
 toc-depth:      2                                             # Depth of TOC
 link-citations: yes                                           # generates links for all references
 links-as-notes: yes                                           # renders url links are footnotes
-geometry:       margin=2cm                                    # Adjust margins
+geometry:       margin=3cm                                    # Adjust margins
 # highlight:      tango                                         # Syntax highlighting for code blocks
 # listings:       yes                                           # use listings package (code blocks with tex instead of pandoc)
 counter:        yes                                           # Use same counter for all figures/tables/listings (y/n)
@@ -61,8 +61,10 @@ header-includes: # Things you may want to include in the latex header
 - \usepackage{bussproofs}
 - \usepackage{amsthm}
 - \usepackage{minted}
-- \let\OldTexttt\texttt
-- \renewcommand{\texttt}[1]{\small\OldTexttt{#1}}
+- \usepackage{tikz}
+- \usetikzlibrary{arrows,automata, positioning}
+# - \let\OldTexttt\texttt
+# - \renewcommand{\texttt}[1]{\OldTexttt{\small{#1}}}
 - \newcommand{\lamy}{\lambda\text{-}Y}
 - \newcommand{\concat}{\ensuremath{+\!\!\!\!+\,}}
 - \newcommand{\wf}{\textsf{Wf-ICtxt}\ }
@@ -71,6 +73,20 @@ header-includes: # Things you may want to include in the latex header
 - \newcommand{\conL}{\concat_{\kern-1ex L}}
 - \newcommand{\poplm}{\textsc{PoplMark}}
 - \renewcommand{\max}{\textsf{max}\ }
+- \newcommand{\dip}{\textsf{dp}}
+
 include-before:  # Options to insert before the TOC
 include-after:   # Options to insert after the last page
+
+
+# amsthm settings
+amsthm:
+  plain:    [Theorem, Lemma]
+  plain-unnumbered: [Proposition, Corollary]
+  definition:   [Definition,Conjecture,Example,Postulate,Problem]
+  definition-unnumbered:    []
+  remark:   [Case]
+  remark-unnumbered:    [Remark,Note]
+  proof:    [proof]
+  parentcounter:    chapter
 ---
