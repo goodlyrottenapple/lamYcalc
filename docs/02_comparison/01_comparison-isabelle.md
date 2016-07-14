@@ -1,3 +1,3 @@
-#Isabelle vs. Isabelle
+#Isabelle vs. Isabelle {#comp-isa}
 
 aaaa

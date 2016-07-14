@@ -179,22 +179,34 @@ xetex]{hyperref}
 \else
   \usepackage[unicode=true]{hyperref}
 \fi
+
 % Make sure url breaks
 \usepackage{url}
 \makeatletter
 \g@addto@macro{\UrlBreaks}{\UrlOrds}
 \makeatother
-\hypersetup{breaklinks=true,
-            bookmarks=true,
-            pdfauthor={$author-meta$},
+\hypersetup{
+$if(title-meta)$
             pdftitle={$title-meta$},
+$endif$
+$if(author)$
+            pdfauthor={$author$},
+$endif$
+$if(keywords)$
+            pdfkeywords={$for(keywords)$$keywords$$sep$; $endfor$},
+$endif$
+$if(colorlinks)$
             colorlinks=true,
-            citecolor=$if(citecolor)$$citecolor$$else$blue$endif$,
-            urlcolor=$if(urlcolor)$$urlcolor$$else$blue$endif$,
-            linkcolor=$if(linkcolor)$$linkcolor$$else$magenta$endif$,
-            pdfborder={0 0 0}}
-\urlstyle{same}  % don't use monospace font for urls
+            linkcolor=$if(linkcolor)$$linkcolor$$else$cyan$endif$,
+            citecolor=$if(citecolor)$$citecolor$$else$cyan$endif$,
+            urlcolor=$if(urlcolor)$$urlcolor$$else$cyan$endif$,
+$else$
+            pdfborder={0 0 0},
+$endif$
+            breaklinks=true}
+\urlstyle{same}   % don't use monospace font for urls
 \usepackage[all]{hypcap}% improve link placement in floats
+
 
 % better names when cross-referencing with cleveref
 \usepackage[nameinlink]{cleveref}
@@ -465,6 +477,8 @@ $if(lof)$
 $endif$
 % \end{romanpages}
 \newpage
+
+$if(colorlinks)$ \hypersetup{linkcolor=$if(linkcolor)$$linkcolor$$else$cyan$endif$} $endif$
 
 % - BODY -----------------------------------------------------------------------
 \pagenumbering{arabic}

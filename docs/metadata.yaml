@@ -42,9 +42,10 @@ geometry:       margin=3cm                                    # Adjust margins
 # highlight:      tango                                         # Syntax highlighting for code blocks
 # listings:       yes                                           # use listings package (code blocks with tex instead of pandoc)
 counter:        yes                                           # Use same counter for all figures/tables/listings (y/n)
-citecolor:                                                    # color of citations. Default is blue
-urlcolor:       cyan                                          # color of urls. Default is blue
-linkcolor:      cyan                                          # color of links. Default is magenta
+colorlinks : true
+# citecolor:      cyan                                          # color of citations. Default is blue
+# urlcolor:       cyan                                          # color of urls. Default is blue
+# linkcolor:      cyan                                          # color of links. Default is magenta
 
 # -----------------------------------------------------------------------------
 # -- Latex options ------------------------------------------------------------

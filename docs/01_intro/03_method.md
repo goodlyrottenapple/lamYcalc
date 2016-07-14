@@ -9,16 +9,23 @@ Whilst this project does not aim to answer the same question as the original cha
 
 > "How close are we to a world where every paper on programming languages is accompanied by an electronic appendix with machine- checked proofs?" (@aydemir05)
 
-It draws inspiration from the criteria for the "benchmark mechanization", specified by the challenge and tries apply them in the assessment of the two different mechanizations of binders for the $\lamy$ calculus (Chapter 4), namely nominal and locally nameless implementations, as well as in the comparison two different theorem provers (Chapter 5), Isabelle and Agda.
+It draws inspiration from the criteria for the "benchmark mechanization", specified by the challenge and tries apply them in the assessment of the two different mechanizations of binders for the $\lamy$ calculus ([Chapter 4](#comp-isa)), namely nominal and locally nameless implementations, as well as in the comparison two different theorem provers ([Chapter 5](#comp-agda)), Isabelle and Agda.
 
+###Comparison evaluation criteria
 
+The $\poplm$ challenge stated three main criteria for evaluating the submitted mechanizations of the benchmark calculus:
 
+- Mechanization/implementation overheads
+- Technology transparency
+- Cost of entry
 
+To this, we add another criterion: 
 
+- Proof automation
 
+This project focuses mainly on the tree criteria of mechanization overheads, technology transparency and automation, since the focus of our comparison is to chose the best mechanization and theorem prover to use for mechanizing intersection types for the $\lamy$ calculus and the associated results. \url{http://www.sharelatex.com}...
 
-
-
+####Mechanization/implementation overheads
 
 
 
