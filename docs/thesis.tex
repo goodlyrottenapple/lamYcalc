@@ -336,10 +336,10 @@ binders in a theorem prover and also the use of different theorem
 provers. The project focuses on the engineering choices and
 formalization overheads which result from translating the informal
 definitions into a fully-formal setting of a theorem prover. The project
-is split into roughly two main parts, witht he first part exploring and
+is split into roughly two main parts, with the first part exploring and
 evaluating different formalizations of the simply-typed \(\lamy\)
 calculus together with the proof of the Church Rosser Theorem. The
-second part focuses on implemnting the interestion-type system for the
+second part focuses on implementing the intersection-type system for the
 \(\lamy\) calculus and formalizing the proof of subject invariance for
 this type system. The formalization and engineering choices made in the
 implementation of the intersection-type system reflect the survey and
@@ -713,9 +713,13 @@ are given below:
 
 \begin{Definition}[$\lamy$ types and terms]
 
-\(\\\) \textbf{Types:} \[\sigma ::= \phi\ |\ \sigma \to \sigma\]
-\textbf{Terms:}
-\[M::= x\ |\ MM\ |\ \lambda x.M\ |\ Y_\sigma \text{ where }x \in Var\]
+Let \(Var\) be a countably infinite set of atoms in the definition of
+the set of \(\lambda\)-terms \(M\): \label{lamy-trms}
+
+\begin{align*}
+\sigma ::=&\ \mathsf{o}\ |\ \sigma \to \sigma \\
+M ::=&\ x\ |\ MM\ |\ \lambda x.M\ |\ Y_\sigma \text{ where }x \in Var \\
+\end{align*}
 
 \end{Definition}
 
@@ -734,11 +738,15 @@ The usual definition of \(\beta\)-reduction is then augmented with the
 \end{center}
 
 In essence, the \(Y\) rule allows (some) well-typed recursive
-definitions over simply typed \(\lambda\)-terms.
+definitions over simply typed \(\lambda\)-terms. The typed version of
+the rule illustrates this restricted version of recursion, where a
+recursive ``\(Y\)-reduction'' will only occur if the term \(M\) in
+\(Y_\sigma M\) has the matching type \(\sigma \to \sigma\) (to
+\(Y_\sigma\)'s type \((\sigma \to \sigma) \to sigma\)).
 
-\subsection{Church-Rosser Theorem}\label{church-rosser-theorem}
+\subsection{Church-Rosser Theorem}\label{cr-def}
 
-The Church-Rosser Theroem states that the \(\beta\)-reduction of the
+The Church-Rosser Theorem states that the \(\beta\)-reduction of the
 \(\lambda\)-calculus is confluent, that is, the reflexive-transitive
 closure of the \(\beta\)-reduction has the \emph{diamond property}, i.e.
 \(\dip(\Rightarrow^*)\), where:
@@ -924,13 +932,179 @@ twice, namely for any term \(M\) there is an \(M_{max}\) s.t.
 
 \end{proof}
 
+\subsection{Simple types}\label{simple-types}
+
+The simple types presented throughout this work (except for
+\protect\hyperlink{itypes}{Chapter 6}) are often referred to as simple
+types \emph{a la Curry}, where a simply typed \(\lambda\)-term is a
+triple \((\Gamma, M, \sigma)\) s.t. \(\Gamma \vdash M : \sigma\), where
+\(\Gamma\) is the typing context, \(M\) is a term of the untyped
+\(\lambda\)-calculus and \(\sigma\) is a simple type.\\
+In the untyped \(\lambda\) calculus, simple types and \(\lambda\)-terms
+are completely separate, brought together only through the typing
+relation \(\vdash\) in the case of simple types \emph{a la Curry}. The
+definition of \(\lamy\) terms, however, is dependent on the simple types
+in the case of the \(Y\) constants, which are indexed by simple types.
+When talking about the \(\lamy\) calculus, we tend to conflate the
+``untyped'' \(\lamy\) terms, which are simply the terms defined in
+\ref{lamy-trms}, with the ``typed'' \(\lamy\) terms, which are simply
+typed terms \emph{a la Curry} of the form \(\Gamma \vdash M : \sigma\),
+where \(M\) is an ``untyped'' \(\lamy\) term. Thus, results about the
+\(\lamy\) calculus in this work are in fact results about the ``typed''
+\(\lamy\) calculus.\\
+However, the proofs of the Church Rosser theorem, as presented in the
+previous section, use the untyped definition of \(\beta\)-reduction.
+Whilst it is possible to define a typed version of \(\beta\)-reduction,
+as was demonstrated by the typed version of the \((Y)\) reduction rule,
+it turned out to be much easier to first prove the Church Rosser theorem
+for the so called ``untyped'' \(\lamy\) calculus and the additionally
+restrict this result to only well-types \(\lamy\) terms. Thus, the
+definition of the Church Rosser Theorem, formulated for the \(\lamy\)
+calculus, is the following one:
+
+\begin{Theorem}[Church Rosser]
+
+\[\Gamma \vdash M : \sigma \land M \Rightarrow_\beta^* M' \land M \Rightarrow_\beta^* M'' \implies \exists M'''.\ \ M' \Rightarrow_\beta^* M''' \land M'' \Rightarrow_\beta^* M''' \land \Gamma \vdash M''' : \sigma\]
+
+\end{Theorem}
+
+In order to prove this typed version of the Church Rosser Theorem, we
+need to prove an additional result of subject reduction for \(\lamy\)
+calculus, namely:
+
+\begin{Theorem}[Subject reduction for $\Rightarrow_\beta$]
+
+\[\Gamma \vdash M : \sigma \land M \Rightarrow_\beta^* M' \implies \Gamma \vdash M' : \sigma\]
+
+\end{Theorem}
+
+\newpage
+
+\section{Intersection types}\label{intersection-types}
+
+For the formalization of intersection types, we initially chose a strict
+intersection-type system, presented in the Bakel
+(\protect\hyperlink{ref-bakel}{2003}) notes. Intersection types, as
+classically presented in Barendregt, Dekkers, and Statman
+(\protect\hyperlink{ref-barendregt13}{2013}) as \(\lambda_\cap^{BCD}\),
+extend simple types by adding a conjunction to the definition of types:
+
+\begin{Definition}[$\lambda_\cap^{BCD}$ types]
+
+\[\mathcal{T} ::= \phi\ |\ \mathcal{T} \leadsto \mathcal{T}\ |\ \mathcal{T} \cap \mathcal{T}\]
+
+\end{Definition}
+
+We restrict ourselves to a version of intersection types often called
+\emph{strict intersection types}. \emph{Strict intersection types} are a
+restriction on \(\lambda_\cap^{BCD}\) types, where an intersection of
+types can only appear on the left side of an ``arrow'' type:
+
+\begin{Definition}[Strict intersection types]
+
+\begin{align*} 
+\mathcal{T}_s &::= \phi\ |\ \mathcal{T} \leadsto \mathcal{T}_s \\ 
+\mathcal{T} &::= (\mathcal{T}_s \cap\hdots\cap \mathcal{T}_s)
+\end{align*}
+
+\end{Definition}
+
+The following conventions for intersection types are adopted throughout
+this section; \(\omega\) stands for the empty intersection and we write
+\(\bigcap\tau_i\) for the type \(\tau_1 \cap\hdots\cap \tau_i\). We also
+define a relation \(\subseteq\) for intersection types:
+
+\begin{Definition}[$\subseteq$]
+
+This relation is the least pre-order on intersection types s.t.:
+
+\begin{align*} 
+\forall\ 1 \leq j \leq i.&\ \ \tau_j \subseteq \bigcap \tau_i \\ 
+\forall\ 1 \leq j \leq i.\ \ \tau_j \subseteq \tau &\implies \bigcap \tau_i \subseteq \tau \\
+\rho \subseteq \psi \land \tau \subseteq \mu &\implies \psi \leadsto \tau \subseteq \rho \leadsto \mu\\
+\end{align*}
+
+\end{Definition}
+
+Note that \(\lamy\) terms are typed with the strict types
+\(\mathcal{T}_s\) only. The typing system, presented for the strict
+intersection types, is an adaptation of the one found in the R. Pollack
+(\protect\hyperlink{ref-pollack95}{1995}) notes, with the addition of
+the typing rule for the \(Y\) constants.
+
+\begin{Definition}[Intersection-type assignment]
+
+\(\\\)
+
+\begin{center}
+  \AxiomC{$\exists (x, \bigcap\tau_i) \in \Gamma.\ \tau \subseteq \bigcap\tau_i$}
+  \LeftLabel{$(var)$}
+  \UnaryInfC{$\Gamma \Vdash x : \tau$}
+  \DisplayProof
+  %------------------------------------
+  \hskip 1.5em
+  \AxiomC{$\Gamma \Vdash M : \bigcap\tau_i \leadsto \tau$}
+  \AxiomC{$\forall\ 1 \leq j \leq i.\ \ \Gamma \Vdash N : \tau_j$}
+  \LeftLabel{$(app)$}
+  \BinaryInfC{$\Gamma \Vdash MN : \tau$}
+  \DisplayProof
+  %------------------------------------
+  \vskip 1.5em
+  \AxiomC{$(x, \bigcap\tau_i),\Gamma \Vdash M : \tau$}
+  \LeftLabel{$(abs)$}
+  \UnaryInfC{$\Gamma \Vdash \lambda x.M : \bigcap\tau_i \leadsto \tau$}
+  \DisplayProof
+  %------------------------------------
+  \vskip 1.5em
+  \AxiomC{}
+  \LeftLabel{$(Y)$}
+  \RightLabel{$(1 \leq j \leq i)$}
+  \UnaryInfC{$\Gamma \Vdash Y_\sigma : (\bigcap\tau_i \leadsto \tau_1 \cap\hdots\cap \bigcap\tau_i \leadsto \tau_i) \leadsto \tau_j$}
+  \DisplayProof
+  \vskip 1.5em
+\end{center}
+
+\end{Definition}
+
+This is the initial definition, used as a basis for the mechanization,
+discussed in \protect\hyperlink{itypes}{Chapter 6}. Due to different
+obstacles in the formalization of the subject invariance proofs, this
+definition, along with the definition of intersection types was amended
+several times. The reasons for these changes are documented in
+\protect\hyperlink{itypes}{Chapter 6}.\\
+The definition above also assumes that the context \(\Gamma\) is
+\emph{well-formed}:
+
+\begin{Definition}[Well-formed intersection-type context]
+
+Assuming that \(\Gamma\) is a finite list, consisting of pairs of atoms
+\(Var\) and intersection types \(\mathcal{T}\), \(\Gamma\) is a
+\emph{well-formed} context iff:\(\\\)
+
+\begin{center}
+  \AxiomC{}
+  \LeftLabel{$(nil)$}
+  \UnaryInfC{$\wf [\ ]$}
+  \DisplayProof
+  %------------------------------------
+  \hskip 1.5em
+  \AxiomC{$x \not\in \mathsf{dom}\ \Gamma$}
+  \AxiomC{$\wf \Gamma$}
+  \LeftLabel{$(cons)$}
+  \BinaryInfC{$\wf (x,\bigcap\tau_i),\Gamma$}
+  \DisplayProof
+  \vskip 1.5em
+\end{center}
+
+\end{Definition}
+
 \chapter{Methodology}\label{methodology}
 
 \section{Comparison of
 formalizations}\label{comparison-of-formalizations}
 
 The idea of formalizing a functional language in multiple theorem
-provers and objectively assesing the merits and pitfalls of the
+provers and objectively assessing the merits and pitfalls of the
 different formalizations is definitely not a new idea. The most well
 known attempt to do so on a larger scale is the \(\poplm\) challenge,
 proposed in the ``Mechanized Metatheory for the Masses: The \(\poplm\)
@@ -953,15 +1127,19 @@ is accompanied by an electronic appendix with machine- checked proofs?''
 \end{quote}
 
 It draws inspiration from the criteria for the ``benchmark
-mechanization'', specified by the challenge and tries apply them in the
-assessment of the two different mechanizations of binders for the
-\(\lamy\) calculus (\protect\hyperlink{comp-isa}{Chapter 4}), namely
-nominal and locally nameless implementations, as well as in the
-comparison two different theorem provers
-(\protect\hyperlink{comp-agda}{Chapter 5}), Isabelle and Agda.
+mechanization'', specified by the challenge.
 
-\subsection{Comparison evaluation
-criteria}\label{comparison-evaluation-criteria}
+The comparison proceeded in two stages of elimination, where the first
+stage was a comparison of the two chosen mechanizations of binders for
+the \(\lamy\) calculus (\protect\hyperlink{comp-isa}{Chapter 4}), namely
+nominal set and locally nameless representations of binders.\\
+After choosing the optimal mechanization of binders, the
+\protect\hyperlink{comp-agda}{next chapter} then goes on to compare this
+mechanization in two different theorem provers, Isabelle and Agda.\\
+The ``wining'' theorem prover from this round was then used to formalize
+intersection-types and prove subject invariance.
+
+\subsection{Evaluation criteria}\label{evaluation-criteria}
 
 The \(\poplm\) challenge stated three main criteria for evaluating the
 submitted mechanizations of the benchmark calculus:
@@ -987,11 +1165,76 @@ To this, we add another criterion:
 This project focuses mainly on the tree criteria of mechanization
 overheads, technology transparency and automation, since the focus of
 our comparison is to chose the best mechanization and theorem prover to
-use for mechanizing intersection types for the \(\lamy\) calculus and
-the associated results. \url{http://www.sharelatex.com}\ldots{}
+use for implementing intersection types for the \(\lamy\) calculus (and
+proving subject invariance). These criteria are described in greater
+detail below:
 
 \subsubsection{Mechanization/implementation
 overheads}\label{mechanizationimplementation-overheads}
+
+This aspect of the mechanization is explored predominantly in the next
+chapter, which compares two different approaches to formalizing binders
+in the \(\lamy\) calculus. Binders are an aspect of our chosen
+formalization, where mechanization overheads are most apparent, as
+binders are usually overlooked to a large extent in informal setting.\\
+As was discussed previously, the treatment of binders is a well studied
+problem with several viable solutions. In this project, we decided to
+use nominal sets and locally nameless representation for binders, due to
+several reasons.\\
+The choice of nominal sets was tied to the implementation language,
+namely Isabelle, which has a well developed
+\href{http://www.inf.kcl.ac.uk/staff/urbanc/Nominal/}{nominal sets
+library}, maintained by Christian Urban. The appeal of using nominal
+sets is of course the touted minimal overheads in comparison to the
+informal presentation.\\
+The choice of locally nameless encoding, as opposed to using pure de
+Bruijn indices, was motivated by the claim that locally nameless
+encoding largely mitigates the disadvantages of de Bruin indices
+especially when it comes to technology transparency (i.e.~theorems about
+locally nameless presentation are much closer in formulation to the
+informal presentation than theorems formulated for de Bruijn indices).\\
+Both of these choices were guided in part by the initial choice of
+implementation language, Isabelle, which was chosen mainly due to
+previous experience in mechanizing similar proofs.\\
+The comparison between nominal and locally nameless versions of the
+\(\lamy\) calculus, presented in \protect\hyperlink{comp-isa}{Chapter
+4}, tries to highlight the differences in the two approaches in contrast
+to the usual informal reasoning.
+
+\subsubsection{Technology transparency}\label{technology-transparency}
+
+This criterion is discussed mainly in
+\protect\hyperlink{comp-agda}{Chapter 5}, which deals with the
+comparison of Isabelle and Agda. The choice of the two theorem provers,
+but especially of Isabelle, was largely subjective. Having had previous
+experience with Isabelle, it was natural to use it initially, to lower
+the cost of entry. Initially only using Isabelle for both formalizations
+of binders also allowed for a more uniform comparison of the
+mechanization overheads.\\
+The choice of Agda as the second implementation language was motivated
+by Agda having a dependent-type system. As a result, the style of proofs
+in Agda seems quite different to Isabelle, since the distinction between
+proofs and programs is largely erased. Agda was chosen over Coq, which
+is also a dependently-typed language, because it is more ``bare-bones''
+and thus seemed more accessible to a novice in dependently-typed
+languages. \textbf{Agda also has a higher ``cool''-factor than Coq,
+being a newer language. (Is a joke here ok?)}
+
+\subsubsection{Proof automation}\label{proof-automation}
+
+Proof automation ties into both the mechanization overheads and
+transparency aspects of a formalization, since high degree of automation
+can often result in a more natural/transparent looking proof where the
+``menial'' reasoning steps are taken care of by the theorem prover, and
+the user only sees the higher-level reasoning of informal proofs.\\
+Both following chapters discuss the automation features of Isabelle and
+Agda and try to draw comparisons by analyzing the same/equivalent lemmas
+in different mechanizations and theorem provers, in terms of automation.
+Whilst on paper, Isabelle includes a lot more automation, in the form of
+several tactics and automated theorem provers, whereas Agda comes with
+only very simple proof search tactics, Agda's more sophisticated
+type-system takes on and replicates at least some of the automation seen
+in Isabelle.
 
 \hypertarget{comp-isa}{\chapter{Isabelle vs.~Isabelle}\label{comp-isa}}
 
@@ -1161,7 +1404,7 @@ however, turns out not to be the case in this formalization, in part due
 to Agda's type system and the powerful pattern matching as well as
 direct access to the proof goals.
 
-\subsection{Proofs-as-programs}\label{proofs-as-programs}
+\section{Proofs-as-programs}\label{proofs-as-programs}
 
 As was already mentioned, Agda treats proofs as programs, and therefore
 provides direct access to proof objects. In Isabelle, the proof goal is
@@ -1355,7 +1598,7 @@ case (FVar y)
 We can thus see that using Isar style proofs and Agda reasoning ends up
 being rather similar in practice.
 
-\subsection{Pattern matching}\label{pattern-matching}
+\section{Pattern matching}\label{pattern-matching}
 
 Another reason why automation in the form of explicit proof search
 tactics needn't play such a significant role in Agda, is the more
@@ -1605,11 +1848,7 @@ cases, the completed proof is given below:
 
 \newpage
 
-\chapter{Intersection types}\label{intersection-types}
-
-In this section, we will work with both the simple types introduced
-earlier (definition given again below), as well as intersection types,
-defined in the following way: \(\\\)
+\hypertarget{itypes}{\chapter{Intersection types}\label{itypes}}
 
 \begin{Definition}[Intersection Types]
 
@@ -2218,6 +2457,14 @@ Principles of Programming Languages}, 3--15. POPL '08. New York, NY,
 USA: ACM.
 doi:\href{https://doi.org/10.1145/1328438.1328443}{10.1145/1328438.1328443}.
 
+\hypertarget{ref-bakel}{}
+Bakel, Steffen van. 2003. ``Semantics with Intersection Types.''
+\url{http://www.doc.ic.ac.uk/~svb/SemIntTypes/Notes.pdf}.
+
+\hypertarget{ref-barendregt13}{}
+Barendregt, Henk, Wil Dekkers, and Richard Statman. 2013. \emph{Lambda
+Calculus with Types}. New York, NY, USA: Cambridge University Press.
+
 \hypertarget{ref-berghofer06}{}
 Berghofer, Stefan, and Christian Urban. 2006. ``A Head-to-Head
 Comparison of de Bruijn Indices and Names.'' In \emph{IN Proc. Int.
@@ -2267,7 +2514,7 @@ doi:\href{https://doi.org/10.1145/2578855.2535873}{10.1145/2578855.2535873}.
 \hypertarget{ref-takahashi95}{}
 Takahashi, M. 1995. ``Parallel Reductions in \(\lambda\)-Calculus.''
 \emph{Information and Computation} 118 (1): 120--27.
-doi:\href{https://doi.org/http://dx.doi.org/10.1006/inco.1995.1057}{http://dx.doi.org/10.1006/inco.1995.1057}.
+\url{http://www.sciencedirect.com/science/article/pii/S0890540185710577}.
 
 \hypertarget{ref-tsukada14}{}
 Tsukada, Takeshi, and C.-H. Luke Ong. 2014. ``Compositional Higher-Order

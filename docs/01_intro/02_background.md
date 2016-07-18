@@ -170,12 +170,12 @@ However, using HOAS only works if the notion of $\alpha$-equivalence and substit
 
 The first part of this project focuses on formalizing the simply typed $\lamy$ calculus and the proof of confluence for this calculus. The usual/informal definition of the $\lamy$ terms and the simple types are given below:
 
-<div class="Definition" head="$\lamy$ types and terms">
-$\\$
-**Types:** 
-$$\sigma ::= \phi\ |\ \sigma \to \sigma$$
-**Terms:**
-$$M::= x\ |\ MM\ |\ \lambda x.M\ |\ Y_\sigma \text{ where }x \in Var$$
+<div class="Definition" head="$\lamy$ types and terms">Let $Var$ be a countably infinite set of atoms in the definition of the set of $\lambda$-terms $M$:
+\label{lamy-trms}
+\begin{align*}
+\sigma ::=&\ \mathsf{o}\ |\ \sigma \to \sigma \\
+M ::=&\ x\ |\ MM\ |\ \lambda x.M\ |\ Y_\sigma \text{ where }x \in Var \\
+\end{align*}
 </div> 
 
 The $\lamy$ calculus differs from the simply typed $\lambda$-calculus only in the addition of the $Y$ constant family, indexed at every simple type $\sigma$, where the (simple) type of a $Y_A$ constant (indexed with the type $A$) is $(A \to A) \to A$. The usual definition of $\beta$-reduction is then augmented with the $(Y)$ rule (this is the typed version of the rule):
@@ -187,11 +187,11 @@ The $\lamy$ calculus differs from the simply typed $\lambda$-calculus only in th
     \DisplayProof
 \end{center}
 
-In essence, the $Y$ rule allows (some) well-typed recursive definitions over simply typed $\lambda$-terms.
+In essence, the $Y$ rule allows (some) well-typed recursive definitions over simply typed $\lambda$-terms. The typed version of the rule illustrates this restricted version of recursion, where a recursive "$Y$-reduction" will only occur if the term $M$ in $Y_\sigma M$ has the matching type $\sigma \to \sigma$ (to $Y_\sigma$'s type $(\sigma \to \sigma) \to sigma$).
 
-###Church-Rosser Theorem
+###Church-Rosser Theorem {#cr-def}
 
-The Church-Rosser Theroem states that the $\beta$-reduction of the $\lambda$-calculus is confluent, that is, the reflexive-transitive closure of the $\beta$-reduction has the _diamond property_, i.e. $\dip(\Rightarrow^*)$, where:
+The Church-Rosser Theorem states that the $\beta$-reduction of the $\lambda$-calculus is confluent, that is, the reflexive-transitive closure of the $\beta$-reduction has the _diamond property_, i.e. $\dip(\Rightarrow^*)$, where:
 
 <div class="Definition" head="$\dip(R)$">
 A relation $R$ has the _diamond property_, i.e. $\dip(R)$, iff
@@ -315,4 +315,103 @@ Omitted. Can be found on p. 8 of the @pollack95 notes.
 <div class="Lemma">$\dip(\gg)$.</div>
 <div class="proof">
 We can now prove $\dip(\gg)$ by simply applying Lemma \ref{max-close} twice, namely for any term $M$ there is an $M_{max}$ s.t. $M \ggg M_{max}$ (by \ref{max-ex}) and for any $M', M''$ where $M \gg M'$ and $M \gg M''$, it follows by two applications of Lemma \ref{max-close} that $M' \gg M_{max}$ and $M'' \gg M_{max}$.
+</div>
+
+###Simple types
+
+The simple types presented throughout this work (except for [Chapter 6](#itypes)) are often referred to as simple types _a la Curry_, where a simply typed $\lambda$-term is a triple $(\Gamma, M, \sigma)$ s.t. $\Gamma \vdash M : \sigma$, where $\Gamma$ is the typing context, $M$ is a term of the untyped $\lambda$-calculus and $\sigma$ is a simple type.    
+In the untyped $\lambda$ calculus, simple types and $\lambda$-terms are completely separate, brought together only through the typing relation $\vdash$ in the case of simple types _a la Curry_. The definition of $\lamy$ terms, however, is dependent on the simple types in the case of the $Y$ constants, which are indexed by simple types. When talking about the $\lamy$ calculus, we tend to conflate the "untyped" $\lamy$ terms, which are simply the terms defined  in \ref{lamy-trms}, with the "typed" $\lamy$ terms, which are simply typed terms _a la Curry_ of the form $\Gamma \vdash M : \sigma$, where $M$ is an "untyped" $\lamy$ term. Thus, results about the $\lamy$ calculus in this work are in fact results about the "typed" $\lamy$ calculus.    
+However, the proofs of the Church Rosser theorem, as presented in the previous section, use the untyped definition of $\beta$-reduction. Whilst it is possible to define a typed version of $\beta$-reduction, as was demonstrated by the typed version of the $(Y)$ reduction rule, it turned out to be much easier to first prove the Church Rosser theorem for the so called "untyped" $\lamy$ calculus and the additionally restrict this result to only well-types $\lamy$ terms. Thus, the definition of the Church Rosser Theorem, formulated for the $\lamy$ calculus, is the following one:
+
+<div class="Theorem" head="Church Rosser">
+$$\Gamma \vdash M : \sigma \land M \Rightarrow_\beta^* M' \land M \Rightarrow_\beta^* M'' \implies \exists M'''.\ \ M' \Rightarrow_\beta^* M''' \land M'' \Rightarrow_\beta^* M''' \land \Gamma \vdash M''' : \sigma$$
+</div>
+
+In order to prove this typed version of the Church Rosser Theorem, we need to prove an additional result of subject reduction for $\lamy$ calculus, namely:
+
+<div class="Theorem" head="Subject reduction for $\Rightarrow_\beta$">
+$$\Gamma \vdash M : \sigma \land M \Rightarrow_\beta^* M' \implies \Gamma \vdash M' : \sigma$$
+</div>
+
+\newpage
+##Intersection types
+
+For the formalization of intersection types, we initially chose a strict intersection-type system, presented in the @bakel notes. Intersection types, as classically presented in @barendregt13 as $\lambda_\cap^{BCD}$, extend simple types by adding a conjunction to the definition of types:
+
+<div class="Definition" head="$\lambda_\cap^{BCD}$ types">
+$$\mathcal{T} ::= \phi\ |\ \mathcal{T} \leadsto \mathcal{T}\ |\ \mathcal{T} \cap \mathcal{T}$$
+</div>
+
+We restrict ourselves to a version of intersection types often called _strict intersection types_. _Strict intersection types_ are a restriction on $\lambda_\cap^{BCD}$ types, where an intersection of types can only appear on the left side of an "arrow" type:
+
+<div class="Definition" head="Strict intersection types">
+\begin{align*} 
+\mathcal{T}_s &::= \phi\ |\ \mathcal{T} \leadsto \mathcal{T}_s \\ 
+\mathcal{T} &::= (\mathcal{T}_s \cap\hdots\cap \mathcal{T}_s)
+\end{align*}
+</div>
+
+The following conventions for intersection types are adopted throughout this section; 
+$\omega$ stands for the empty intersection and we write $\bigcap\tau_i$ for the type $\tau_1 \cap\hdots\cap \tau_i$. We also define a relation $\subseteq$ for intersection types:
+
+<div class="Definition" head="$\subseteq$">This relation is the least pre-order on intersection types s.t.:
+\begin{align*} 
+\forall\ 1 \leq j \leq i.&\ \ \tau_j \subseteq \bigcap \tau_i \\ 
+\forall\ 1 \leq j \leq i.\ \ \tau_j \subseteq \tau &\implies \bigcap \tau_i \subseteq \tau \\
+\rho \subseteq \psi \land \tau \subseteq \mu &\implies \psi \leadsto \tau \subseteq \rho \leadsto \mu\\
+\end{align*}
+</div>
+
+
+Note that $\lamy$ terms are typed with the strict types $\mathcal{T}_s$ only. The typing system, presented for the strict intersection types, is an adaptation of the one found in the @pollack95 notes, with the addition of the typing rule for the $Y$ constants.
+
+<div class="Definition" head="Intersection-type assignment">$\\$
+\begin{center}
+  \AxiomC{$\exists (x, \bigcap\tau_i) \in \Gamma.\ \tau \subseteq \bigcap\tau_i$}
+  \LeftLabel{$(var)$}
+  \UnaryInfC{$\Gamma \Vdash x : \tau$}
+  \DisplayProof
+  %------------------------------------
+  \hskip 1.5em
+  \AxiomC{$\Gamma \Vdash M : \bigcap\tau_i \leadsto \tau$}
+  \AxiomC{$\forall\ 1 \leq j \leq i.\ \ \Gamma \Vdash N : \tau_j$}
+  \LeftLabel{$(app)$}
+  \BinaryInfC{$\Gamma \Vdash MN : \tau$}
+  \DisplayProof
+  %------------------------------------
+  \vskip 1.5em
+  \AxiomC{$(x, \bigcap\tau_i),\Gamma \Vdash M : \tau$}
+  \LeftLabel{$(abs)$}
+  \UnaryInfC{$\Gamma \Vdash \lambda x.M : \bigcap\tau_i \leadsto \tau$}
+  \DisplayProof
+  %------------------------------------
+  \vskip 1.5em
+  \AxiomC{}
+  \LeftLabel{$(Y)$}
+  \RightLabel{$(1 \leq j \leq i)$}
+  \UnaryInfC{$\Gamma \Vdash Y_\sigma : (\bigcap\tau_i \leadsto \tau_1 \cap\hdots\cap \bigcap\tau_i \leadsto \tau_i) \leadsto \tau_j$}
+  \DisplayProof
+  \vskip 1.5em
+\end{center}
+</div>
+
+This is the initial definition, used as a basis for the mechanization, discussed in [Chapter 6](#itypes). Due to different obstacles in the formalization of the subject invariance proofs, this definition, along with the definition of intersection types was amended several times. The reasons for these changes are documented in [Chapter 6](#itypes).   
+The definition above also assumes that the context $\Gamma$ is _well-formed_:
+
+<div class="Definition" head="Well-formed intersection-type context">
+Assuming that $\Gamma$ is a finite list, consisting of pairs of atoms $Var$ and intersection types $\mathcal{T}$, $\Gamma$ is a _well-formed_ context iff:$\\$
+\begin{center}
+  \AxiomC{}
+  \LeftLabel{$(nil)$}
+  \UnaryInfC{$\wf [\ ]$}
+  \DisplayProof
+  %------------------------------------
+  \hskip 1.5em
+  \AxiomC{$x \not\in \mathsf{dom}\ \Gamma$}
+  \AxiomC{$\wf \Gamma$}
+  \LeftLabel{$(cons)$}
+  \BinaryInfC{$\wf (x,\bigcap\tau_i),\Gamma$}
+  \DisplayProof
+  \vskip 1.5em
+\end{center}
 </div>

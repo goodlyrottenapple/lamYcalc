@@ -1,7 +1,4 @@
-#Intersection types
-
-In this section, we will work with both the simple types introduced earlier (definition given again below), as well as intersection types, defined in the following way:
-$\\$
+#Intersection types {#itypes}
 
 <div class="Definition" head="Intersection Types">
 Note that $\mathsf{o}$ and $\phi$ are constants. $\omega$ is used to denote an empty list of strict intersection types. The following sugar notation will also occasionally be used: $\bigcap \tau \equiv [ \tau ]$ and $\tau \cap \tau' \equiv \bigcap \tau \concat \bigcap \tau' \equiv [ \tau, \tau' ]$.
