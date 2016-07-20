@@ -1,6 +1,6 @@
 #Background
 
-##Binders
+##Binders {#binders}
 
 When describing the (untyped) $\lambda$-calculus on paper, the terms of the $\lambda$-calculus are usually inductively defined in the following way:
 
@@ -40,7 +40,7 @@ datatype trm =
 
 As was mentioned before, defining "raw" terms and the notion of $\alpha$-equivalence of "raw" terms separately carries a lot of overhead in a theorem prover and is therefore not favored. 
 
-To obtain an inductive definition of $\lambda$-terms with a built in notion of $\alpha$-equivalence, one can instead use nominal sets (described in the section on nominal sets/Isabelle?).
+To obtain an inductive definition of $\lambda$-terms with a built in notion of $\alpha$-equivalence, one can instead use nominal sets (**described in the section on nominal sets/Isabelle?**).
 The nominal package in Isabelle provides tools to automatically define terms with binders, which generate inductive definitions of $\alpha$-equivalent terms. Using nominal sets in Isabelle results in a definition of terms which looks very similar to the informal presentation of the lambda calculus:
 
 ~~~{.isabelle}
@@ -187,7 +187,7 @@ The $\lamy$ calculus differs from the simply typed $\lambda$-calculus only in th
     \DisplayProof
 \end{center}
 
-In essence, the $Y$ rule allows (some) well-typed recursive definitions over simply typed $\lambda$-terms. The typed version of the rule illustrates this restricted version of recursion, where a recursive "$Y$-reduction" will only occur if the term $M$ in $Y_\sigma M$ has the matching type $\sigma \to \sigma$ (to $Y_\sigma$'s type $(\sigma \to \sigma) \to sigma$).
+In essence, the $Y$ rule allows (some) well-typed recursive definitions over simply typed $\lambda$-terms. The typed version of the rule illustrates this restricted version of recursion, where a recursive "$Y$-reduction" will only occur if the term $M$ in $Y_\sigma M$ has the matching type $\sigma \to \sigma$ (to $Y_\sigma$'s type $(\sigma \to \sigma) \to \sigma$).
 
 ###Church-Rosser Theorem {#cr-def}
 
@@ -324,13 +324,13 @@ In the untyped $\lambda$ calculus, simple types and $\lambda$-terms are complete
 However, the proofs of the Church Rosser theorem, as presented in the previous section, use the untyped definition of $\beta$-reduction. Whilst it is possible to define a typed version of $\beta$-reduction, as was demonstrated by the typed version of the $(Y)$ reduction rule, it turned out to be much easier to first prove the Church Rosser theorem for the so called "untyped" $\lamy$ calculus and the additionally restrict this result to only well-types $\lamy$ terms. Thus, the definition of the Church Rosser Theorem, formulated for the $\lamy$ calculus, is the following one:
 
 <div class="Theorem" head="Church Rosser">
-$$\Gamma \vdash M : \sigma \land M \Rightarrow_\beta^* M' \land M \Rightarrow_\beta^* M'' \implies \exists M'''.\ \ M' \Rightarrow_\beta^* M''' \land M'' \Rightarrow_\beta^* M''' \land \Gamma \vdash M''' : \sigma$$
+$$\Gamma \vdash M : \sigma \land M \Rightarrow^* M' \land M \Rightarrow^* M'' \implies \exists M'''.\ \ M' \Rightarrow^* M''' \land M'' \Rightarrow^* M''' \land \Gamma \vdash M''' : \sigma$$
 </div>
 
 In order to prove this typed version of the Church Rosser Theorem, we need to prove an additional result of subject reduction for $\lamy$ calculus, namely:
 
 <div class="Theorem" head="Subject reduction for $\Rightarrow_\beta$">
-$$\Gamma \vdash M : \sigma \land M \Rightarrow_\beta^* M' \implies \Gamma \vdash M' : \sigma$$
+$$\Gamma \vdash M : \sigma \land M \Rightarrow^* M' \implies \Gamma \vdash M' : \sigma$$
 </div>
 
 \newpage

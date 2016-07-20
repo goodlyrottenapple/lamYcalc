@@ -237,6 +237,9 @@ xetex]{hyperref}
 \newcommand{\poplm}{\textsc{PoplMark}}
 \renewcommand{\max}{\textsf{max}\ }
 \newcommand{\dip}{\textsf{dp}}
+\newcommand{\trm}{\textsf{term}}
+\let\oldemptyset\emptyset
+\let\emptyset\varnothing
 
 \pagenumbering{roman}
 
@@ -315,10 +318,11 @@ annotations, as is the case for dependent-type systems. Simpler type
 systems where type inference is decidable can instead prove too coarse,
 i.e.~the required properties are difficult to capture in such type
 systems. In recent years, advances in higher order model checking (HOMC)
-have been made (Kobayashi (\protect\hyperlink{ref-kobayashi13}{2013}),
-Ramsay, Neatherway, and Ong (\protect\hyperlink{ref-ramsay14}{2014}),
-Tsukada and Ong (\protect\hyperlink{ref-tsukada14}{2014})), but whilst a
-lot of theory has been developed for HOMC, there has been little done in
+have been made (C.-H. L. Ong (\protect\hyperlink{ref-ong06}{2006}),
+Kobayashi (\protect\hyperlink{ref-kobayashi13}{2013}), Ramsay,
+Neatherway, and Ong (\protect\hyperlink{ref-ramsay14}{2014}), Tsukada
+and Ong (\protect\hyperlink{ref-tsukada14}{2014})), but whilst a lot of
+theory has been developed for HOMC, there has been little done in
 implementing/mechanizing these results in a fully formal setting of a
 theorem prover.
 
@@ -368,7 +372,7 @@ the first part of the project.
 
 \chapter{Background}\label{background}
 
-\section{Binders}\label{binders}
+\hypertarget{binders}{\section{Binders}\label{binders}}
 
 When describing the (untyped) \(\lambda\)-calculus on paper, the terms
 of the \(\lambda\)-calculus are usually inductively defined in the
@@ -465,12 +469,12 @@ overhead in a theorem prover and is therefore not favored.
 
 To obtain an inductive definition of \(\lambda\)-terms with a built in
 notion of \(\alpha\)-equivalence, one can instead use nominal sets
-(described in the section on nominal sets/Isabelle?). The nominal
-package in Isabelle provides tools to automatically define terms with
-binders, which generate inductive definitions of \(\alpha\)-equivalent
-terms. Using nominal sets in Isabelle results in a definition of terms
-which looks very similar to the informal presentation of the lambda
-calculus:
+(\textbf{described in the section on nominal sets/Isabelle?}). The
+nominal package in Isabelle provides tools to automatically define terms
+with binders, which generate inductive definitions of
+\(\alpha\)-equivalent terms. Using nominal sets in Isabelle results in a
+definition of terms which looks very similar to the informal
+presentation of the lambda calculus:
 
 \begin{minted}[]{isabelle}
 nominal_datatype trm =
@@ -742,7 +746,7 @@ definitions over simply typed \(\lambda\)-terms. The typed version of
 the rule illustrates this restricted version of recursion, where a
 recursive ``\(Y\)-reduction'' will only occur if the term \(M\) in
 \(Y_\sigma M\) has the matching type \(\sigma \to \sigma\) (to
-\(Y_\sigma\)'s type \((\sigma \to \sigma) \to sigma\)).
+\(Y_\sigma\)'s type \((\sigma \to \sigma) \to \sigma\)).
 
 \subsection{Church-Rosser Theorem}\label{cr-def}
 
@@ -964,7 +968,7 @@ calculus, is the following one:
 
 \begin{Theorem}[Church Rosser]
 
-\[\Gamma \vdash M : \sigma \land M \Rightarrow_\beta^* M' \land M \Rightarrow_\beta^* M'' \implies \exists M'''.\ \ M' \Rightarrow_\beta^* M''' \land M'' \Rightarrow_\beta^* M''' \land \Gamma \vdash M''' : \sigma\]
+\[\Gamma \vdash M : \sigma \land M \Rightarrow^* M' \land M \Rightarrow^* M'' \implies \exists M'''.\ \ M' \Rightarrow^* M''' \land M'' \Rightarrow^* M''' \land \Gamma \vdash M''' : \sigma\]
 
 \end{Theorem}
 
@@ -974,7 +978,7 @@ calculus, namely:
 
 \begin{Theorem}[Subject reduction for $\Rightarrow_\beta$]
 
-\[\Gamma \vdash M : \sigma \land M \Rightarrow_\beta^* M' \implies \Gamma \vdash M' : \sigma\]
+\[\Gamma \vdash M : \sigma \land M \Rightarrow^* M' \implies \Gamma \vdash M' : \sigma\]
 
 \end{Theorem}
 
@@ -1238,7 +1242,163 @@ in Isabelle.
 
 \hypertarget{comp-isa}{\chapter{Isabelle vs.~Isabelle}\label{comp-isa}}
 
-aaaa
+This chapter looks at the two different mechanizations of the \(\lamy\)
+calculus, introduced in the previous chapter, namely an implementation
+of the calculus using nominal sets and a locally nameless (LN)
+mechanization. Having presented the two approaches to formalizing
+binders in \protect\hyperlink{binders}{Chapter 2}, this chapters
+explores the consequences of choosing either mechanization, especially
+in terms of technology transparency and overheads introduced as a result
+of the chosen mechanization.
+
+\section{Capture-avoiding
+substitution}\label{capture-avoiding-substitution}
+
+We give a brief overview of the basic definitions of well-typed terms
+and \(\beta\)-reduction, specific to both mechanizations.
+Unsurprisingly, the only real differences in these definitions appear in
+terms involving \(\lambda\)-binders.
+
+\subsection{Nominal set mechanization}\label{nominal-set-mechanization}
+
+We first examine the definition of untyped \(\beta\)-reduction, defined
+for the mechanization using nominal sets:
+
+\begin{Definition}[$\beta$-reduction]
+
+\(\\\)
+
+\begin{center}
+    \AxiomC{$M \Rightarrow M'$}
+    \LeftLabel{$(red_L)$}
+    \UnaryInfC{$MN \Rightarrow M'N$}
+    \DisplayProof
+    \hskip 1.5em
+    \AxiomC{$N \Rightarrow N'$}
+    \LeftLabel{$(red_R)$}
+    \UnaryInfC{$MN \Rightarrow M'N$}
+    \DisplayProof
+    \vskip 1.5em
+    \AxiomC{$M \Rightarrow M'$}
+    \LeftLabel{$(abs)$}
+    \UnaryInfC{$\lambda x. M \Rightarrow \lambda x. M'$}
+    \DisplayProof
+    \hskip 1.5em
+    \AxiomC{}
+    \LeftLabel{$(\beta)$}
+    \RightLabel{$(x\ \sharp\ N)$}
+    \UnaryInfC{$(\lambda x. M)N \Rightarrow M[N/x]$}
+    \DisplayProof
+    \hskip 1.5em
+    \AxiomC{}
+    \LeftLabel{$(Y)$}
+    \UnaryInfC{$Y_\sigma M \Rightarrow M (Y_\sigma M)$}
+    \DisplayProof
+    \vskip 1.5em
+\end{center}
+
+\end{Definition}
+
+This definition, with the exception of the added \((Y)\) rule is the
+standard definition of the untyped \(\beta\)-reduction found in
+literature (\textbf{link?}). The \(\sharp\) symbol is used to denote the
+\emph{freshness} relation in nominal set theory. The side-condition
+\(x\ \sharp\ N\) in the \((\beta)\) rule can thus be read as ``\(x\) is
+fresh in \(N\)'', namely, the atom \(x\) does not appear in \(N\). For a
+\(\lambda\)-term \(M\), \(x\ \sharp\ M\) iff \(x \not\in FV(M)\), where
+we take the usual definition of \(FV\):
+
+\begin{Definition}
+
+The inductively defined \(FV\) is the set of \emph{free variables} of a
+\(\lambda\)-term \(M\).
+
+\begin{align*} 
+FV(x) &= \{ x \}\\
+FV(MN) &= FV(M) \cup FV(N)\\
+FV(\lambda x. M) &= FV(M) \setminus \{ x \}\\
+FV(Y_\sigma) &= \emptyset
+\end{align*}
+
+\end{Definition}
+
+The definition of substitution, used in the \((\beta)\) rule is
+unchanged with regards to the usual definition:
+
+\begin{Definition}[Capture-avoiding substitution]
+
+\begin{align*} 
+x[S/y] &= \begin{cases}
+S & \text{if }x \equiv y\\
+x & otherwise
+\end{cases}\\
+(MN)[S/y] &= (M[S/y])(N[S/y])\\
+x\ \sharp\ y , S \implies (\lambda x.M)[S/y] &= \lambda x.(M[S/y])\\
+(Y_\sigma)[S/y] &= Y_\sigma
+\end{align*}
+
+\end{Definition}
+
+\subsection{Locally nameless
+mechanization}\label{locally-nameless-mechanization}
+
+On paper at least, the definitions using nominal sets are unchanged from
+the usual informal definitions. The situation is somewhat different for
+the locally nameless mechanization. Since the LN approach combines the
+named and de Bruijn representations, there are two different
+constructors for free and bound variables:
+
+\begin{Definition}[LN pre-terms]
+
+\label{pterms}
+\[M::= x\ |\ n\ |\ MM\ |\ \lambda M\ |\ Y_\sigma \text{ where }x \in Var \text{ and } n \in Nat\]
+
+\end{Definition}
+
+Similarly to the de Bruijn presentation of binders, the \(\lambda\)-term
+no longer includes a bound variable, so a named representation term
+\(\lambda x.x\) becomes \(\lambda 0\) in LN. As was mentioned in
+\protect\hyperlink{binders}{Chapter 2}, the set of terms, defined in
+\ref{pterms}, is a superset of \(\lamy\) terms and includes terms which
+are not well formed \(\lamy\) terms. For example, the term \(\lambda 3\)
+is not a well-formed term, since the bound variable index is out of
+scope. Since we don't want to work with terms that do not correspond to
+\(\lamy\) terms, we have to introduce the notion of a \emph{well-formed
+term}, which restricts the set of pre-terms to only those that
+correspond to \(\lamy\) terms:
+
+\begin{Definition}[Well-formed terms]
+
+We assume that \(L\) is a finite set in the following definition. \(\\\)
+
+\begin{center}
+    \AxiomC{}
+    \LeftLabel{$(fvar)$}
+    \UnaryInfC{$\trm (x)$}
+    \DisplayProof
+    \hskip 1.5em
+    \AxiomC{}
+    \LeftLabel{$(Y)$}
+    \UnaryInfC{$\trm (Y_\sigma)$}
+    \DisplayProof
+    \vskip 1.5em
+    \AxiomC{$\forall x \not\in L.\ \trm (M^x) $}
+    \LeftLabel{$(lam)$}
+    \UnaryInfC{$\trm (\lambda M)$}
+    \DisplayProof
+    \hskip 1.5em
+    \AxiomC{$\trm (M)$}
+    \AxiomC{$\trm (M)$}
+    \LeftLabel{$(app)$}
+    \BinaryInfC{$\trm (MN)$}
+    \DisplayProof
+    \vskip 1.5em
+\end{center}
+
+\end{Definition}
+
+Already, we see that this formalization introduces some overheads with
+respect to the informal/nominal encoding of the \(\lamy\) calculus.
 
 \hypertarget{comp-agda}{\chapter{Isabelle vs.~Agda}\label{comp-agda}}
 
@@ -2486,6 +2646,13 @@ doi:\href{https://doi.org/10.1145/2487241.2487246}{10.1145/2487241.2487246}.
 Mu, Shin-Cheng. 2011. ``Proving the Church-Rosser Theorem Using a
 Locally Nameless Representation.'' Blog.
 \url{http://www.iis.sinica.edu.tw/~scm/2011/proving-the-church-rosser-theorem}.
+
+\hypertarget{ref-ong06}{}
+Ong, C.-H. L. 2006. ``On Model-Checking Trees Generated by Higher-Order
+Recursion Schemes.'' In \emph{Proceedings of the 21st Annual Ieee
+Symposium on Logic in Computer Science}, 81--90. LICS '06. Washington,
+DC, USA: IEEE Computer Society.
+doi:\href{https://doi.org/10.1109/LICS.2006.38}{10.1109/LICS.2006.38}.
 
 \hypertarget{ref-pfenning88}{}
 Pfenning, F., and C. Elliott. 1988. ``Higher-Order Abstract Syntax.'' In

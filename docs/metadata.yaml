@@ -75,6 +75,9 @@ header-includes: # Things you may want to include in the latex header
 - \newcommand{\poplm}{\textsc{PoplMark}}
 - \renewcommand{\max}{\textsf{max}\ }
 - \newcommand{\dip}{\textsf{dp}}
+- \newcommand{\trm}{\textsf{term}}
+- \let\oldemptyset\emptyset
+- \let\emptyset\varnothing
 
 include-before:  # Options to insert before the TOC
 include-after:   # Options to insert after the last page
