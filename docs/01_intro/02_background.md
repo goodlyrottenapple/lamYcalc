@@ -162,9 +162,24 @@ This definition avoids the need for explicitly defining substitution, because it
 However, using HOAS only works if the notion of $\alpha$-equivalence and substitution of the meta-language coincide with these notions in the object-language.
 
 \newpage
-##$\lamy$ calculus
+##Simple types
 
-**?Tie in $\lamy$ calculus to HOMC?**
+The simple types presented throughout this work (except for [Chapter 6](#itypes)) are often referred to as simple types _a la Curry_, where a simply typed $\lambda$-term is a triple $(\Gamma, M, \sigma)$ s.t. $\Gamma \vdash M : \sigma$, where $\Gamma$ is the typing context, $M$ is a term of the untyped $\lambda$-calculus and $\sigma$ is a simple type.    
+In the untyped $\lambda$-calculus, simple types and $\lambda$-terms are completely separate, brought together only through the typing relation $\vdash$ in the case of simple types _a la Curry_. The definition of $\lamy$ terms, however, is dependent on the simple types in the case of the $Y$ constants, which are indexed by simple types. When talking about the $\lamy$ calculus, we tend to conflate the "untyped" $\lamy$ terms, which are simply the terms defined  in \ref{lamy-trms}, with the "typed" $\lamy$ terms, which are simply typed terms _a la Curry_ of the form $\Gamma \vdash M : \sigma$, where $M$ is an "untyped" $\lamy$ term. Thus, results about the $\lamy$ calculus in this work are in fact results about the "typed" $\lamy$ calculus.    
+However, the proofs of the Church Rosser theorem, as presented in the previous section, use the untyped definition of $\beta$-reduction. Whilst it is possible to define a typed version of $\beta$-reduction, as was demonstrated by the typed version of the $(Y)$ reduction rule, it turned out to be much easier to first prove the Church Rosser theorem for the so called "untyped" $\lamy$ calculus and the additionally restrict this result to only well-types $\lamy$ terms. Thus, the definition of the Church Rosser Theorem, formulated for the $\lamy$ calculus, is the following one:
+
+<div class="Theorem" head="Church Rosser">
+$$\Gamma \vdash M : \sigma \land M \Rightarrow^* M' \land M \Rightarrow^* M'' \implies \exists M'''.\ \ M' \Rightarrow^* M''' \land M'' \Rightarrow^* M''' \land \Gamma \vdash M''' : \sigma$$
+</div>
+
+In order to prove this typed version of the Church Rosser Theorem, we need to prove an additional result of subject reduction for $\lamy$ calculus, namely:
+
+<div class="Theorem" head="Subject reduction for $\Rightarrow_\beta$">
+$$\Gamma \vdash M : \sigma \land M \Rightarrow^* M' \implies \Gamma \vdash M' : \sigma$$
+</div>
+
+##$\lamy$ calculus
+Originally, the field of higher order model checking mainly involved studying higher order recursion schemes (HORS), but more recently, exploring the $\lamy$ calculus, which is an extension of the simply typed $\lambda$-calculus, in the context of HOMC has gained traction (@clairambault13). We therefore present the $\lamy$ calculus, along with the proofs of the Church Rosser theorem and the formalization of intersection types for the $\lamy$ calculus, as the basis for formalizing the theory of HOMC.
 
 ###Definitions
 
@@ -187,7 +202,10 @@ The $\lamy$ calculus differs from the simply typed $\lambda$-calculus only in th
     \DisplayProof
 \end{center}
 
-In essence, the $Y$ rule allows (some) well-typed recursive definitions over simply typed $\lambda$-terms. The typed version of the rule illustrates this restricted version of recursion, where a recursive "$Y$-reduction" will only occur if the term $M$ in $Y_\sigma M$ has the matching type $\sigma \to \sigma$ (to $Y_\sigma$'s type $(\sigma \to \sigma) \to \sigma$).
+In essence, the $Y$ rule allows (some) well-typed recursive definitions over simply typed $\lambda$-terms. Take for example the term $\lambda x.x$, commonly referred to as the _identity_. The _identity_ term can be given a type $\sigma \to \sigma$ for any simple type $\sigma$. We can therefore perform the following (well-typed) reduction in the $\lamy$ calculus:
+$$Y_\sigma (\lambda x.x) \Rightarrow (\lambda x.x)(Y_\sigma (\lambda x.x))$$
+
+The typed version of the rule illustrates the restricted version of recursion clearly, since a recursive "$Y$-reduction" will only occur if the term $M$ in $Y_\sigma M$ has the matching type $\sigma \to \sigma$ (to $Y_\sigma$'s type $(\sigma \to \sigma) \to \sigma$), as in the example above. Due to the type restriction on $M$, recursion using the $Y$ constant will be **weakly normalizing (this is right? right?)**, which cannot be said of unrestricted recursion in the untyped $\lambda$-calculus.
 
 ###Church-Rosser Theorem {#cr-def}
 
@@ -198,9 +216,54 @@ A relation $R$ has the _diamond property_, i.e. $\dip(R)$, iff
 $$\forall a, b, c.\ aRb \land aRc \implies \exists d.\ bRd \land cRd$$
 </div>
 
-The proof of confluence of $\Rightarrow_Y$, the $\beta Y$-reduction defined as the standard $\beta$-reduction with the addition of the aforementioned $(Y)$ rule, formalized in this project, follows a variation of the Tait-Martin-Löf Proof originally described in @takahashi95 (specifically using the notes by @pollack95). 
+The proof of confluence of $\Rightarrow_Y$, the $\beta Y$-reduction defined as the standard $\beta$-reduction with the addition of the aforementioned $(Y)$ rule, formalized in this project, follows a variation of the Tait-Martin-Löf Proof originally described in @takahashi95 (specifically using the notes by @pollack95). To show why following this proof over the traditional proof is beneficial, we first give a high level overview of how the usual proof proceeds.
 
-This proof proceeds by first defining a relation called the parallel beta reduction $\gg$, which is a reflexive and parallel $\beta Y$-reduction, in that it allows simultaneous reduction of multiple parts of a term:
+####Overview
+
+In the traditional proof of the Church Rosser theorem, we define a new reduction relation, called the _parallel_ $\beta$-reduction ($\gg$), which, unlike the "plain" $\beta$-reduction satisfies the _diamond property_ (note that we are talking about the "single step" $\beta$-reduction and not the reflexive transitive closure). Once we prove the _diamond property_ for $\gg$, the proof of $\dip(\gg^*)$ follows easily. The reason why we prove $\dip(\gg)$ in the first place is because the reflexive-transitive closure of $\gg$ coincides with the reflexive transitive closure of $\Rightarrow$ and it is much easier to prove $\dip(\gg)$ than trying to prove $\dip(\Rightarrow^*)$ directly. The usual proof of the _diamond property_ for $\gg$ involves a double induction on the shape of the two parallel $\beta$-reductions from $M$ to $P$ and $Q$, where we try to show that the following diagram can always be "closed":
+
+\begin{figure}[h]
+\begin{center}
+\begin{tikzpicture}[->,>=stealth',shorten >=1pt,auto,node distance=2.8cm,semithick]
+  \tikzstyle{every state}=[fill=none,draw=none,text=black]
+
+  \node[state] (A)                                     {$M$};
+  \node[state] (B) [below left= 1.3cm and 1.3cm of A]  {$P$};
+  \node[state] (C) [below right= 1.3cm and 1.3cm of A] {$Q$};
+  \node[state] (D) [below= 3cm of A]                   {$M'$};
+ 
+  \path (A) edge [left]          node [pos=0.4] {$\gg$} (B)
+            edge                 node [pos=0.59]           {$\gg$} (C)
+        (B) edge [left, dashed]  node           {$\gg$} (D)
+        (C) edge [right, dashed] node           {$\gg$} (D);
+\end{tikzpicture}
+\end{center}
+\caption{The diamond property of $\gg$, visualized}
+\end{figure}
+
+The @takahashi95 proof simplifies this proof by eliminating the need to do simultaneous induction on the $M \gg P$ and $M \gg Q$ reductions. This is done by introducing another reduction, referred to as the _maximal parallel_ $\beta$-reduction ($\ggg$). The idea of using $\ggg$ is to show that for every term $M$ there is a reduct term $M_{max}$ s.t. $M \ggg M_{max}$. We can then separate the "diamond" diagram above into two instances of the following triangle:
+
+\begin{figure}
+\begin{center}
+\begin{tikzpicture}[->,>=stealth',shorten >=1pt,auto,node distance=2.8cm,semithick]
+  \tikzstyle{every state}=[fill=none,draw=none,text=black]
+
+  \node[state] (A)                                    {$M$};
+  \node[state] (B) [below left= 1.3cm and 1.3cm of A] {$M'$};
+  \node[state] (D) [below= 3cm of A]                  {$M_{max}$};
+ 
+  \path (A) edge [left]         node [pos=0.4] {$\gg$}  (B)
+            edge                node           {$\ggg$} (D)
+        (B) edge [left, dashed] node           {$\gg$}  (D);
+\end{tikzpicture}
+\end{center}
+\caption{The proof of $\dip(\gg)$ is split into two instances of this triangle}
+\label{gggTriangle}
+\end{figure}
+
+####Parallel $\beta Y$-reduction
+Having described the high-level overview of the classicval proof and the reason for following the @takahashi95 proof, we now describe some of the major lemmas in more detail.   
+Firstly, we give the definition of _parallel $\beta Y$-reduction_ $\gg$ formulated for the terms of the $\lamy$ calculus, which allows simultaneous reduction of multiple parts of a term:
 
 <div class="Definition" head="$\gg$">
 $\ $
@@ -233,14 +296,9 @@ $\ $
 \end{center}
 </div>
 
-Since the transitive closure of $\gg$ is the same as the transitive closure of $\Rightarrow_Y$, i.e. $\gg^*\ =\ \Rightarrow_Y^*$, it is enough to show $\dip(\gg^*)$. The proof therefore proceeds in roughly three main steps:
+**Ex'le here!!**
 
-1.  Prove $\dip(\gg)$
-2.  Show $\dip(\gg) \implies \dip(\gg^*)$
-3.  Show $\gg^*\ =\ \Rightarrow_Y^*$
-
-The most interesting step is to show $\dip(\gg)$, as 2. and 3. follow fairly straightforwardly. To prove $\dip(\gg)$, the formalizations in this project follow the aforementioned proof by @takahashi95. The main idea in this proof is to define another relation called the maximum parallel reduction $\ggg$, which contracts all redexes in a given term with a single step:
-
+Then, we proceed to define the _maximum parallel reduction_ $\ggg$, which contracts all redexes in a given term with a single step:
 
 <div class="Definition" head="$\ggg$">
 $\ $
@@ -275,6 +333,8 @@ $\ $
 </div>
 
 This relation differs from $\gg$ only in the $(app)$ rule, which can only be applied if $M$ is not a $\lambda$ or $Y$ term.
+**Ex'le here!!**
+
 
 To prove $\dip(\gg)$, we first show that there always exists a term $M_{max}$ for every term $M$, where $M \ggg M_{max}$ is the maximal parallel reduction which contracts all redexes in $M$:
 
@@ -286,23 +346,7 @@ $\forall M.\ \exists M_{max}.\ M \ggg M_{max}$
 By induction on M.
 </div>
 
-Finally, we show that any parallel reduction $M \gg M'$ can be "closed" by reducing to the term $M_{max}$ where all redexes have been contracted:
-
-\begin{center}
-\begin{tikzpicture}[->,>=stealth',shorten >=1pt,auto,node distance=2.8cm,semithick]
-  \tikzstyle{every state}=[fill=none,draw=none,text=black]
-
-  \node[state] (A)                                    {$M$};
-  \node[state] (B) [below left= 1.3cm and 1.3cm of A] {$M'$};
-  \node[state] (D) [below= 3cm of A]                  {$M_{max}$};
- 
-  \path (A) edge [left]         node [pos=0.4] {$\gg$}  (B)
-            edge                node           {$\ggg$} (D)
-        (B) edge [left, dashed] node           {$\gg$}  (D);
-\end{tikzpicture}
-\end{center}
-
-This triangle can be formulated as the following lemma:
+Finally, we show that any parallel reduction $M \gg M'$ can be "closed" by reducing to the term $M_{max}$ where all redexes have been contracted (as seen in Figure \ref{gggTriangle}):
 
 <div class="Lemma">
 \label{max-close}
@@ -315,22 +359,6 @@ Omitted. Can be found on p. 8 of the @pollack95 notes.
 <div class="Lemma">$\dip(\gg)$.</div>
 <div class="proof">
 We can now prove $\dip(\gg)$ by simply applying Lemma \ref{max-close} twice, namely for any term $M$ there is an $M_{max}$ s.t. $M \ggg M_{max}$ (by \ref{max-ex}) and for any $M', M''$ where $M \gg M'$ and $M \gg M''$, it follows by two applications of Lemma \ref{max-close} that $M' \gg M_{max}$ and $M'' \gg M_{max}$.
-</div>
-
-###Simple types
-
-The simple types presented throughout this work (except for [Chapter 6](#itypes)) are often referred to as simple types _a la Curry_, where a simply typed $\lambda$-term is a triple $(\Gamma, M, \sigma)$ s.t. $\Gamma \vdash M : \sigma$, where $\Gamma$ is the typing context, $M$ is a term of the untyped $\lambda$-calculus and $\sigma$ is a simple type.    
-In the untyped $\lambda$ calculus, simple types and $\lambda$-terms are completely separate, brought together only through the typing relation $\vdash$ in the case of simple types _a la Curry_. The definition of $\lamy$ terms, however, is dependent on the simple types in the case of the $Y$ constants, which are indexed by simple types. When talking about the $\lamy$ calculus, we tend to conflate the "untyped" $\lamy$ terms, which are simply the terms defined  in \ref{lamy-trms}, with the "typed" $\lamy$ terms, which are simply typed terms _a la Curry_ of the form $\Gamma \vdash M : \sigma$, where $M$ is an "untyped" $\lamy$ term. Thus, results about the $\lamy$ calculus in this work are in fact results about the "typed" $\lamy$ calculus.    
-However, the proofs of the Church Rosser theorem, as presented in the previous section, use the untyped definition of $\beta$-reduction. Whilst it is possible to define a typed version of $\beta$-reduction, as was demonstrated by the typed version of the $(Y)$ reduction rule, it turned out to be much easier to first prove the Church Rosser theorem for the so called "untyped" $\lamy$ calculus and the additionally restrict this result to only well-types $\lamy$ terms. Thus, the definition of the Church Rosser Theorem, formulated for the $\lamy$ calculus, is the following one:
-
-<div class="Theorem" head="Church Rosser">
-$$\Gamma \vdash M : \sigma \land M \Rightarrow^* M' \land M \Rightarrow^* M'' \implies \exists M'''.\ \ M' \Rightarrow^* M''' \land M'' \Rightarrow^* M''' \land \Gamma \vdash M''' : \sigma$$
-</div>
-
-In order to prove this typed version of the Church Rosser Theorem, we need to prove an additional result of subject reduction for $\lamy$ calculus, namely:
-
-<div class="Theorem" head="Subject reduction for $\Rightarrow_\beta$">
-$$\Gamma \vdash M : \sigma \land M \Rightarrow^* M' \implies \Gamma \vdash M' : \sigma$$
 </div>
 
 \newpage

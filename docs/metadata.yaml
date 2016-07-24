@@ -76,6 +76,7 @@ header-includes: # Things you may want to include in the latex header
 - \renewcommand{\max}{\textsf{max}\ }
 - \newcommand{\dip}{\textsf{dp}}
 - \newcommand{\trm}{\textsf{term}}
+- \newcommand{\fv}{\textsf{FV}}
 - \let\oldemptyset\emptyset
 - \let\emptyset\varnothing
 
