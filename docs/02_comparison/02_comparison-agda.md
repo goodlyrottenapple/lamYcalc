@@ -1,4 +1,5 @@
 #Isabelle vs. Agda {#comp-agda}
+\label{chap:compAgda}
 
 The formalization of the terms and reduction rules of the $\lambda$-Y calculus presented here is a locally nameless presentation due to @aydemir08. 
 The basic definitions of $\lambda$-terms and $\beta$-reduction were borrowed from an implementation of the $\lambda$-calculus with the associated Church Rosser proof in Agda, by @shing-cheng.

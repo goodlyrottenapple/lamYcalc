@@ -1,7 +1,8 @@
 #Nominal vs. Locally nameless {#comp-isa}
+\label{chap:compIsa}
 
 
-This chapter looks at the two different mechanizations of the $\lamy$ calculus, introduced in the previous chapter, namely an implementation of the calculus using nominal sets and a locally nameless (LN) mechanization. Having presented the two approaches to formalizing binders in [Chapter 2](#binders), this chapters explores the consequences of choosing either mechanization, especially in terms of technology transparency and overheads introduced as a result of the chosen mechanization.
+This chapter looks at the two different mechanizations of the $\lamy$ calculus, introduced in the previous chapter, namely an implementation of the calculus using nominal sets and a locally nameless (LN) mechanization. Having presented the two approaches to formalizing binders in \cref{binders}, this chapter explores the consequences of choosing either mechanization, especially in terms of technology transparency and overheads introduced as a result of the chosen mechanization.
 
 ##Capture-avoiding substitution and $\beta$-reduction
 
@@ -13,7 +14,7 @@ As was shown already, nominal set representation of terms is largely identical w
 We start, by examining the definition of untyped $\beta$-reduction, defined for the $\lamy$ calculus:
 
 <div class="Definition" head="$\beta$-reduction">
-\label{beta-red-nom}
+\label{Definition:betaRedNom}
 $\\$
 \begin{center}
     \AxiomC{$M \Rightarrow M'$}
@@ -128,11 +129,11 @@ As we have seen, on paper at least, the definitions of terms and capture-avoidin
 
 ####Pre-terms
 <div class="Definition" head="LN pre-terms">
-\label{pterms}
+\label{Definition:pterms}
 $$M::= x\ |\ n\ |\ MM\ |\ \lambda M\ |\ Y_\sigma \text{ where }x \in Var \text{ and } n \in Nat$$
 </div>
 
-Similarly to the de Bruijn presentation of binders, the $\lambda$-term no longer includes a bound variable, so a named representation term $\lambda x.x$ becomes $\lambda 0$ in LN. As was mentioned in [Chapter 2](#binders), the set of terms, defined in \ref{pterms}, is a superset of $\lamy$ terms and includes terms which are not well formed $\lamy$ terms. For example, the term $\lambda 3$ is not a well-formed term, since the bound variable index is out of scope. Since we don't want to work with terms that do not correspond to $\lamy$ terms, we have to introduce the notion of a _well-formed term_, which restricts the set of pre-terms to only those that correspond to $\lamy$ terms (i.e. this inductive definition ensures that there are no "out of bounds" indices in a given pre-term):
+Similarly to the de Bruijn presentation of binders, the $\lambda$-term no longer includes a bound variable, so a named representation term $\lambda x.x$ becomes $\lambda 0$ in LN. As was mentioned in \cref{binders}, the set of terms, defined in \cref{Definition:pterms}, is a superset of $\lamy$ terms and includes terms which are not well formed $\lamy$ terms. For example, the term $\lambda 3$ is not a well-formed term, since the bound variable index is out of scope. Since we don't want to work with terms that do not correspond to $\lamy$ terms, we have to introduce the notion of a _well-formed term_, which restricts the set of pre-terms to only those that correspond to $\lamy$ terms (i.e. this inductive definition ensures that there are no "out of bounds" indices in a given pre-term):
 
 <div class="Definition" head="Well-formed terms">
 We assume that $L$ is a finite set in the following definition. $\\$
@@ -286,7 +287,7 @@ $\\$
 
 As expected, the _open_ operation is now used instead of substitution in the $(\beta)$ rule.    
 The $(abs)$ rule is also slightly different, also using the _open_ in its precondition. Intuitively, the usual formulation of the $(abs)$ rule states that in order to prove that $\lambda x. M$ reduces to $\lambda x. M'$, we can simply "un-bind" $x$ in both $M$ and $M'$ and show that $M$ reduces to $M'$. Since in the usual formulation of the $\lambda$-calculus, there is no distinction between free and bound variables, this change (where $x$ becomes free) is implicit. In the LN presentation, however, this operation is made explicit by opening both $M$ and $M'$ with some free variable $x$ (not appearing in either $M$ nor $M'$), which replaces the bound variables/indices (bound to the outermost $\lambda$) with $x$.
-While this definition is equivalent to Definition \ref{beta-red-nom}, the induction principle this definition yields may not always be sufficient, especially in situations where we want to open up a term with a free variable which is not only fresh in $M$ and $M'$, but possibly in a wider context (**refer to lem 2.5.1 abs case**). We therefore followed the approach of @aydemir08 and re-defined the $(abs)$ rule (and other definitions involving picking fresh free variables) using _cofinite quantification_:
+While this definition is equivalent to \cref{Definition:betaRedNom}, the induction principle this definition yields may not always be sufficient, especially in situations where we want to open up a term with a free variable which is not only fresh in $M$ and $M'$, but possibly in a wider context (**refer to lem 2.5.1 abs case**). We therefore followed the approach of @aydemir08 and re-defined the $(abs)$ rule (and other definitions involving picking fresh free variables) using _cofinite quantification_:
 
 \begin{center}
 	\vskip 1.5em
@@ -314,9 +315,10 @@ where
 
 ##Untyped Church Rosser Theorem
 
-Having described the implementations of the two binder representations along with some basic definitions, such as capture-avoiding substitution, we come the the main part of the comparison, namely the proof of the Church Rosser theorem. This section examines specific instances of some of the major lemmas which are part of the bigger result. The general outline of the proof has been outlined in [Chapter 2](#cr-def).
+Having described the implementations of the two binder representations along with some basic definitions, such as capture-avoiding substitution, we come the the main part of the comparison, namely the proof of the Church Rosser theorem. This section examines specific instances of some of the major lemmas which are part of the bigger result. The general outline of the proof has been outlined in \cref{cr-def}.
 
 ###Typed vs. untyped proofs {#typ-utyp}
+\label{utypReason}
 
 As mentioned previously, when talking about the terms of the $\lamy$ calculus, we generally refer to simply typed terms, such as $\Gamma \vdash \lambda x. Y_\sigma : \tau \to (\sigma \to \sigma) \to \sigma$. However, the definitions of reduction seen so far and the consecutive proofs using these definitions don't use simply typed $\lamy$ terms, operating instead on untyped terms. The simplest reason why this is the case is one of convenience and simplicity. As is the case in most proofs of the Church Rosser Theorem, the result is usually proved for untyped terms of the $\lambda$-calculus and then extended to simply typed terms by simply restricting the terms we want to reason about. The theorem holds due to subject reduction, which says that if a term $M$ can be given a simple type $\sigma$ and $\beta$-reduces to another term $M'$, the new term can still be typed with the same type $\sigma$. Further details about the proofs of subject reduction for the simply typed $\lamy$ calculus can be found in the next section of this chapter.    
 Another reason, besides convention is convenience, specifically succinctness of code, or the lack thereof, when including simple types in the definition of $\beta$-reduction and all the subsequent lemmas and theorems. Indeed, the choice of excluding typing information wherever possible has also been an engineering choice to a large degree, as it is not good practice (in general) to keep and pass around variables/objects where not needed in classical programming. The same applies to functional programming and theorem proving especially, where notation can often be bloated and cumbersome. Whilst it is true that the implementation of the proofs of Church Rosser theorem might be shorter, if the typing information was included directly in the definition of $\beta$-reduction, the downside would be an increased complexity of proofs, resulting in potentially less understandable and maintainable code.

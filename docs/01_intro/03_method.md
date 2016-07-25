@@ -11,9 +11,9 @@ Whilst this project does not aim to answer the same question as the original cha
 
 It draws inspiration from the criteria for the "benchmark mechanization", specified by the challenge.
 
-The comparison proceeded in two stages of elimination, where the first stage was a comparison of the two chosen mechanizations of binders for the $\lamy$ calculus ([Chapter 4](#comp-isa)), namely nominal set and locally nameless representations of binders.   
-After choosing the optimal mechanization of binders, the [next chapter](#comp-agda) then goes on to compare this mechanization in two different theorem provers, Isabelle and Agda.   
-The "wining" theorem prover from this round was then used to formalize intersection-types and prove subject invariance.
+The comparison proceeded in two stages of elimination, where the first stage was a comparison of the two chosen mechanizations of binders for the $\lamy$ calculus (\cref{chap:compIsa}), namely nominal set and locally nameless representations of binders.   
+After choosing the optimal mechanization of binders, the \hyperref[chap:compAgda]{next chapter} then goes on to compare this mechanization in two different theorem provers, Isabelle and Agda.   
+The "winning" theorem prover from this round was then used to formalize intersection-types and prove subject invariance.
 
 ###Evaluation criteria
 
@@ -36,12 +36,12 @@ As was discussed previously, the treatment of binders is a well studied problem 
 The choice of nominal sets was tied to the implementation language, namely Isabelle, which has a well developed [nominal sets library](http://www.inf.kcl.ac.uk/staff/urbanc/Nominal/), maintained by Christian Urban. The appeal of using nominal sets is of course the touted minimal overheads in comparison to the informal presentation.   
 The choice of locally nameless encoding, as opposed to using pure de Bruijn indices, was motivated by the claim that locally nameless encoding largely mitigates the disadvantages of de Bruin indices especially when it comes to technology transparency (i.e. theorems about locally nameless presentation are much closer in formulation to the informal presentation than theorems formulated for de Bruijn indices).   
 Both of these choices were guided in part by the initial choice of implementation language, Isabelle, which was chosen mainly due to previous experience in mechanizing similar proofs.   
-The comparison between nominal and locally nameless versions of the $\lamy$ calculus, presented in [Chapter 4](#comp-isa), tries to highlight the differences in the two approaches in contrast to the usual informal reasoning.
+The comparison between nominal and locally nameless versions of the $\lamy$ calculus, presented in \cref{chap:compIsa}, tries to highlight the differences in the two approaches in contrast to the usual informal reasoning.
 
 ####Technology transparency
 
-This criterion is discussed mainly in [Chapter 5](#comp-agda), which deals with the comparison of Isabelle and Agda. The choice of the two theorem provers, but especially of Isabelle, was largely subjective. Having had previous experience with Isabelle, it was natural to use it initially, to lower the cost of entry. Initially only using Isabelle for both formalizations of binders also allowed for a more uniform comparison of the mechanization overheads.   
-The choice of Agda as the second implementation language was motivated by Agda having a dependent-type system. As a result, the style of proofs in Agda seems quite different to Isabelle, since the distinction between proofs and programs is largely erased. Agda was chosen over Coq, which is also a dependently-typed language, because it is more "bare-bones" and thus seemed more accessible to a novice in dependently-typed languages. __Agda also has a higher "cool"-factor than Coq, being a newer language. (Is a joke here ok?)__
+This criterion is discussed mainly in \cref{chap:compAgda}, which deals with the comparison of Isabelle and Agda. The choice of the two theorem provers, but especially of Isabelle, was largely subjective. Having had previous experience with Isabelle, it was natural to use it initially, to lower the cost of entry. Initially only using Isabelle for both formalizations of binders also allowed for a more uniform comparison of the mechanization overheads.   
+The choice of Agda as the second implementation language was motivated by Agda having a dependent-type system. As a result, the style of proofs in Agda seems quite different to Isabelle, since the distinction between proofs and programs is largely erased. Agda was chosen over Coq, which is also a dependently-typed language, because it is more "bare-bones" and thus seemed more accessible to a novice in dependently-typed languages. Agda also has a higher "cool"-factor than Coq, being a newer language.
 
 
 ####Proof automation

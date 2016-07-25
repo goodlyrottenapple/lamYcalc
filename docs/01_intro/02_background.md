@@ -1,6 +1,7 @@
 #Background
 
-##Binders {#binders}
+##Binders
+\label{binders}
 
 When describing the (untyped) $\lambda$-calculus on paper, the terms of the $\lambda$-calculus are usually inductively defined in the following way:
 
@@ -164,9 +165,27 @@ However, using HOAS only works if the notion of $\alpha$-equivalence and substit
 \newpage
 ##Simple types
 
-The simple types presented throughout this work (except for [Chapter 6](#itypes)) are often referred to as simple types _a la Curry_, where a simply typed $\lambda$-term is a triple $(\Gamma, M, \sigma)$ s.t. $\Gamma \vdash M : \sigma$, where $\Gamma$ is the typing context, $M$ is a term of the untyped $\lambda$-calculus and $\sigma$ is a simple type.    
-In the untyped $\lambda$-calculus, simple types and $\lambda$-terms are completely separate, brought together only through the typing relation $\vdash$ in the case of simple types _a la Curry_. The definition of $\lamy$ terms, however, is dependent on the simple types in the case of the $Y$ constants, which are indexed by simple types. When talking about the $\lamy$ calculus, we tend to conflate the "untyped" $\lamy$ terms, which are simply the terms defined  in \ref{lamy-trms}, with the "typed" $\lamy$ terms, which are simply typed terms _a la Curry_ of the form $\Gamma \vdash M : \sigma$, where $M$ is an "untyped" $\lamy$ term. Thus, results about the $\lamy$ calculus in this work are in fact results about the "typed" $\lamy$ calculus.    
-However, the proofs of the Church Rosser theorem, as presented in the previous section, use the untyped definition of $\beta$-reduction. Whilst it is possible to define a typed version of $\beta$-reduction, as was demonstrated by the typed version of the $(Y)$ reduction rule, it turned out to be much easier to first prove the Church Rosser theorem for the so called "untyped" $\lamy$ calculus and the additionally restrict this result to only well-types $\lamy$ terms. Thus, the definition of the Church Rosser Theorem, formulated for the $\lamy$ calculus, is the following one:
+The simple types presented throughout this work (except for Chapter \ref{chItypes}) are often referred to as simple types _a la Curry_, where a simply typed $\lambda$-term is a triple $(\Gamma, M, \sigma)$ s.t. $\Gamma \vdash M : \sigma$, where $\Gamma$ is the typing context, $M$ is a term of the untyped $\lambda$-calculus and $\sigma$ is a simple type. Such a term is deemed valid, if one can construct a typing tree from the given type and typing context. For example, take the following simply typed term $\{y:\tau\} \vdash \lambda x.xy : (\tau \to \phi) \to \phi$. To show that this is a well-typed $\lambda$-term, we construct the following typing tree:
+
+\begin{center}
+    \vskip 1.5em
+    \AxiomC{}
+    \LeftLabel{$(var)$}
+    \UnaryInfC{$\{x: \tau \to \phi,\ y:\tau\} \vdash x : \tau \to \phi$}
+    \AxiomC{}
+    \LeftLabel{$(var)$}
+    \UnaryInfC{$\{x: \tau \to \phi,\ y:\tau\} \vdash y : \tau$}
+    \LeftLabel{$(app)$}
+    \BinaryInfC{$\{x: \tau \to \phi,\ y:\tau\} \vdash xy : \phi$}
+    \LeftLabel{$(abs)$}
+    \UnaryInfC{$\{y:\tau\} \vdash \lambda x.xy : (\tau \to \phi) \to \phi$}
+    \DisplayProof
+    \vskip 1.5em
+\end{center}
+
+
+In the untyped $\lambda$-calculus, simple types and $\lambda$-terms are completely separate, brought together only through the typing relation $\vdash$ in the case of simple types _a la Curry_. The definition of $\lamy$ terms, however, is dependent on the simple types in the case of the $Y$ constants, which are indexed by simple types. When talking about the $\lamy$ calculus, we tend to conflate the "untyped" $\lamy$ terms, which are simply the terms defined in \cref{Definition:lamyTrms}, with the "typed" $\lamy$ terms, which are simply typed terms _a la Curry_ of the form $\Gamma \vdash M : \sigma$, where $M$ is an "untyped" $\lamy$ term. Thus, results about the $\lamy$ calculus in this work are in fact results about the "typed" $\lamy$ calculus.    
+However, the proofs of the Church Rosser theorem, as presented in the next section, use the untyped definition of $\beta$-reduction. Whilst it is possible to define a typed version of $\beta$-reduction, <!--as was demonstrated by the typed version of the $(Y)$ reduction rule,--> it turned out to be much easier to first prove the Church Rosser theorem for the so called "untyped" $\lamy$ calculus and the additionally restrict this result to only well-types $\lamy$ terms (see \cref{utypReason} for more details). Thus, the definition of the Church Rosser Theorem, formulated for the $\lamy$ calculus, is the following one:
 
 <div class="Theorem" head="Church Rosser">
 $$\Gamma \vdash M : \sigma \land M \Rightarrow^* M' \land M \Rightarrow^* M'' \implies \exists M'''.\ \ M' \Rightarrow^* M''' \land M'' \Rightarrow^* M''' \land \Gamma \vdash M''' : \sigma$$
@@ -186,7 +205,7 @@ Originally, the field of higher order model checking mainly involved studying hi
 The first part of this project focuses on formalizing the simply typed $\lamy$ calculus and the proof of confluence for this calculus. The usual/informal definition of the $\lamy$ terms and the simple types are given below:
 
 <div class="Definition" head="$\lamy$ types and terms">Let $Var$ be a countably infinite set of atoms in the definition of the set of $\lambda$-terms $M$:
-\label{lamy-trms}
+\label{Definition:lamyTrms}
 \begin{align*}
 \sigma ::=&\ \mathsf{o}\ |\ \sigma \to \sigma \\
 M ::=&\ x\ |\ MM\ |\ \lambda x.M\ |\ Y_\sigma \text{ where }x \in Var \\
@@ -207,7 +226,8 @@ $$Y_\sigma (\lambda x.x) \Rightarrow (\lambda x.x)(Y_\sigma (\lambda x.x))$$
 
 The typed version of the rule illustrates the restricted version of recursion clearly, since a recursive "$Y$-reduction" will only occur if the term $M$ in $Y_\sigma M$ has the matching type $\sigma \to \sigma$ (to $Y_\sigma$'s type $(\sigma \to \sigma) \to \sigma$), as in the example above. Due to the type restriction on $M$, recursion using the $Y$ constant will be **weakly normalizing (this is right? right?)**, which cannot be said of unrestricted recursion in the untyped $\lambda$-calculus.
 
-###Church-Rosser Theorem {#cr-def}
+###Church-Rosser Theorem
+\label{cr-def}
 
 The Church-Rosser Theorem states that the $\beta$-reduction of the $\lambda$-calculus is confluent, that is, the reflexive-transitive closure of the $\beta$-reduction has the _diamond property_, i.e. $\dip(\Rightarrow^*)$, where:
 
@@ -258,11 +278,11 @@ The @takahashi95 proof simplifies this proof by eliminating the need to do simul
 \end{tikzpicture}
 \end{center}
 \caption{The proof of $\dip(\gg)$ is split into two instances of this triangle}
-\label{gggTriangle}
+\label{figure:gggTriangle}
 \end{figure}
 
 ####Parallel $\beta Y$-reduction
-Having described the high-level overview of the classicval proof and the reason for following the @takahashi95 proof, we now describe some of the major lemmas in more detail.   
+Having described the high-level overview of the classical proof and the reason for following the @takahashi95 proof, we now describe some of the major lemmas in more detail.   
 Firstly, we give the definition of _parallel $\beta Y$-reduction_ $\gg$ formulated for the terms of the $\lamy$ calculus, which allows simultaneous reduction of multiple parts of a term:
 
 <div class="Definition" head="$\gg$">
@@ -339,17 +359,17 @@ This relation differs from $\gg$ only in the $(app)$ rule, which can only be app
 To prove $\dip(\gg)$, we first show that there always exists a term $M_{max}$ for every term $M$, where $M \ggg M_{max}$ is the maximal parallel reduction which contracts all redexes in $M$:
 
 <div class="Lemma" head="$\exists\ggg$">
-\label{max-ex}
+\label{Lemma:maxEx}
 $\forall M.\ \exists M_{max}.\ M \ggg M_{max}$
 </div>
 <div class="proof">
 By induction on M.
 </div>
 
-Finally, we show that any parallel reduction $M \gg M'$ can be "closed" by reducing to the term $M_{max}$ where all redexes have been contracted (as seen in Figure \ref{gggTriangle}):
+Finally, we show that any parallel reduction $M \gg M'$ can be "closed" by reducing to the term $M_{max}$ where all redexes have been contracted (as seen in \cref{figure:gggTriangle}):
 
 <div class="Lemma">
-\label{max-close}
+\label{Lemma:maxClose}
 $\forall M, M', M_{max}.\ M \ggg M_{max} \land M \gg M' \implies M' \gg M_{max}$
 </div>
 <div class="proof">
@@ -358,7 +378,7 @@ Omitted. Can be found on p. 8 of the @pollack95 notes.
 
 <div class="Lemma">$\dip(\gg)$.</div>
 <div class="proof">
-We can now prove $\dip(\gg)$ by simply applying Lemma \ref{max-close} twice, namely for any term $M$ there is an $M_{max}$ s.t. $M \ggg M_{max}$ (by \ref{max-ex}) and for any $M', M''$ where $M \gg M'$ and $M \gg M''$, it follows by two applications of Lemma \ref{max-close} that $M' \gg M_{max}$ and $M'' \gg M_{max}$.
+We can now prove $\dip(\gg)$ by simply applying \cref{Lemma:maxClose} twice, namely for any term $M$ there is an $M_{max}$ s.t. $M \ggg M_{max}$ (by \cref{Lemma:maxEx}) and for any $M', M''$ where $M \gg M'$ and $M \gg M''$, it follows by two applications of \cref{Lemma:maxClose} that $M' \gg M_{max}$ and $M'' \gg M_{max}$.
 </div>
 
 \newpage
@@ -423,7 +443,7 @@ Note that $\lamy$ terms are typed with the strict types $\mathcal{T}_s$ only. Th
 \end{center}
 </div>
 
-This is the initial definition, used as a basis for the mechanization, discussed in [Chapter 6](#itypes). Due to different obstacles in the formalization of the subject invariance proofs, this definition, along with the definition of intersection types was amended several times. The reasons for these changes are documented in [Chapter 6](#itypes).   
+This is the initial definition, used as a basis for the mechanization, discussed in \cref{chap:itypes}. Due to different obstacles in the formalization of the subject invariance proofs, this definition, along with the definition of intersection types was amended several times. The reasons for these changes are documented in Chapter **?? add specific section!!**.   
 The definition above also assumes that the context $\Gamma$ is _well-formed_:
 
 <div class="Definition" head="Well-formed intersection-type context">

@@ -1,4 +1,5 @@
-#Intersection types {#itypes}
+#Intersection types
+\label{chap:itypes}
 
 <div class="Definition" head="Intersection Types">
 Note that $\mathsf{o}$ and $\phi$ are constants. $\omega$ is used to denote an empty list of strict intersection types. The following sugar notation will also occasionally be used: $\bigcap \tau \equiv [ \tau ]$ and $\tau \cap \tau' \equiv \bigcap \tau \concat \bigcap \tau' \equiv [ \tau, \tau' ]$.
@@ -462,6 +463,3 @@ i)
         Where $A \equiv B \to C$.
 
         By IH, we get $\Gamma \Vdash_s m (Y_{B \to C} m) : \tau_i \leadsto \tau_j$ and $\Gamma \Vdash_s m (Y_{B \to C} m) : \tau_i \leadsto \tau_k$, thus from $(\tocap)$ it follows that $\Gamma \Vdash_s m (Y_{B \to C} m) : \tau_i \leadsto \tau_{jk}$
-
-
-Test reference to lemma \ref{test}.

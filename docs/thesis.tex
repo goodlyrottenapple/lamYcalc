@@ -171,6 +171,11 @@ xetex]{hyperref}
 \Crefname{subsubfigure}{Figure}{Figures}
 \crefname{appendix}{Appendix}{Appendices}
 \Crefname{appendix}{Appendix}{Appendices}
+\crefname{Definition}{Definition}{Definitions}
+\Crefname{Definition}{Definition}{Definitions}
+\crefname{Lemma}{Lemma}{Lemmas}
+\Crefname{Lemma}{Lemma}{Lemmas}
+
 
 % - Language -------------------------------------------------------------------
 
@@ -373,7 +378,9 @@ the first part of the project.
 
 \chapter{Background}\label{background}
 
-\hypertarget{binders}{\section{Binders}\label{binders}}
+\section{Binders}\label{binders}
+
+\label{binders}
 
 When describing the (untyped) \(\lambda\)-calculus on paper, the terms
 of the \(\lambda\)-calculus are usually inductively defined in the
@@ -706,12 +713,34 @@ object-language.
 
 \section{Simple types}\label{simple-types}
 
-The simple types presented throughout this work (except for
-\protect\hyperlink{itypes}{Chapter 6}) are often referred to as simple
-types \emph{a la Curry}, where a simply typed \(\lambda\)-term is a
-triple \((\Gamma, M, \sigma)\) s.t. \(\Gamma \vdash M : \sigma\), where
+The simple types presented throughout this work (except for Chapter
+\ref{chItypes}) are often referred to as simple types \emph{a la Curry},
+where a simply typed \(\lambda\)-term is a triple
+\((\Gamma, M, \sigma)\) s.t. \(\Gamma \vdash M : \sigma\), where
 \(\Gamma\) is the typing context, \(M\) is a term of the untyped
-\(\lambda\)-calculus and \(\sigma\) is a simple type.\\
+\(\lambda\)-calculus and \(\sigma\) is a simple type. Such a term is
+deemed valid, if one can construct a typing tree from the given type and
+typing context. For example, take the following simply typed term
+\(\{y:\tau\} \vdash \lambda x.xy : (\tau \to \phi) \to \phi\). To show
+that this is a well-typed \(\lambda\)-term, we construct the following
+typing tree:
+
+\begin{center}
+    \vskip 1.5em
+    \AxiomC{}
+    \LeftLabel{$(var)$}
+    \UnaryInfC{$\{x: \tau \to \phi,\ y:\tau\} \vdash x : \tau \to \phi$}
+    \AxiomC{}
+    \LeftLabel{$(var)$}
+    \UnaryInfC{$\{x: \tau \to \phi,\ y:\tau\} \vdash y : \tau$}
+    \LeftLabel{$(app)$}
+    \BinaryInfC{$\{x: \tau \to \phi,\ y:\tau\} \vdash xy : \phi$}
+    \LeftLabel{$(abs)$}
+    \UnaryInfC{$\{y:\tau\} \vdash \lambda x.xy : (\tau \to \phi) \to \phi$}
+    \DisplayProof
+    \vskip 1.5em
+\end{center}
+
 In the untyped \(\lambda\)-calculus, simple types and \(\lambda\)-terms
 are completely separate, brought together only through the typing
 relation \(\vdash\) in the case of simple types \emph{a la Curry}. The
@@ -719,20 +748,20 @@ definition of \(\lamy\) terms, however, is dependent on the simple types
 in the case of the \(Y\) constants, which are indexed by simple types.
 When talking about the \(\lamy\) calculus, we tend to conflate the
 ``untyped'' \(\lamy\) terms, which are simply the terms defined in
-\ref{lamy-trms}, with the ``typed'' \(\lamy\) terms, which are simply
-typed terms \emph{a la Curry} of the form \(\Gamma \vdash M : \sigma\),
-where \(M\) is an ``untyped'' \(\lamy\) term. Thus, results about the
-\(\lamy\) calculus in this work are in fact results about the ``typed''
-\(\lamy\) calculus.\\
+\cref{Definition:lamyTrms}, with the ``typed'' \(\lamy\) terms, which
+are simply typed terms \emph{a la Curry} of the form
+\(\Gamma \vdash M : \sigma\), where \(M\) is an ``untyped'' \(\lamy\)
+term. Thus, results about the \(\lamy\) calculus in this work are in
+fact results about the ``typed'' \(\lamy\) calculus.\\
 However, the proofs of the Church Rosser theorem, as presented in the
-previous section, use the untyped definition of \(\beta\)-reduction.
-Whilst it is possible to define a typed version of \(\beta\)-reduction,
-as was demonstrated by the typed version of the \((Y)\) reduction rule,
-it turned out to be much easier to first prove the Church Rosser theorem
+next section, use the untyped definition of \(\beta\)-reduction. Whilst
+it is possible to define a typed version of \(\beta\)-reduction, it
+turned out to be much easier to first prove the Church Rosser theorem
 for the so called ``untyped'' \(\lamy\) calculus and the additionally
-restrict this result to only well-types \(\lamy\) terms. Thus, the
-definition of the Church Rosser Theorem, formulated for the \(\lamy\)
-calculus, is the following one:
+restrict this result to only well-types \(\lamy\) terms (see
+\cref{utypReason} for more details). Thus, the definition of the Church
+Rosser Theorem, formulated for the \(\lamy\) calculus, is the following
+one:
 
 \begin{Theorem}[Church Rosser]
 
@@ -773,7 +802,7 @@ are given below:
 \begin{Definition}[$\lamy$ types and terms]
 
 Let \(Var\) be a countably infinite set of atoms in the definition of
-the set of \(\lambda\)-terms \(M\): \label{lamy-trms}
+the set of \(\lambda\)-terms \(M\): \label{Definition:lamyTrms}
 
 \begin{align*}
 \sigma ::=&\ \mathsf{o}\ |\ \sigma \to \sigma \\
@@ -813,7 +842,9 @@ type restriction on \(M\), recursion using the \(Y\) constant will be
 \textbf{weakly normalizing (this is right? right?)}, which cannot be
 said of unrestricted recursion in the untyped \(\lambda\)-calculus.
 
-\hypertarget{cr-def}{\subsection{Church-Rosser Theorem}\label{cr-def}}
+\subsection{Church-Rosser Theorem}\label{church-rosser-theorem}
+
+\label{cr-def}
 
 The Church-Rosser Theorem states that the \(\beta\)-reduction of the
 \(\lambda\)-calculus is confluent, that is, the reflexive-transitive
@@ -896,13 +927,13 @@ above into two instances of the following triangle:
 \end{tikzpicture}
 \end{center}
 \caption{The proof of $\dip(\gg)$ is split into two instances of this triangle}
-\label{gggTriangle}
+\label{figure:gggTriangle}
 \end{figure}
 
 \subsubsection{\texorpdfstring{Parallel
 \(\beta Y\)-reduction}{Parallel \textbackslash{}beta Y-reduction}}\label{parallel-beta-y-reduction}
 
-Having described the high-level overview of the classicval proof and the
+Having described the high-level overview of the classical proof and the
 reason for following the Takahashi
 (\protect\hyperlink{ref-takahashi95}{1995}) proof, we now describe some
 of the major lemmas in more detail.\\
@@ -995,7 +1026,7 @@ maximal parallel reduction which contracts all redexes in \(M\):
 
 \begin{Lemma}[$\exists\ggg$]
 
-\label{max-ex} \(\forall M.\ \exists M_{max}.\ M \ggg M_{max}\)
+\label{Lemma:maxEx} \(\forall M.\ \exists M_{max}.\ M \ggg M_{max}\)
 
 \end{Lemma}
 
@@ -1007,11 +1038,11 @@ By induction on M.
 
 Finally, we show that any parallel reduction \(M \gg M'\) can be
 ``closed'' by reducing to the term \(M_{max}\) where all redexes have
-been contracted (as seen in Figure \ref{gggTriangle}):
+been contracted (as seen in \cref{figure:gggTriangle}):
 
 \begin{Lemma}
 
-\label{max-close}
+\label{Lemma:maxClose}
 \(\forall M, M', M_{max}.\ M \ggg M_{max} \land M \gg M' \implies M' \gg M_{max}\)
 
 \end{Lemma}
@@ -1031,11 +1062,11 @@ Omitted. Can be found on p.~8 of the R. Pollack
 
 \begin{proof}
 
-We can now prove \(\dip(\gg)\) by simply applying Lemma \ref{max-close}
+We can now prove \(\dip(\gg)\) by simply applying \cref{Lemma:maxClose}
 twice, namely for any term \(M\) there is an \(M_{max}\) s.t.
-\(M \ggg M_{max}\) (by \ref{max-ex}) and for any \(M', M''\) where
-\(M \gg M'\) and \(M \gg M''\), it follows by two applications of Lemma
-\ref{max-close} that \(M' \gg M_{max}\) and \(M'' \gg M_{max}\).
+\(M \ggg M_{max}\) (by \cref{Lemma:maxEx}) and for any \(M', M''\) where
+\(M \gg M'\) and \(M \gg M''\), it follows by two applications of
+\cref{Lemma:maxClose} that \(M' \gg M_{max}\) and \(M'' \gg M_{max}\).
 
 \end{proof}
 
@@ -1128,11 +1159,11 @@ the typing rule for the \(Y\) constants.
 \end{Definition}
 
 This is the initial definition, used as a basis for the mechanization,
-discussed in \protect\hyperlink{itypes}{Chapter 6}. Due to different
-obstacles in the formalization of the subject invariance proofs, this
-definition, along with the definition of intersection types was amended
-several times. The reasons for these changes are documented in
-\protect\hyperlink{itypes}{Chapter 6}.\\
+discussed in \cref{chap:itypes}. Due to different obstacles in the
+formalization of the subject invariance proofs, this definition, along
+with the definition of intersection types was amended several times. The
+reasons for these changes are documented in Chapter \textbf{?? add
+specific section!!}.\\
 The definition above also assumes that the context \(\Gamma\) is
 \emph{well-formed}:
 
@@ -1192,13 +1223,13 @@ mechanization'', specified by the challenge.
 
 The comparison proceeded in two stages of elimination, where the first
 stage was a comparison of the two chosen mechanizations of binders for
-the \(\lamy\) calculus (\protect\hyperlink{comp-isa}{Chapter 4}), namely
-nominal set and locally nameless representations of binders.\\
+the \(\lamy\) calculus (\cref{chap:compIsa}), namely nominal set and
+locally nameless representations of binders.\\
 After choosing the optimal mechanization of binders, the
-\protect\hyperlink{comp-agda}{next chapter} then goes on to compare this
+\hyperref[chap:compAgda]{next chapter} then goes on to compare this
 mechanization in two different theorem provers, Isabelle and Agda.\\
-The ``wining'' theorem prover from this round was then used to formalize
-intersection-types and prove subject invariance.
+The ``winning'' theorem prover from this round was then used to
+formalize intersection-types and prove subject invariance.
 
 \subsection{Evaluation criteria}\label{evaluation-criteria}
 
@@ -1258,28 +1289,27 @@ Both of these choices were guided in part by the initial choice of
 implementation language, Isabelle, which was chosen mainly due to
 previous experience in mechanizing similar proofs.\\
 The comparison between nominal and locally nameless versions of the
-\(\lamy\) calculus, presented in \protect\hyperlink{comp-isa}{Chapter
-4}, tries to highlight the differences in the two approaches in contrast
-to the usual informal reasoning.
+\(\lamy\) calculus, presented in \cref{chap:compIsa}, tries to highlight
+the differences in the two approaches in contrast to the usual informal
+reasoning.
 
 \subsubsection{Technology transparency}\label{technology-transparency}
 
-This criterion is discussed mainly in
-\protect\hyperlink{comp-agda}{Chapter 5}, which deals with the
-comparison of Isabelle and Agda. The choice of the two theorem provers,
-but especially of Isabelle, was largely subjective. Having had previous
-experience with Isabelle, it was natural to use it initially, to lower
-the cost of entry. Initially only using Isabelle for both formalizations
-of binders also allowed for a more uniform comparison of the
-mechanization overheads.\\
+This criterion is discussed mainly in \cref{chap:compAgda}, which deals
+with the comparison of Isabelle and Agda. The choice of the two theorem
+provers, but especially of Isabelle, was largely subjective. Having had
+previous experience with Isabelle, it was natural to use it initially,
+to lower the cost of entry. Initially only using Isabelle for both
+formalizations of binders also allowed for a more uniform comparison of
+the mechanization overheads.\\
 The choice of Agda as the second implementation language was motivated
 by Agda having a dependent-type system. As a result, the style of proofs
 in Agda seems quite different to Isabelle, since the distinction between
 proofs and programs is largely erased. Agda was chosen over Coq, which
 is also a dependently-typed language, because it is more ``bare-bones''
 and thus seemed more accessible to a novice in dependently-typed
-languages. \textbf{Agda also has a higher ``cool''-factor than Coq,
-being a newer language. (Is a joke here ok?)}
+languages. Agda also has a higher ``cool''-factor than Coq, being a
+newer language.
 
 \subsubsection{Proof automation}\label{proof-automation}
 
@@ -1297,17 +1327,18 @@ only very simple proof search tactics, Agda's more sophisticated
 type-system takes on and replicates at least some of the automation seen
 in Isabelle.
 
-\hypertarget{comp-isa}{\chapter{Nominal vs.~Locally
-nameless}\label{comp-isa}}
+\chapter{Nominal vs.~Locally nameless}\label{comp-isa}
+
+\label{chap:compIsa}
 
 This chapter looks at the two different mechanizations of the \(\lamy\)
 calculus, introduced in the previous chapter, namely an implementation
 of the calculus using nominal sets and a locally nameless (LN)
 mechanization. Having presented the two approaches to formalizing
-binders in \protect\hyperlink{binders}{Chapter 2}, this chapters
-explores the consequences of choosing either mechanization, especially
-in terms of technology transparency and overheads introduced as a result
-of the chosen mechanization.
+binders in \cref{binders}, this chapter explores the consequences of
+choosing either mechanization, especially in terms of technology
+transparency and overheads introduced as a result of the chosen
+mechanization.
 
 \section{\texorpdfstring{Capture-avoiding substitution and
 \(\beta\)-reduction}{Capture-avoiding substitution and \textbackslash{}beta-reduction}}\label{capture-avoiding-substitution-and-beta-reduction}
@@ -1330,7 +1361,7 @@ defined for the \(\lamy\) calculus:
 
 \begin{Definition}[$\beta$-reduction]
 
-\label{beta-red-nom} \(\\\)
+\label{Definition:betaRedNom} \(\\\)
 
 \begin{center}
     \AxiomC{$M \Rightarrow M'$}
@@ -1513,7 +1544,7 @@ constructors for free and bound variables:
 
 \begin{Definition}[LN pre-terms]
 
-\label{pterms}
+\label{Definition:pterms}
 \[M::= x\ |\ n\ |\ MM\ |\ \lambda M\ |\ Y_\sigma \text{ where }x \in Var \text{ and } n \in Nat\]
 
 \end{Definition}
@@ -1521,15 +1552,15 @@ constructors for free and bound variables:
 Similarly to the de Bruijn presentation of binders, the \(\lambda\)-term
 no longer includes a bound variable, so a named representation term
 \(\lambda x.x\) becomes \(\lambda 0\) in LN. As was mentioned in
-\protect\hyperlink{binders}{Chapter 2}, the set of terms, defined in
-\ref{pterms}, is a superset of \(\lamy\) terms and includes terms which
-are not well formed \(\lamy\) terms. For example, the term \(\lambda 3\)
-is not a well-formed term, since the bound variable index is out of
-scope. Since we don't want to work with terms that do not correspond to
-\(\lamy\) terms, we have to introduce the notion of a \emph{well-formed
-term}, which restricts the set of pre-terms to only those that
-correspond to \(\lamy\) terms (i.e.~this inductive definition ensures
-that there are no ``out of bounds'' indices in a given pre-term):
+\cref{binders}, the set of terms, defined in \cref{Definition:pterms},
+is a superset of \(\lamy\) terms and includes terms which are not well
+formed \(\lamy\) terms. For example, the term \(\lambda 3\) is not a
+well-formed term, since the bound variable index is out of scope. Since
+we don't want to work with terms that do not correspond to \(\lamy\)
+terms, we have to introduce the notion of a \emph{well-formed term},
+which restricts the set of pre-terms to only those that correspond to
+\(\lamy\) terms (i.e.~this inductive definition ensures that there are
+no ``out of bounds'' indices in a given pre-term):
 
 \begin{Definition}[Well-formed terms]
 
@@ -1739,7 +1770,7 @@ is implicit. In the LN presentation, however, this operation is made
 explicit by opening both \(M\) and \(M'\) with some free variable \(x\)
 (not appearing in either \(M\) nor \(M'\)), which replaces the bound
 variables/indices (bound to the outermost \(\lambda\)) with \(x\). While
-this definition is equivalent to Definition \ref{beta-red-nom}, the
+this definition is equivalent to \cref{Definition:betaRedNom}, the
 induction principle this definition yields may not always be sufficient,
 especially in situations where we want to open up a term with a free
 variable which is not only fresh in \(M\) and \(M'\), but possibly in a
@@ -1785,9 +1816,11 @@ substitution, we come the the main part of the comparison, namely the
 proof of the Church Rosser theorem. This section examines specific
 instances of some of the major lemmas which are part of the bigger
 result. The general outline of the proof has been outlined in
-\protect\hyperlink{cr-def}{Chapter 2}.
+\cref{cr-def}.
 
 \subsection{Typed vs.~untyped proofs}\label{typ-utyp}
+
+\label{utypReason}
 
 As mentioned previously, when talking about the terms of the \(\lamy\)
 calculus, we generally refer to simply typed terms, such as
@@ -1820,7 +1853,9 @@ if the typing information was included directly in the definition of
 proofs, resulting in potentially less understandable and maintainable
 code.
 
-\hypertarget{comp-agda}{\chapter{Isabelle vs.~Agda}\label{comp-agda}}
+\chapter{Isabelle vs.~Agda}\label{comp-agda}
+
+\label{chap:compAgda}
 
 The formalization of the terms and reduction rules of the \(\lambda\)-Y
 calculus presented here is a locally nameless presentation due to B.
@@ -2428,7 +2463,9 @@ cases, the completed proof is given below:
 
 \newpage
 
-\hypertarget{itypes}{\chapter{Intersection types}\label{itypes}}
+\chapter{Intersection types}\label{intersection-types-1}
+
+\label{chap:itypes}
 
 \begin{Definition}[Intersection Types]
 
@@ -3010,8 +3047,6 @@ typing rule, but rather the reduction rule
     \(\Gamma \Vdash_s m (Y_{B \to C} m) : \tau_i \leadsto \tau_{jk}\)
   \end{itemize}
 \end{enumerate}
-
-Test reference to lemma \ref{test}.
 
 \footnotesize
 
