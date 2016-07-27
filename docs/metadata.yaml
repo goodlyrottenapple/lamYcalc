@@ -77,9 +77,24 @@ header-includes: # Things you may want to include in the latex header
 - \newcommand{\dip}{\textsf{dp}}
 - \newcommand{\trm}{\textsf{term}}
 - \newcommand{\fv}{\textsf{FV}}
+- \newcommand{\taui}{\bigcap\nolimits_{\underline{n}} \tau_i}
 - \let\oldemptyset\emptyset
 - \let\emptyset\varnothing
-
+- \usepackage{mdframed}
+# - \colorlet{shadecolor}{cyan!10} # [backgroundcolor=shadecolor]
+- \mdfdefinestyle{example}{linewidth=2pt,topline=false,bottomline=false,rightline=false}
+- \let\OldExample\Example
+- \renewenvironment{Example}{\begin{OldExample}\begin{mdframed}[style=example, linecolor=yellow]}{\end{mdframed}\end{OldExample}}
+- \let\OldRemark\Remark
+- \renewenvironment{Remark}{\begin{OldRemark}\begin{mdframed}[style=example, linecolor=black]}{\end{mdframed}\end{OldRemark}}
+- \let\OldDefinition\Definition
+- \renewenvironment{Definition}{\begin{OldDefinition}\begin{mdframed}[style=example, linecolor=cyan]}{\end{mdframed}\end{OldDefinition}}
+- \let\OldLemma\Lemma
+- \renewenvironment{Lemma}{\begin{OldLemma}\begin{mdframed}[style=example, linecolor=cyan]}{\end{mdframed}\end{OldLemma}}
+- \let\OldTheorem\Theorem
+- \renewenvironment{Theorem}{\begin{OldTheorem}\begin{mdframed}[style=example, linecolor=cyan]}{\end{mdframed}\end{OldTheorem}}
+- \BeforeBeginEnvironment{minted}{\vspace{1em}\begin{mdframed}[style=example, linecolor=magenta]}
+- \AfterEndEnvironment{minted}{\end{mdframed}}
 include-before:  # Options to insert before the TOC
 include-after:   # Options to insert after the last page
 

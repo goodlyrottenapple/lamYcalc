@@ -49,6 +49,7 @@ $\\$
 This definition, with the exception of the added $(Y)$ rule is the standard definition of the untyped $\beta$-reduction found in literature (**link?**). The $\sharp$ symbol is used to denote the _freshness_ relation in nominal set theory. The side-condition $x\ \sharp\ N$ in the $(\beta)$ rule can thus be read as "$x$ is fresh in $N$", namely, the atom $x$ does not appear in $N$. For a $\lambda$-term $M$, we have $x\ \sharp\ M$ iff $x \not\in \fv(M)$, where we take the usual definition of \fv:
 
 <div class="Definition" >The inductively defined $\fv$ is the set of _free variables_ of a $\lambda$-term $M$.
+\vspace{-2em}
 \begin{align*} 
 \fv(x) &= \{ x \}\\
 \fv(MN) &= \fv(M) \cup \fv(N)\\
@@ -128,9 +129,9 @@ Whilst this formalization required only a handful of other recursive function de
 As we have seen, on paper at least, the definitions of terms and capture-avoiding substitution, using nominal sets, are unchanged from the usual informal definitions. The situation is somewhat different for the locally nameless mechanization. Since the LN approach combines the named and de Bruijn representations, there are two different constructors for free and bound variables:
 
 ####Pre-terms
-<div class="Definition" head="LN pre-terms">
-\label{Definition:pterms}
-$$M::= x\ |\ n\ |\ MM\ |\ \lambda M\ |\ Y_\sigma \text{ where }x \in Var \text{ and } n \in Nat$$
+<div class="Definition" head="LN pre-terms">$\\$
+\vspace{-2em}
+$$M::= x\ |\ n\ |\ MM\ |\ \lambda M\ |\ Y_\sigma \text{ where }x \in Var \text{ and } n \in \mathbb{N}$$
 </div>
 
 Similarly to the de Bruijn presentation of binders, the $\lambda$-term no longer includes a bound variable, so a named representation term $\lambda x.x$ becomes $\lambda 0$ in LN. As was mentioned in \cref{binders}, the set of terms, defined in \cref{Definition:pterms}, is a superset of $\lamy$ terms and includes terms which are not well formed $\lamy$ terms. For example, the term $\lambda 3$ is not a well-formed term, since the bound variable index is out of scope. Since we don't want to work with terms that do not correspond to $\lamy$ terms, we have to introduce the notion of a _well-formed term_, which restricts the set of pre-terms to only those that correspond to $\lamy$ terms (i.e. this inductive definition ensures that there are no "out of bounds" indices in a given pre-term):
@@ -183,7 +184,6 @@ n & otherwise
 \end{align*}
 
 ii)	Substitution:
-
 \begin{align*} 
 x[S/y] &= \begin{cases}
 S & \text{if }x \equiv y\\
@@ -196,10 +196,12 @@ Y_\sigma[S/y] &= Y_\sigma
 \end{align*}
 </div>
 
-Having defined the _open_ operation, we turn back to the definition of well formed terms, specifically to the $(lam)$ rule, which has the precondition $\trm (M^x)$. Intuitively, for the given term $\lambda M$, the term $M^x$ is obtained by replacing all indices bound to the outermost $\lambda$ by $x$. Then, if $M^x$ is well formed, so is $\lambda M$.   
-For example, taking the term $\lambda\lambda 0(z\ 1)$, we can construct the following proof-tree, showing that the term is well-typed: 
+Having defined the _open_ operation, we turn back to the definition of well formed terms, specifically to the $(lam)$ rule, which has the precondition $\trm (M^x)$. Intuitively, for the given term $\lambda M$, the term $M^x$ is obtained by replacing all indices bound to the outermost $\lambda$ by $x$. Then, if $M^x$ is well formed, so is $\lambda M$.
+
+<div class="Example">For example, taking the term $\lambda\lambda 0(z\ 1)$, we can construct the following proof-tree, showing that the term is well formed: 
 
 \begin{center}
+    \vskip 1.5em
 	\AxiomC{}
     \LeftLabel{$(fvar)$}
 	\UnaryInfC{$\trm (y)$}
@@ -220,11 +222,13 @@ For example, taking the term $\lambda\lambda 0(z\ 1)$, we can construct the foll
     \LeftLabel{$(lam)$}
     \UnaryInfC{$\trm (\lambda\lambda 0(z\ 1))$}
     \DisplayProof
+    \vskip 1.5em
 \end{center}
 
 We assumed that $x \not\equiv y \not\equiv z$ in the proof tree above and thus omitted the $x \not\in \fv \hdots$ branches, as they are not important for this example.<!--, i.e. it is always possible to find a fresh free variable that doesn't appear in a $\lamy$ term, as the set of atoms/free variables is countably-infinite and every $\lamy$ terms is finite.-->   
 If on the other hand, we try construct a similar tree for a term which is obviously not well formed, such as $\lambda \lambda 2(z\ 1)$, we get a proof tree with a branch which cannot be closed (i.e. $\trm (2)$):
-
+\newpage
+$\ $
 \begin{center}
 	\AxiomC{$\trm (2)$}
 
@@ -244,14 +248,14 @@ If on the other hand, we try construct a similar tree for a term which is obviou
     \LeftLabel{$(lam)$}
     \UnaryInfC{$\trm (\lambda\lambda 2(z\ 1))$}
     \DisplayProof
-    \vskip 1.5em
 \end{center}
+</div>
 
 ####$\beta$-reduction for LN terms
-Finally, we examine the formulation of $\beta$-reduction in the LN presentation of the $\lamy$ calculus. Since we only want to perform $\beta$-reduction on valid $\lamy$ terms, the inductive definition of $\beta$-reduction in the LN mechanization now includes the precondition that the terms appearing in the reduction are well formed:
+Finally, we examine the formulation of $\beta$-reduction in the LN presentation of the $\lamy$ calculus. Since we only want to perform $\beta$-reduction on valid $\lamy$ terms, the inductive definition of $\beta$-reduction in the LN mechanization now includes the precondition that the terms appearing in the reduction are well formed:$\\$
 
-<div class="Definition" head="$\beta$-reduction (LN)">$L$ is a finite set of atoms in the following definition:
-$\\$
+<div class="Definition" head="$\beta$-reduction (LN)">
+$L$ is a finite set of atoms in the following definition:   
 \begin{center}
     \AxiomC{$M \Rightarrow M'$}
     \AxiomC{$\trm (N)$}
@@ -315,12 +319,35 @@ where
 
 ##Untyped Church Rosser Theorem
 
-Having described the implementations of the two binder representations along with some basic definitions, such as capture-avoiding substitution, we come the the main part of the comparison, namely the proof of the Church Rosser theorem. This section examines specific instances of some of the major lemmas which are part of the bigger result. The general outline of the proof has been outlined in \cref{cr-def}.
+Having described the implementations of the two binder representations along with some basic definitions, such as capture-avoiding substitution, we come the the main part of the comparison, namely the proof of the Church Rosser theorem. This section examines specific instances of some of the major lemmas which are part of the bigger result, that is the Church Rosser theorem. The general outline of the proof has been described in \cref{cr-def}.
 
 ###Typed vs. untyped proofs {#typ-utyp}
 \label{utypReason}
 
 As mentioned previously, when talking about the terms of the $\lamy$ calculus, we generally refer to simply typed terms, such as $\Gamma \vdash \lambda x. Y_\sigma : \tau \to (\sigma \to \sigma) \to \sigma$. However, the definitions of reduction seen so far and the consecutive proofs using these definitions don't use simply typed $\lamy$ terms, operating instead on untyped terms. The simplest reason why this is the case is one of convenience and simplicity. As is the case in most proofs of the Church Rosser Theorem, the result is usually proved for untyped terms of the $\lambda$-calculus and then extended to simply typed terms by simply restricting the terms we want to reason about. The theorem holds due to subject reduction, which says that if a term $M$ can be given a simple type $\sigma$ and $\beta$-reduces to another term $M'$, the new term can still be typed with the same type $\sigma$. Further details about the proofs of subject reduction for the simply typed $\lamy$ calculus can be found in the next section of this chapter.    
-Another reason, besides convention is convenience, specifically succinctness of code, or the lack thereof, when including simple types in the definition of $\beta$-reduction and all the subsequent lemmas and theorems. Indeed, the choice of excluding typing information wherever possible has also been an engineering choice to a large degree, as it is not good practice (in general) to keep and pass around variables/objects where not needed in classical programming. The same applies to functional programming and theorem proving especially, where notation can often be bloated and cumbersome. Whilst it is true that the implementation of the proofs of Church Rosser theorem might be shorter, if the typing information was included directly in the definition of $\beta$-reduction, the downside would be an increased complexity of proofs, resulting in potentially less understandable and maintainable code.
+Another reason, besides convention is convenience, specifically succinctness of code, or the lack thereof, when including simple types in the definition of $\beta$-reduction and all the subsequent lemmas and theorems. Indeed, the choice of excluding typing information wherever possible has also been an engineering choice to a large degree, as it is not good practice (in general) to keep and pass around variables/objects where not needed in classical programming. The same applies to functional programming and theorem proving especially, where notation can easily become bloated and cumbersome.   
+Whilst it is true that the implementation of the proofs of Church Rosser theorem might have been shorter, if the typing information was included directly in the definition of $\beta$-reduction, the downside to this would have been an increased complexity of proofs, resulting in potentially less understandable and maintainable code. **This then also ties into automation? + ex'le??**
 
 
+###$\gg$ closes triangle
+**^ find a better name??**
+
+The first major result in both implementations is \cref{Lemma:maxClose}, which sates that for every $\lamy$ term $M$, there is a term $M'$, s.t. $M \ggg M'$. This result would be trivial for $\gg$, as we can easily prove that for any $M$, $M \gg M$. $\\$
+
+<div class="Remark">
+In fact this proof is a good example to showcase the automation available in Isabelle, as it can be proven by a simple induction on $M$, where the generated cases are proven by a call to Isabelle's `auto` prover:
+
+~~~{.isabelle}
+lemma pbeta_refl[intro]: "M ⇒∥ M"
+apply (induct s rule:trm.induct) by auto
+~~~
+
+This is a version of the proof found in the nominal mechanization. The formulation of the same proof in the LN mechanization differs only slightly, wherein $M$ may not be well formed (since $M$ is a pre-term) and thus this definition requires that $M$ be well formed (i.e. $\trm (M)$, written as `trm M` in the Isabelle implementation):
+
+~~~{.isabelle}
+lemma pbeta_refl[intro]: "trm M ⟹ M ⇒∥ M"
+apply (induct s rule:trm.induct) by auto
+~~~
+</div>
+
+AAAA text

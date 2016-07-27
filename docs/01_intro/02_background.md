@@ -64,12 +64,17 @@ datatype trm =
 | Lam trm
 ~~~
 
-This representation of terms uses indices instead of named variables. The indices are natural numbers, which encode an occurrence of a variable in a $\lambda$-term. For bound variables, the index indicates which $\lambda$ it refers to, by encoding the number of $\lambda$-binders that are in the scope between the index and the $\lambda$-binder the variable corresponds to. For example, the term $\lambda x.\lambda y. yx$ will be represented as $\lambda\ \lambda\ 0\ 1$. Here, 0 stands for $y$, as there are no binders in scope between itself and the $\lambda$ it corresponds to, and $1$ corresponds to $x$, as there is one $\lambda$-binder in scope. To encode free variables, one simply choses an index greater than the number of $\lambda$'s currently in scope, for example, $\lambda\ 4$.   
+This representation of terms uses indices instead of named variables. The indices are natural numbers, which encode an occurrence of a variable in a $\lambda$-term. For bound variables, the index indicates which $\lambda$ it refers to, by encoding the number of $\lambda$-binders that are in the scope between the index and the $\lambda$-binder the variable corresponds to. 
+
+<div class="Example">
+The term $\lambda x.\lambda y. yx$ will be represented as $\lambda\ \lambda\ 0\ 1$. Here, 0 stands for $y$, as there are no binders in scope between itself and the $\lambda$ it corresponds to, and $1$ corresponds to $x$, as there is one $\lambda$-binder in scope. To encode free variables, one simply choses an index greater than the number of $\lambda$'s currently in scope, for example, $\lambda\ 4$.
+</div>
 
 To see that this representation of $\lambda$-terms is isomorphic to the usual named definition, we can define two function $f$ and $g$, which translate the named representation to de Bruijn notation and vice versa. More precisely, since we are dealing with $\alpha$-equivalence classes, its is an isomorphism between these that we can formalize. 
 
 To make things easier, we consider a representation of named terms, where we map named variables, $x, y, z,...$ to indexed variables $x_1,x_2,x_3,...$. Then, the mapping from named terms to de Bruijn term is given by $f$, which we define in terms of an auxiliary function $e$:
 
+\vspace{-2em}
 \begin{align*} 
 e_k^m(x_n) &= \begin{cases}
 k-m(x_n)-1 & x_n \in \text{dom }m\\
@@ -89,17 +94,14 @@ The function $g$, taking de Bruijn terms to named terms is a little more tricky.
 
 We need two auxiliary functions to define $g$:
 
+\vspace{-2em}
 \begin{align*} 
 h_k^b(n) &= \begin{cases}
 x_{n-k} & n \geq k\\
 x_{k+b-n-1} & otherwise
 \end{cases}\\
 h_k^b(uv) &= h_k^b(u)\ h_k^b(v)\\
-h_k^b(\lambda u) &= \lambda x_{k+b}.\ h_{k+1}^b(u)
-\end{align*}
-
-
-\begin{align*} 
+h_k^b(\lambda u) &= \lambda x_{k+b}.\ h_{k+1}^b(u)\\[2.5em]
 \Diamond_k(n) &= \begin{cases}
 n-k & n \geq k\\
 0 & otherwise
@@ -118,12 +120,12 @@ $\\$-->
 As one quickly notices, a term like $\lambda x.x$ and $\lambda y.y$ have a single unique representation as a de Bruijn term $\lambda\ 0$. Indeed, since there are no named variables in a de Bruijn term, there is only one way to represent any $\lambda$-term, and the notion of $\alpha$-equivalence is no longer relevant. We thus get around our problem of having an inductive principle and $\alpha$-equivalent terms, by having a representation of $\lambda$-terms where every $\alpha$-equivalence class of $\lambda$-terms has a single representative term in the de Bruijn notation.
 
 In their comparison between named vs. nameless/de Bruijn representations of $\lambda$-terms, @berghofer06 give details about the definition of substitution, which no longer needs the variable convention and can therefore be defined using primitive structural recursion.   
-The main disadvantage of using de Bruijn indices is the relative unreadability of both the terms and the formulation of properties about these terms. For example, the substitution lemma, which in the named setting would be stated as:
+The main disadvantage of using de Bruijn indices is the relative unreadability of both the terms and the formulation of properties about these terms. For instance, take the substitution lemma, which in the named setting would be stated as:
 
 $$\text{If }x \neq y\text{ and }x \not\in FV(L)\text{, then }
 M[N/x][L/y] \equiv M[L/y][N[L/y]/x].$$
 
-becomes the following statement in the nameless formalization:
+In de Bruijn notation, the statement of this lemma becomes:
 
 $$\text{For all indices }i, j\text{ with }i \leq j\text{, }M[N/i][L/j] = M[L/j + 1][N[L/j - i]/i]$$
 
@@ -165,7 +167,10 @@ However, using HOAS only works if the notion of $\alpha$-equivalence and substit
 \newpage
 ##Simple types
 
-The simple types presented throughout this work (except for Chapter \ref{chItypes}) are often referred to as simple types _a la Curry_, where a simply typed $\lambda$-term is a triple $(\Gamma, M, \sigma)$ s.t. $\Gamma \vdash M : \sigma$, where $\Gamma$ is the typing context, $M$ is a term of the untyped $\lambda$-calculus and $\sigma$ is a simple type. Such a term is deemed valid, if one can construct a typing tree from the given type and typing context. For example, take the following simply typed term $\{y:\tau\} \vdash \lambda x.xy : (\tau \to \phi) \to \phi$. To show that this is a well-typed $\lambda$-term, we construct the following typing tree:
+The simple types presented throughout this work (except for Chapter \ref{chItypes}) are often referred to as simple types _a la Curry_, where a simply typed $\lambda$-term is a triple $(\Gamma, M, \sigma)$ s.t. $\Gamma \vdash M : \sigma$, where $\Gamma$ is the typing context, $M$ is a term of the untyped $\lambda$-calculus and $\sigma$ is a simple type. Such a term is deemed valid, if one can construct a typing tree from the given type and typing context. 
+
+<div class="Example">
+Take the following simply typed term $\{y:\tau\} \vdash \lambda x.xy : (\tau \to \phi) \to \phi$. To show that this is a well-typed $\lambda$-term, we construct the following typing tree:
 
 \begin{center}
     \vskip 1.5em
@@ -180,21 +185,20 @@ The simple types presented throughout this work (except for Chapter \ref{chItype
     \LeftLabel{$(abs)$}
     \UnaryInfC{$\{y:\tau\} \vdash \lambda x.xy : (\tau \to \phi) \to \phi$}
     \DisplayProof
-    \vskip 1.5em
 \end{center}
+</div>
 
-
-In the untyped $\lambda$-calculus, simple types and $\lambda$-terms are completely separate, brought together only through the typing relation $\vdash$ in the case of simple types _a la Curry_. The definition of $\lamy$ terms, however, is dependent on the simple types in the case of the $Y$ constants, which are indexed by simple types. When talking about the $\lamy$ calculus, we tend to conflate the "untyped" $\lamy$ terms, which are simply the terms defined in \cref{Definition:lamyTrms}, with the "typed" $\lamy$ terms, which are simply typed terms _a la Curry_ of the form $\Gamma \vdash M : \sigma$, where $M$ is an "untyped" $\lamy$ term. Thus, results about the $\lamy$ calculus in this work are in fact results about the "typed" $\lamy$ calculus.    
+In the untyped $\lambda$-calculus, simple types and $\lambda$-terms are completely separate, brought together only through the typing relation $\vdash$ in the case of simple types _a la Curry_. The definition of $\lamy$ terms, however, is dependent on the simple types in the case of the $Y$ constants, which are indexed by simple types. When talking about the $\lamy$ calculus, we tend to conflate the "untyped" $\lamy$ terms, which are just the terms defined in \cref{Definition:lamyTrms}, with the "typed" $\lamy$ terms, which are simply-typed terms _a la Curry_ of the form $\Gamma \vdash M : \sigma$, where $M$ is an "untyped" $\lamy$ term. Thus, results about the $\lamy$ calculus in this work are in fact results about the "typed" $\lamy$ calculus.    
 However, the proofs of the Church Rosser theorem, as presented in the next section, use the untyped definition of $\beta$-reduction. Whilst it is possible to define a typed version of $\beta$-reduction, <!--as was demonstrated by the typed version of the $(Y)$ reduction rule,--> it turned out to be much easier to first prove the Church Rosser theorem for the so called "untyped" $\lamy$ calculus and the additionally restrict this result to only well-types $\lamy$ terms (see \cref{utypReason} for more details). Thus, the definition of the Church Rosser Theorem, formulated for the $\lamy$ calculus, is the following one:
 
 <div class="Theorem" head="Church Rosser">
-$$\Gamma \vdash M : \sigma \land M \Rightarrow^* M' \land M \Rightarrow^* M'' \implies \exists M'''.\ \ M' \Rightarrow^* M''' \land M'' \Rightarrow^* M''' \land \Gamma \vdash M''' : \sigma$$
+$\Gamma \vdash M : \sigma \land M \Rightarrow^* M' \land M \Rightarrow^* M'' \implies \exists M'''.\ \ M' \Rightarrow^* M''' \land M'' \Rightarrow^* M''' \land \Gamma \vdash M''' : \sigma$
 </div>
 
 In order to prove this typed version of the Church Rosser Theorem, we need to prove an additional result of subject reduction for $\lamy$ calculus, namely:
 
 <div class="Theorem" head="Subject reduction for $\Rightarrow_\beta$">
-$$\Gamma \vdash M : \sigma \land M \Rightarrow^* M' \implies \Gamma \vdash M' : \sigma$$
+$\Gamma \vdash M : \sigma \land M \Rightarrow^* M' \implies \Gamma \vdash M' : \sigma$
 </div>
 
 ##$\lamy$ calculus
@@ -205,24 +209,31 @@ Originally, the field of higher order model checking mainly involved studying hi
 The first part of this project focuses on formalizing the simply typed $\lamy$ calculus and the proof of confluence for this calculus. The usual/informal definition of the $\lamy$ terms and the simple types are given below:
 
 <div class="Definition" head="$\lamy$ types and terms">Let $Var$ be a countably infinite set of atoms in the definition of the set of $\lambda$-terms $M$:
+\vspace{-2em}
 \label{Definition:lamyTrms}
 \begin{align*}
 \sigma ::=&\ \mathsf{o}\ |\ \sigma \to \sigma \\
-M ::=&\ x\ |\ MM\ |\ \lambda x.M\ |\ Y_\sigma \text{ where }x \in Var \\
+M ::=&\ x\ |\ MM\ |\ \lambda x.M\ |\ Y_\sigma \text{ where }x \in Var
 \end{align*}
 </div> 
 
 The $\lamy$ calculus differs from the simply typed $\lambda$-calculus only in the addition of the $Y$ constant family, indexed at every simple type $\sigma$, where the (simple) type of a $Y_A$ constant (indexed with the type $A$) is $(A \to A) \to A$. The usual definition of $\beta$-reduction is then augmented with the $(Y)$ rule (this is the typed version of the rule):
 
 \begin{center}
-    \AxiomC{$\Gamma \vdash M : \sigma \to \sigma$}
-    \LeftLabel{$(Y)$}
-    \UnaryInfC{$\Gamma \vdash Y_\sigma M \Rightarrow M (Y_\sigma M) : \sigma$}
-    \DisplayProof
+  \vskip 1.5em
+  \AxiomC{$\Gamma \vdash M : \sigma \to \sigma$}
+  \LeftLabel{$(Y)$}
+  \UnaryInfC{$\Gamma \vdash Y_\sigma M \Rightarrow M (Y_\sigma M) : \sigma$}
+  \DisplayProof
+  \vskip 1.5em
 \end{center}
 
-In essence, the $Y$ rule allows (some) well-typed recursive definitions over simply typed $\lambda$-terms. Take for example the term $\lambda x.x$, commonly referred to as the _identity_. The _identity_ term can be given a type $\sigma \to \sigma$ for any simple type $\sigma$. We can therefore perform the following (well-typed) reduction in the $\lamy$ calculus:
+In essence, the $Y$ rule allows (some) well-typed recursive definitions over simply typed $\lambda$-terms. 
+
+<div class="Example">
+Take for example the term $\lambda x.x$, commonly referred to as the _identity_. The _identity_ term can be given a type $\sigma \to \sigma$ for any simple type $\sigma$. We can therefore perform the following (well-typed) reduction in the $\lamy$ calculus:
 $$Y_\sigma (\lambda x.x) \Rightarrow (\lambda x.x)(Y_\sigma (\lambda x.x))$$
+</div>
 
 The typed version of the rule illustrates the restricted version of recursion clearly, since a recursive "$Y$-reduction" will only occur if the term $M$ in $Y_\sigma M$ has the matching type $\sigma \to \sigma$ (to $Y_\sigma$'s type $(\sigma \to \sigma) \to \sigma$), as in the example above. Due to the type restriction on $M$, recursion using the $Y$ constant will be **weakly normalizing (this is right? right?)**, which cannot be said of unrestricted recursion in the untyped $\lambda$-calculus.
 
@@ -240,7 +251,7 @@ The proof of confluence of $\Rightarrow_Y$, the $\beta Y$-reduction defined as t
 
 ####Overview
 
-In the traditional proof of the Church Rosser theorem, we define a new reduction relation, called the _parallel_ $\beta$-reduction ($\gg$), which, unlike the "plain" $\beta$-reduction satisfies the _diamond property_ (note that we are talking about the "single step" $\beta$-reduction and not the reflexive transitive closure). Once we prove the _diamond property_ for $\gg$, the proof of $\dip(\gg^*)$ follows easily. The reason why we prove $\dip(\gg)$ in the first place is because the reflexive-transitive closure of $\gg$ coincides with the reflexive transitive closure of $\Rightarrow$ and it is much easier to prove $\dip(\gg)$ than trying to prove $\dip(\Rightarrow^*)$ directly. The usual proof of the _diamond property_ for $\gg$ involves a double induction on the shape of the two parallel $\beta$-reductions from $M$ to $P$ and $Q$, where we try to show that the following diagram can always be "closed":
+In the traditional proof of the Church Rosser theorem, we define a new reduction relation, called the _parallel_ $\beta$-reduction ($\gg$), which, unlike the "plain" $\beta$-reduction satisfies the _diamond property_ (note that we are talking about the "single step" $\beta$-reduction and not the reflexive transitive closure). Once we prove the _diamond property_ for $\gg$, the proof of $\dip(\gg^*)$ follows easily. The reason why we prove $\dip(\gg)$ in the first place is because the reflexive-transitive closure of $\gg$ coincides with the reflexive transitive closure of $\Rightarrow$ and it is much easier to prove $\dip(\gg)$ than trying to prove $\dip(\Rightarrow^*)$ directly. The usual proof of the _diamond property_ for $\gg$ involves a double induction on the shape of the two parallel $\beta$-reductions from $M$ to $P$ and $Q$, where we try to show that the following diamond always exists, that is, given any reductions $M \gg P$ and $M \gg Q$, there is some $M'$ s.t. $P \gg M'$ and $Q \gg M'$:
 
 \begin{figure}[h]
 \begin{center}
@@ -261,7 +272,7 @@ In the traditional proof of the Church Rosser theorem, we define a new reduction
 \caption{The diamond property of $\gg$, visualized}
 \end{figure}
 
-The @takahashi95 proof simplifies this proof by eliminating the need to do simultaneous induction on the $M \gg P$ and $M \gg Q$ reductions. This is done by introducing another reduction, referred to as the _maximal parallel_ $\beta$-reduction ($\ggg$). The idea of using $\ggg$ is to show that for every term $M$ there is a reduct term $M_{max}$ s.t. $M \ggg M_{max}$. We can then separate the "diamond" diagram above into two instances of the following triangle:
+The @takahashi95 proof simplifies this proof by eliminating the need to do simultaneous induction on the $M \gg P$ and $M \gg Q$ reductions. This is done by introducing another reduction, referred to as the _maximal parallel_ $\beta$-reduction ($\ggg$). The idea of using $\ggg$ is to show that for every term $M$ there is a reduct term $M_{max}$ s.t. $M \ggg M_{max}$ and that any $M'$, s.t. $M \gg M'$, also reduces to $M_{max}$. We can then separate the "diamond" diagram above into two instances of the following triangle, where $M'$ from the previous diagram is $M_{max}$:
 
 \begin{figure}
 \begin{center}
@@ -281,84 +292,148 @@ The @takahashi95 proof simplifies this proof by eliminating the need to do simul
 \label{figure:gggTriangle}
 \end{figure}
 
+\newpage
 ####Parallel $\beta Y$-reduction
-Having described the high-level overview of the classical proof and the reason for following the @takahashi95 proof, we now describe some of the major lemmas in more detail.   
+Having described the high-level overview of the classical proof and the reason for following the @takahashi95 proof, we now present some of the major lemmas in more detail.   
 Firstly, we give the definition of _parallel $\beta Y$-reduction_ $\gg$ formulated for the terms of the $\lamy$ calculus, which allows simultaneous reduction of multiple parts of a term:
 
 <div class="Definition" head="$\gg$">
 $\ $
 \begin{center}
-    \AxiomC{}
-    \LeftLabel{$(refl)$}
-    \UnaryInfC{$x \gg x$}
-    \DisplayProof
-    \hskip 1.5em
-    \AxiomC{$M \gg M'$}
-    \AxiomC{$N \gg N'$}
-    \LeftLabel{$(app)$}
-    \BinaryInfC{$MN \gg M'N'$}
-    \DisplayProof
-    \vskip 1.5em
-    \AxiomC{$M \gg M'$}
-    \LeftLabel{$(abs)$}
-    \UnaryInfC{$\lambda x. M \gg \lambda x. M'$}
-    \DisplayProof
-    \hskip 1.5em
-    \AxiomC{$M \gg M'$}
-    \AxiomC{$N \gg N'$}    \LeftLabel{$(\beta)$}
-    \BinaryInfC{$(\lambda x. M)N \gg M'[N'/x]$}
-    \DisplayProof
-    \hskip 1.5em
-    \AxiomC{$M \gg M'$}
-    \LeftLabel{$(Y)$}
-    \UnaryInfC{$Y_\sigma M \gg M' (Y_\sigma M')$}
-    \DisplayProof
+  \AxiomC{}
+  \LeftLabel{$(refl)$}
+  \UnaryInfC{$x \gg x$}
+  \DisplayProof
+  \hskip 1.5em
+  \AxiomC{}
+  \LeftLabel{$(refl_Y)$}
+  \UnaryInfC{$Y_\sigma \gg Y_\sigma$}
+  \DisplayProof
+  \hskip 1.5em
+  \AxiomC{$M \gg M'$}
+  \AxiomC{$N \gg N'$}
+  \LeftLabel{$(app)$}
+  \BinaryInfC{$MN \gg M'N'$}
+  \DisplayProof
+  \vskip 1.5em
+  \AxiomC{$M \gg M'$}
+  \LeftLabel{$(abs)$}
+  \UnaryInfC{$\lambda x. M \gg \lambda x. M'$}
+  \DisplayProof
+  \hskip 1.5em
+  \AxiomC{$M \gg M'$}
+  \AxiomC{$N \gg N'$}
+  \LeftLabel{$(\beta)$}
+  \BinaryInfC{$(\lambda x. M)N \gg M'[N'/x]$}
+  \DisplayProof
+  \hskip 1.5em
+  \AxiomC{$M \gg M'$}
+  \LeftLabel{$(Y)$}
+  \UnaryInfC{$Y_\sigma M \gg M' (Y_\sigma M')$}
+  \DisplayProof
+  \vskip 1.5em
 \end{center}
 </div>
 
-**Ex'le here!!**
+The most basic difference between the normal $\beta$-reduction and _parallel_ $\beta$-reduction is the $(refl)/(refl_Y)$ rule, where $x \gg x$, for example, is a valid reduction, but we have $x \nRightarrow_Y x$ for the normal $\beta$-reduction ($x \Rightarrow_Y^* x$ is valid, since $\Rightarrow_Y^*$ is the reflexive transitive closure of $\Rightarrow_Y$). 
 
-Then, we proceed to define the _maximum parallel reduction_ $\ggg$, which contracts all redexes in a given term with a single step:
+<div class="Example">
+Another example where the two reductions differ is the simultaneous reduction of multiple sub-terms. _Parallel_ reduction, unlike $\Rightarrow_Y$, allows the reduction of the term $((\lambda xy.x)z)(\lambda x.x)y$ to $(\lambda y.z)y$, by simultaneously reducing the two sub-terms $(\lambda xy.x)z$ and $(\lambda x.x)y$ to $\lambda y.z$ and $y$ respectively:
+
+\begin{center}
+  \vskip 1.5em
+  \AxiomC{}
+  \LeftLabel{$(refl^*)$}
+  \UnaryInfC{$\lambda xy.x \gg \lambda xy.x$}
+  \AxiomC{}
+  \LeftLabel{$(refl)$}
+  \UnaryInfC{$z \gg z$}
+  \LeftLabel{$(\beta)$}
+  \BinaryInfC{$(\lambda xy.x)z \gg \lambda y.z$}
+  \AxiomC{}
+  \LeftLabel{$(refl^*)$}
+  \UnaryInfC{$\lambda x.x \gg \lambda x.x$}
+  \AxiomC{}
+  \LeftLabel{$(refl)$}
+  \UnaryInfC{$y \gg y$}
+  \LeftLabel{$(\beta)$}
+  \BinaryInfC{$(\lambda x.x)y \gg y$}
+  \LeftLabel{$(app)$}
+  \BinaryInfC{$((\lambda xy.x)z)(\lambda x.x)y \gg (\lambda y.z)y$}
+  \DisplayProof
+  \vskip 0.5em
+($(refl^*)$ is a derived rule $\forall M.\ M \gg M$, which can easily be proved by induction on $M$.)
+  \vskip 1em
+\end{center}
+
+When we try to construct a similar tree for $\beta$-reduction, we can clearly see that the only two rules we can use are $(red_L)$ or $(red_R)$. We can thus only perform the right-side or the left side reduction of the two sub-terms, but not both (for the rules of normal $\beta$-reduction see \cref{Definition:betaRedNom}).
+</div>
+
+Having described the intuition behind the _parallel_ $\beta$-reduction, we proceed to define the _maximum parallel reduction_ $\ggg$, which contracts all redexes in a given term with a single step:
+
 
 <div class="Definition" head="$\ggg$">
 $\ $
 \begin{center}
-    \AxiomC{}
-    \LeftLabel{$(refl)$}
-    \UnaryInfC{$x \ggg x$}
-    \DisplayProof
-    \hskip 1.5em
-    \AxiomC{$M \ggg M'$}
-    \AxiomC{$N \ggg N'$}
-    \LeftLabel{$(app)$}
-    \RightLabel{($M$ is not a $\lambda$ or $Y$)}
-    \BinaryInfC{$MN \ggg M'N'$}
-    \DisplayProof
-    \vskip 1.5em
-    \AxiomC{$M \ggg M'$}
-    \LeftLabel{$(abs)$}
-    \UnaryInfC{$\lambda x. M \ggg \lambda x. M'$}
-    \DisplayProof
-    \hskip 1.5em
-    \AxiomC{$M \ggg M'$}
-    \AxiomC{$N \ggg N'$}    \LeftLabel{$(\beta)$}
-    \BinaryInfC{$(\lambda x. M)N \ggg M'[N'/x]$}
-    \DisplayProof
-    \hskip 1.5em
-    \AxiomC{$M \ggg M'$}
-    \LeftLabel{$(Y)$}
-    \UnaryInfC{$Y_\sigma M \ggg M' (Y_\sigma M')$}
-    \DisplayProof
+  \AxiomC{}
+  \LeftLabel{$(refl)$}
+  \UnaryInfC{$x \ggg x$}
+  \DisplayProof
+  \hskip 1.5em
+  \AxiomC{}
+  \LeftLabel{$(refl_Y)$}
+  \UnaryInfC{$Y_\sigma \ggg Y_\sigma$}
+  \DisplayProof
+  \hskip 1.5em
+  \AxiomC{$M \ggg M'$}
+  \AxiomC{$N \ggg N'$}
+  \LeftLabel{$(app)$}
+  \RightLabel{($M$ is not a $\lambda$ or $Y$)}
+  \BinaryInfC{$MN \ggg M'N'$}
+  \DisplayProof
+  \vskip 1.5em
+  \AxiomC{$M \ggg M'$}
+  \LeftLabel{$(abs)$}
+  \UnaryInfC{$\lambda x. M \ggg \lambda x. M'$}
+  \DisplayProof
+  \hskip 1.5em
+  \AxiomC{$M \ggg M'$}
+  \AxiomC{$N \ggg N'$}    \LeftLabel{$(\beta)$}
+  \BinaryInfC{$(\lambda x. M)N \ggg M'[N'/x]$}
+  \DisplayProof
+  \hskip 1.5em
+  \AxiomC{$M \ggg M'$}
+  \LeftLabel{$(Y)$}
+  \UnaryInfC{$Y_\sigma M \ggg M' (Y_\sigma M')$}
+  \DisplayProof
 \end{center}
 </div>
 
 This relation differs from $\gg$ only in the $(app)$ rule, which can only be applied if $M$ is not a $\lambda$ or $Y$ term.
-**Ex'le here!!**
+
+<div class="Example">
+To demonstrate the difference between $\gg$ and $\ggg$, we take a look at the term $(\lambda xy.x)(\lambda x.x)y$.   
+Whilst $(\lambda xy.x)(\lambda x.x)z \gg (\lambda xy.x)z$ or $(\lambda xy.x)(\lambda x.x)z \gg \lambda y.z$ (amongst others) are valid reductions, the reduction $(\lambda xy.x)(\lambda x.x)z \ggg (\lambda xy.x)z$ is not valid. To see why this is the case, we observe that the last rule applied in the derivation tree must have been the $(app)$ rule, since we see that a reduction on the sub-term $\lambda x.x \ggg z$ occurs:
+
+\begin{center}
+  \AxiomC{$\vdots$}
+  \UnaryInfC{$\lambda xy.x \ggg \lambda xy.x$}
+
+  \AxiomC{$\vdots$}
+  \UnaryInfC{$(\lambda x.x)z \ggg z$}
+  \LeftLabel{$(app)$}
+  \RightLabel{($\lambda xy.x$ is not a $\lambda$ or $Y$)}
+  \BinaryInfC{$(\lambda xy.x)(\lambda x.x)z \ggg (\lambda xy.x)z$}
+  \DisplayProof
+\end{center}
+
+However, this clearly could not happen, because $\lambda xy.x$ is in fact a $\lambda$-term.
+</div>
 
 
 To prove $\dip(\gg)$, we first show that there always exists a term $M_{max}$ for every term $M$, where $M \ggg M_{max}$ is the maximal parallel reduction which contracts all redexes in $M$:
 
-<div class="Lemma" head="$\exists\ggg$">
+<div class="Lemma">
 \label{Lemma:maxEx}
 $\forall M.\ \exists M_{max}.\ M \ggg M_{max}$
 </div>
@@ -376,7 +451,9 @@ $\forall M, M', M_{max}.\ M \ggg M_{max} \land M \gg M' \implies M' \gg M_{max}$
 Omitted. Can be found on p. 8 of the @pollack95 notes.
 </div>
 
-<div class="Lemma">$\dip(\gg)$.</div>
+<div class="Lemma">$\dip(\gg)$
+</div>
+
 <div class="proof">
 We can now prove $\dip(\gg)$ by simply applying \cref{Lemma:maxClose} twice, namely for any term $M$ there is an $M_{max}$ s.t. $M \ggg M_{max}$ (by \cref{Lemma:maxEx}) and for any $M', M''$ where $M \gg M'$ and $M \gg M''$, it follows by two applications of \cref{Lemma:maxClose} that $M' \gg M_{max}$ and $M'' \gg M_{max}$.
 </div>
@@ -400,44 +477,51 @@ We restrict ourselves to a version of intersection types often called _strict in
 </div>
 
 The following conventions for intersection types are adopted throughout this section; 
-$\omega$ stands for the empty intersection and we write $\bigcap\tau_i$ for the type $\tau_1 \cap\hdots\cap \tau_i$. We also define a relation $\subseteq$ for intersection types:
+$\omega$ stands for the empty intersection and we write $\taui$ for the type $\tau_1 \cap\hdots\cap \tau_n$. We also define a relation $\subseteq$ for intersection types:
 
 <div class="Definition" head="$\subseteq$">This relation is the least pre-order on intersection types s.t.:
+\vspace{-2em}
+
 \begin{align*} 
-\forall\ 1 \leq j \leq i.&\ \ \tau_j \subseteq \bigcap \tau_i \\ 
-\forall\ 1 \leq j \leq i.\ \ \tau_j \subseteq \tau &\implies \bigcap \tau_i \subseteq \tau \\
-\rho \subseteq \psi \land \tau \subseteq \mu &\implies \psi \leadsto \tau \subseteq \rho \leadsto \mu\\
+\forall\ i \in \underline{n}.\ \ \tau_i \subseteq& \taui \\ 
+\forall\ i \in \underline{n}.\ \ \tau_i \subseteq \tau \implies& \taui \subseteq \tau \\
+\rho \subseteq \psi \land \tau \subseteq \mu \implies& \psi \leadsto \tau \subseteq \rho \leadsto \mu\\
 \end{align*}
+\vspace{-3.5em}
+
+(This relation is equivalent the $\leq$ relation, defined in @pollack95 notes, i.e. $\tau \leq \psi \equiv \psi \subseteq \tau$.)
 </div>
 
 
-Note that $\lamy$ terms are typed with the strict types $\mathcal{T}_s$ only. The typing system, presented for the strict intersection types, is an adaptation of the one found in the @pollack95 notes, with the addition of the typing rule for the $Y$ constants.
+In this presentation, $\lamy$ terms are typed with the strict types $\mathcal{T}_s$ only. Much like the simple types, presented in the previous sections, an intersection-typing judgment is a triple $\Gamma, M, \tau$, written as $\Gamma \vDash M : \tau$, where $\Gamma$ is the intersection-type context, similar in construction to the simple typing context, $M$ is a $\lamy$ term and $\tau$ is a strict intersection type $\mathcal{T}_s$.    
+The definition of the intersection-typing system, like the $\subseteq$ relation, has also been adapted from the typing system found in the @pollack95 notes, by adding the typing rule for the $Y$ constants:
 
 <div class="Definition" head="Intersection-type assignment">$\\$
 \begin{center}
-  \AxiomC{$\exists (x, \bigcap\tau_i) \in \Gamma.\ \tau \subseteq \bigcap\tau_i$}
+  \AxiomC{$x: \taui \in \Gamma$}
+  \AxiomC{$\tau \subseteq \taui$}
   \LeftLabel{$(var)$}
-  \UnaryInfC{$\Gamma \Vdash x : \tau$}
+  \BinaryInfC{$\Gamma \Vdash x : \tau$}
   \DisplayProof
   %------------------------------------
   \hskip 1.5em
-  \AxiomC{$\Gamma \Vdash M : \bigcap\tau_i \leadsto \tau$}
-  \AxiomC{$\forall\ 1 \leq j \leq i.\ \ \Gamma \Vdash N : \tau_j$}
+  \AxiomC{$\Gamma \Vdash M : \taui \leadsto \tau$}
+  \AxiomC{$\forall\ i \in \underline{n}.\ \ \Gamma \Vdash N : \tau_i$}
   \LeftLabel{$(app)$}
   \BinaryInfC{$\Gamma \Vdash MN : \tau$}
   \DisplayProof
   %------------------------------------
   \vskip 1.5em
-  \AxiomC{$(x, \bigcap\tau_i),\Gamma \Vdash M : \tau$}
+  \AxiomC{$x: \taui,\Gamma \Vdash M : \tau$}
   \LeftLabel{$(abs)$}
-  \UnaryInfC{$\Gamma \Vdash \lambda x.M : \bigcap\tau_i \leadsto \tau$}
+  \UnaryInfC{$\Gamma \Vdash \lambda x.M : \taui \leadsto \tau$}
   \DisplayProof
   %------------------------------------
-  \vskip 1.5em
+  \hskip 1.5em
   \AxiomC{}
   \LeftLabel{$(Y)$}
-  \RightLabel{$(1 \leq j \leq i)$}
-  \UnaryInfC{$\Gamma \Vdash Y_\sigma : (\bigcap\tau_i \leadsto \tau_1 \cap\hdots\cap \bigcap\tau_i \leadsto \tau_i) \leadsto \tau_j$}
+  \RightLabel{$(j \in \underline{n})$}
+  \UnaryInfC{$\Gamma \Vdash Y_\sigma : (\taui \leadsto \tau_1 \cap\hdots\cap \taui \leadsto \tau_i) \leadsto \tau_j$}
   \DisplayProof
   \vskip 1.5em
 \end{center}
@@ -458,7 +542,7 @@ Assuming that $\Gamma$ is a finite list, consisting of pairs of atoms $Var$ and 
   \AxiomC{$x \not\in \mathsf{dom}\ \Gamma$}
   \AxiomC{$\wf \Gamma$}
   \LeftLabel{$(cons)$}
-  \BinaryInfC{$\wf (x,\bigcap\tau_i),\Gamma$}
+  \BinaryInfC{$\wf (x: \bigcap\tau_i,\Gamma)$}
   \DisplayProof
   \vskip 1.5em
 \end{center}

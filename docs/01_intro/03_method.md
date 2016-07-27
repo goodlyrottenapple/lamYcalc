@@ -43,7 +43,6 @@ The comparison between nominal and locally nameless versions of the $\lamy$ calc
 This criterion is discussed mainly in \cref{chap:compAgda}, which deals with the comparison of Isabelle and Agda. The choice of the two theorem provers, but especially of Isabelle, was largely subjective. Having had previous experience with Isabelle, it was natural to use it initially, to lower the cost of entry. Initially only using Isabelle for both formalizations of binders also allowed for a more uniform comparison of the mechanization overheads.   
 The choice of Agda as the second implementation language was motivated by Agda having a dependent-type system. As a result, the style of proofs in Agda seems quite different to Isabelle, since the distinction between proofs and programs is largely erased. Agda was chosen over Coq, which is also a dependently-typed language, because it is more "bare-bones" and thus seemed more accessible to a novice in dependently-typed languages. Agda also has a higher "cool"-factor than Coq, being a newer language.
 
-
 ####Proof automation
 
 Proof automation ties into both the mechanization overheads and transparency aspects of a formalization, since high degree of automation can often result in a more natural/transparent looking proof where the "menial" reasoning steps are taken care of by the theorem prover, and the user only sees the higher-level reasoning of informal proofs.    
