@@ -69,6 +69,8 @@ header-includes: # Things you may want to include in the latex header
 - \newcommand{\lamy}{\lambda\text{-}Y}
 - \newcommand{\concat}{\ensuremath{+\!\!\!\!+\,}}
 - \newcommand{\wf}{\textsf{Wf-ICtxt}\ }
+- \newcommand{\red}{\Rightarrow_Y}
+- \newcommand{\cls}{{}^{\backslash x}}
 - \newcommand{\tocap}{\leadsto\kern-.5ex\cap}
 - \newcommand{\conR}{\concat_{\kern-1ex R}}
 - \newcommand{\conL}{\concat_{\kern-1ex L}}

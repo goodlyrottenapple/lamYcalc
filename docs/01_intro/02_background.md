@@ -192,13 +192,13 @@ In the untyped $\lambda$-calculus, simple types and $\lambda$-terms are complete
 However, the proofs of the Church Rosser theorem, as presented in the next section, use the untyped definition of $\beta$-reduction. Whilst it is possible to define a typed version of $\beta$-reduction, <!--as was demonstrated by the typed version of the $(Y)$ reduction rule,--> it turned out to be much easier to first prove the Church Rosser theorem for the so called "untyped" $\lamy$ calculus and the additionally restrict this result to only well-types $\lamy$ terms (see \cref{utypReason} for more details). Thus, the definition of the Church Rosser Theorem, formulated for the $\lamy$ calculus, is the following one:
 
 <div class="Theorem" head="Church Rosser">
-$\Gamma \vdash M : \sigma \land M \Rightarrow^* M' \land M \Rightarrow^* M'' \implies \exists M'''.\ \ M' \Rightarrow^* M''' \land M'' \Rightarrow^* M''' \land \Gamma \vdash M''' : \sigma$
+$\Gamma \vdash M : \sigma \land M \red^* M' \land M \red^* M'' \implies \exists M'''.\ \ M' \red^* M''' \land M'' \red^* M''' \land \Gamma \vdash M''' : \sigma$
 </div>
 
 In order to prove this typed version of the Church Rosser Theorem, we need to prove an additional result of subject reduction for $\lamy$ calculus, namely:
 
-<div class="Theorem" head="Subject reduction for $\Rightarrow_\beta$">
-$\Gamma \vdash M : \sigma \land M \Rightarrow^* M' \implies \Gamma \vdash M' : \sigma$
+<div class="Theorem" head="Subject reduction for $\red^*$">
+$\Gamma \vdash M : \sigma \land M \red^* M' \implies \Gamma \vdash M' : \sigma$
 </div>
 
 ##$\lamy$ calculus
@@ -223,7 +223,7 @@ The $\lamy$ calculus differs from the simply typed $\lambda$-calculus only in th
   \vskip 1.5em
   \AxiomC{$\Gamma \vdash M : \sigma \to \sigma$}
   \LeftLabel{$(Y)$}
-  \UnaryInfC{$\Gamma \vdash Y_\sigma M \Rightarrow M (Y_\sigma M) : \sigma$}
+  \UnaryInfC{$\Gamma \vdash Y_\sigma M \red M (Y_\sigma M) : \sigma$}
   \DisplayProof
   \vskip 1.5em
 \end{center}
@@ -232,7 +232,7 @@ In essence, the $Y$ rule allows (some) well-typed recursive definitions over sim
 
 <div class="Example">
 Take for example the term $\lambda x.x$, commonly referred to as the _identity_. The _identity_ term can be given a type $\sigma \to \sigma$ for any simple type $\sigma$. We can therefore perform the following (well-typed) reduction in the $\lamy$ calculus:
-$$Y_\sigma (\lambda x.x) \Rightarrow (\lambda x.x)(Y_\sigma (\lambda x.x))$$
+$$Y_\sigma (\lambda x.x) \red (\lambda x.x)(Y_\sigma (\lambda x.x))$$
 </div>
 
 The typed version of the rule illustrates the restricted version of recursion clearly, since a recursive "$Y$-reduction" will only occur if the term $M$ in $Y_\sigma M$ has the matching type $\sigma \to \sigma$ (to $Y_\sigma$'s type $(\sigma \to \sigma) \to \sigma$), as in the example above. Due to the type restriction on $M$, recursion using the $Y$ constant will be **weakly normalizing (this is right? right?)**, which cannot be said of unrestricted recursion in the untyped $\lambda$-calculus.
@@ -240,18 +240,18 @@ The typed version of the rule illustrates the restricted version of recursion cl
 ###Church-Rosser Theorem
 \label{cr-def}
 
-The Church-Rosser Theorem states that the $\beta$-reduction of the $\lambda$-calculus is confluent, that is, the reflexive-transitive closure of the $\beta$-reduction has the _diamond property_, i.e. $\dip(\Rightarrow^*)$, where:
+The Church-Rosser Theorem states that the $\beta$-reduction of the $\lambda$-calculus is confluent, that is, the reflexive-transitive closure of the $\beta$-reduction has the _diamond property_, i.e. $\dip(\red^*)$, where:
 
 <div class="Definition" head="$\dip(R)$">
 A relation $R$ has the _diamond property_, i.e. $\dip(R)$, iff
 $$\forall a, b, c.\ aRb \land aRc \implies \exists d.\ bRd \land cRd$$
 </div>
 
-The proof of confluence of $\Rightarrow_Y$, the $\beta Y$-reduction defined as the standard $\beta$-reduction with the addition of the aforementioned $(Y)$ rule, formalized in this project, follows a variation of the Tait-Martin-Löf Proof originally described in @takahashi95 (specifically using the notes by @pollack95). To show why following this proof over the traditional proof is beneficial, we first give a high level overview of how the usual proof proceeds.
+The proof of confluence of $\red$, the $\beta Y$-reduction defined as the standard $\beta$-reduction with the addition of the aforementioned $(Y)$ rule, formalized in this project, follows a variation of the Tait-Martin-Löf Proof originally described in @takahashi95 (specifically using the notes by @pollack95). To show why following this proof over the traditional proof is beneficial, we first give a high level overview of how the usual proof proceeds.
 
 ####Overview
 
-In the traditional proof of the Church Rosser theorem, we define a new reduction relation, called the _parallel_ $\beta$-reduction ($\gg$), which, unlike the "plain" $\beta$-reduction satisfies the _diamond property_ (note that we are talking about the "single step" $\beta$-reduction and not the reflexive transitive closure). Once we prove the _diamond property_ for $\gg$, the proof of $\dip(\gg^*)$ follows easily. The reason why we prove $\dip(\gg)$ in the first place is because the reflexive-transitive closure of $\gg$ coincides with the reflexive transitive closure of $\Rightarrow$ and it is much easier to prove $\dip(\gg)$ than trying to prove $\dip(\Rightarrow^*)$ directly. The usual proof of the _diamond property_ for $\gg$ involves a double induction on the shape of the two parallel $\beta$-reductions from $M$ to $P$ and $Q$, where we try to show that the following diamond always exists, that is, given any reductions $M \gg P$ and $M \gg Q$, there is some $M'$ s.t. $P \gg M'$ and $Q \gg M'$:
+In the traditional proof of the Church Rosser theorem, we define a new reduction relation, called the _parallel_ $\beta$-reduction ($\gg$), which, unlike the "plain" $\beta$-reduction satisfies the _diamond property_ (note that we are talking about the "single step" $\beta$-reduction and not the reflexive transitive closure). Once we prove the _diamond property_ for $\gg$, the proof of $\dip(\gg^*)$ follows easily. The reason why we prove $\dip(\gg)$ in the first place is because the reflexive-transitive closure of $\gg$ coincides with the reflexive transitive closure of $\red$ and it is much easier to prove $\dip(\gg)$ than trying to prove $\dip(\red^*)$ directly. The usual proof of the _diamond property_ for $\gg$ involves a double induction on the shape of the two parallel $\beta$-reductions from $M$ to $P$ and $Q$, where we try to show that the following diamond always exists, that is, given any reductions $M \gg P$ and $M \gg Q$, there is some $M'$ s.t. $P \gg M'$ and $Q \gg M'$:
 
 \begin{figure}[h]
 \begin{center}
@@ -335,10 +335,11 @@ $\ $
 \end{center}
 </div>
 
-The most basic difference between the normal $\beta$-reduction and _parallel_ $\beta$-reduction is the $(refl)/(refl_Y)$ rule, where $x \gg x$, for example, is a valid reduction, but we have $x \nRightarrow_Y x$ for the normal $\beta$-reduction ($x \Rightarrow_Y^* x$ is valid, since $\Rightarrow_Y^*$ is the reflexive transitive closure of $\Rightarrow_Y$). 
+The most basic difference between the normal $\beta$-reduction and _parallel_ $\beta Y$-reduction is the $(refl)/(refl_Y)$ rule, where $x \gg x$, for example, is a valid reduction, but we have $x \nRightarrow_Y x$ for the normal $\beta Y$-reduction ($x \red^* x$ is valid, since $\red^*$ is the reflexive transitive closure of $\red$). 
 
 <div class="Example">
-Another example where the two reductions differ is the simultaneous reduction of multiple sub-terms. _Parallel_ reduction, unlike $\Rightarrow_Y$, allows the reduction of the term $((\lambda xy.x)z)(\lambda x.x)y$ to $(\lambda y.z)y$, by simultaneously reducing the two sub-terms $(\lambda xy.x)z$ and $(\lambda x.x)y$ to $\lambda y.z$ and $y$ respectively:
+\label{Example:ggVsGgg}
+Another example where the two reductions differ is the simultaneous reduction of multiple sub-terms. _Parallel_ reduction, unlike $\red$, allows the reduction of the term $((\lambda xy.x)z)(\lambda x.x)y$ to $(\lambda y.z)y$, by simultaneously reducing the two sub-terms $(\lambda xy.x)z$ and $(\lambda x.x)y$ to $\lambda y.z$ and $y$ respectively:
 
 \begin{center}
   \vskip 1.5em
@@ -362,7 +363,7 @@ Another example where the two reductions differ is the simultaneous reduction of
   \BinaryInfC{$((\lambda xy.x)z)(\lambda x.x)y \gg (\lambda y.z)y$}
   \DisplayProof
   \vskip 0.5em
-($(refl^*)$ is a derived rule $\forall M.\ M \gg M$, which can easily be proved by induction on $M$.)
+($(refl^*)$ is a derived rule $\forall M.\ M \gg M$. See \cref{Lemma:reflM})
   \vskip 1em
 \end{center}
 
@@ -436,27 +437,25 @@ To prove $\dip(\gg)$, we first show that there always exists a term $M_{max}$ fo
 <div class="Lemma">
 \label{Lemma:maxEx}
 $\forall M.\ \exists M_{max}.\ M \ggg M_{max}$
-</div>
 <div class="proof">
 By induction on M.
-</div>
+</div></div>
+
 
 Finally, we show that any parallel reduction $M \gg M'$ can be "closed" by reducing to the term $M_{max}$ where all redexes have been contracted (as seen in \cref{figure:gggTriangle}):
 
 <div class="Lemma">
 \label{Lemma:maxClose}
 $\forall M, M', M_{max}.\ M \ggg M_{max} \land M \gg M' \implies M' \gg M_{max}$
-</div>
 <div class="proof">
 Omitted. Can be found on p. 8 of the @pollack95 notes.
-</div>
+</div></div>
+
 
 <div class="Lemma">$\dip(\gg)$
-</div>
-
 <div class="proof">
 We can now prove $\dip(\gg)$ by simply applying \cref{Lemma:maxClose} twice, namely for any term $M$ there is an $M_{max}$ s.t. $M \ggg M_{max}$ (by \cref{Lemma:maxEx}) and for any $M', M''$ where $M \gg M'$ and $M \gg M''$, it follows by two applications of \cref{Lemma:maxClose} that $M' \gg M_{max}$ and $M'' \gg M_{max}$.
-</div>
+</div></div>
 
 \newpage
 ##Intersection types
