@@ -4,8 +4,6 @@
 The formalization of the terms and reduction rules of the $\lambda$-Y calculus presented here is a locally nameless presentation due to @aydemir08. 
 The basic definitions of $\lambda$-terms and $\beta$-reduction were borrowed from an implementation of the $\lambda$-calculus with the associated Church Rosser proof in Agda, by @shing-cheng.
 
-The proofs of confluence/Church Rosser were formalized using the paper by @pollack95, which describes a coarser proof of Church Rosser than the one formalized by @shing-cheng. This proof uses the notion of a maximal parallel reduction, introduced by @takahashi95 to simplify the inductive proof of confluence.
-
 One of the most obvious differences between Agda and Isabelle is the treatment of functions and proofs in both languages. Whilst in Isabelle, there is always a clear syntactic distinction between programs and proofs, Agda's richer dependent-type system allows constructing proofs as programs. This distinction is especially apparent in inductive proofs, which have a completely distinct syntax in Isabelle. As proofs are not objects which can be directly manipulated in Isabelle, to modify the proof goal, user commands such as `apply rule` or `by auto` are used: 
 
 ```{.isabelle}

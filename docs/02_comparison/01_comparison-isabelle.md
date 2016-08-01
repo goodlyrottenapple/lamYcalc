@@ -6,17 +6,17 @@ This chapter looks at the two different mechanizations of the $\lamy$ calculus, 
 
 ##Capture-avoiding substitution and $\beta$-reduction
 
-We give a brief overview of the basic definitions of well-typed terms and $\beta$-reduction, specific to both mechanizations. Unsurprisingly, the only real differences in these definitions appear in terms involving $\lambda$-binders.
+We give a brief overview of the basic definitions of well-typed terms and $\beta$-reduction, specific to both mechanizations. Unsurprisingly, the main differences in these definitions involve $\lambda$-binders.
 
 ###Nominal sets representation
 
 As was shown already, nominal set representation of terms is largely identical with the informal definitions, which is the main reason why this representation was chosen. This section will examine the implementation of $\lamy$ calculus in Isabelle, using the Nominal package.   
-We start, by examining the definition of untyped $\beta$-reduction, defined for the $\lamy$ calculus:
+We start, by examining the definition of untyped $\beta$-reduction, defined for the $\lamy$ calculus (referred to as $\beta Y$-reduction due to the addition of the $(Y)$ reduction rule):
 
-<div class="Definition" head="$\beta$-reduction">
+<div class="Definition" head="$\beta Y$-reduction">
 \label{Definition:betaRedNom}
-$\\$
 \begin{center}
+    \vskip 1.5em
     \AxiomC{$M \red M'$}
     \LeftLabel{$(red_L)$}
     \UnaryInfC{$MN \red M'N$}
@@ -46,7 +46,7 @@ $\\$
 \end{center}
 </div>
 
-This definition, with the exception of the added $(Y)$ rule is the standard definition of the untyped $\beta$-reduction found in literature (**link?**). The $\sharp$ symbol is used to denote the _freshness_ relation in nominal set theory. The side-condition $x\ \sharp\ N$ in the $(\beta)$ rule can thus be read as "$x$ is fresh in $N$", namely, the atom $x$ does not appear in $N$. For a $\lambda$-term $M$, we have $x\ \sharp\ M$ iff $x \not\in \fv(M)$, where we take the usual definition of \fv:
+This definition, with the exception of the added $(Y)$ rule is the standard definition of the untyped $\beta$-reduction found in literature (**link?**). The $\sharp$ symbol is used to denote the _freshness_ relation in nominal set theory. The side-condition $x\ \sharp\ N$ in the $(\beta)$ rule can be read as "$x$ is fresh in $N$", namely, the atom $x$ does not appear in $N$. For a $\lambda$-term $M$, we have $x\ \sharp\ M$ iff $x \not\in \fv(M)$, where we take the usual definition of \fv:
 
 <div class="Definition" >The inductively defined $\fv$ is the set of _free variables_ of a $\lambda$-term $M$.
 \vspace{-2em}
@@ -83,17 +83,17 @@ nominal_datatype type = O | Arr type type ("_ → _")
 nominal_datatype trm =
   Var name
 | App trm trm
-| Lam x::name l::trm  binds x in l ("Lam [_]. _" [100, 100] 100)
+| Lam x::name t::trm  binds x in t ("Lam [_]. _" [100, 100] 100)
 | Y type
 ~~~
 
-The special **`binds \_ in \_`** syntax in the `Lam` constructor declares `x` to be bound in the body `l`, telling Nominal Isabelle that `Lam` terms should be **?equated up to $\alpha$-equivalence?**, where a term $\lambda x. x$ and $\lambda y. y$ are considered equal, because both $x$ and $y$ are bound in the two respective terms, and can both be $\alpha$-converted to the same term, for example $\lambda z .z$. In fact, proving such a lemma is trivial:
+The special **`binds \_ in \_`** syntax in the `Lam` constructor declares `x` to be bound in the body `t`, telling Nominal Isabelle that `Lam` terms should be **?equated up to $\alpha$-equivalence?**, where a term $\lambda x. x$ and $\lambda y. y$ are considered equivalent, because both $x$ and $y$ are bound in the two respective terms, and can both be $\alpha$-converted to the same term, for example $\lambda z .z$. In fact, proving such a lemma in Isabelle is trivial:
 
 ~~~{.isabelle}
 lemma "Lam [x]. Var x = Lam [y]. Var y" by simp
 ~~~
 
-The specialized **`nominal\_datatype`** declaration also generates definitions of free variables/freshness and other simplification rules. (Note: These can be inspected in Isabelle, using the **`print\_theorems`** command.)
+The special **`nominal\_datatype`** declaration also generates definitions of free variables/freshness and other simplification rules. (Note: These can be inspected in Isabelle, using the **`print\_theorems`** command.)
 
 Next, we define capture avoiding substitution, using a **`nominal\_function`** declaration:
 
@@ -107,7 +107,7 @@ where
 | "(Y t)[y ::= s] = Y t"
 ~~~
 
-Whilst using **`nominal\_datatype`** is automatic and requires no user input, the declaration of a function in Nominal Isabelle is less straightforward. Unlike using the usual "**`fun`**" declaration of a recursive function in Isabelle, where the theorem prover can automatically prove properties like termination or pattern exhaustiveness, there are several goals (13 in the case of the `subst` definition) which the user has to manually prove for any function using recursive nominal data types, such as the $\lamy$ terms. This turned out to be a bit problematic, as the goals involved proving properties like:
+Whilst using **`nominal\_datatype`** is automatic and requires no user input, the declaration of a function in Nominal Isabelle is less straightforward. Unlike using the usual "**`fun`**" declaration of a recursive function in Isabelle, where the theorem prover can automatically prove properties like termination or pattern exhaustiveness, there are several goals (13 in the case of the `subst` definition) which the user has to manually prove for any function using nominal data types, such as the $\lamy$ terms. This turned out to be a bit problematic, as the goals involved proving properties like:
 
 ~~~{.idris}
 ⋀x t xa ya sa ta.
@@ -121,8 +121,8 @@ Whilst using **`nominal\_datatype`** is automatic and requires no user input, th
 
 **do i need to explain what this property is? or is it ok for illustrative purposes?**
 
-Whilst most of the goals were trivial, proving cases involving $\lambda$-terms involved a substantial understanding of the internal workings of Isabelle and the Nominal package and as a novice to using Nominal Isabelle, understanding and proving these properties proved challenging. The proof script for the definition of substitution was actually **lifted/copied?** from the sample document, found in the Nominal package documentation, which had a definition of substitution for the untyped $\lambda$-calculus similar enough to be adaptable for the $\lamy$ calculus.    
-Whilst this formalization required only a handful of other recursive function definitions, most of which could be copied from the sample document, in a different theory with significantly more function definitions, proving such goals from scratch would prove a challenge to a Nominal Isabelle newcomer as well as a significant implementation overhead.
+Whilst most of the goals were trivial, proving cases involving $\lambda$-terms involved a substantial understanding of the internal workings of Isabelle and the Nominal package early on into the mechanization and as a novice to using Nominal Isabelle, understanding and proving these properties proved challenging. The proof script for the definition of substitution was actually **lifted/copied?** from the sample document, found in the Nominal package documentation, which had a definition of substitution for the untyped $\lambda$-calculus similar enough to be adaptable for the $\lamy$ calculus.    
+Whilst this formalization required only a handful of other recursive function definitions, most of which could be copied from the sample document, in a different theory with significantly more function definitions, proving such goals from scratch would prove a challenge to a Nominal Isabelle newcomer as well as a tedious implementation overhead.
 
 ###Locally nameless representation
 
@@ -130,11 +130,17 @@ As we have seen, on paper at least, the definitions of terms and capture-avoidin
 
 ####Pre-terms
 <div class="Definition" head="LN pre-terms">$\\$
+\label{Definition:pterms}
 \vspace{-2em}
 $$M::= x\ |\ n\ |\ MM\ |\ \lambda M\ |\ Y_\sigma \text{ where }x \in Var \text{ and } n \in \mathbb{N}$$
 </div>
 
-Similarly to the de Bruijn presentation of binders, the $\lambda$-term no longer includes a bound variable, so a named representation term $\lambda x.x$ becomes $\lambda 0$ in LN. As was mentioned in \cref{binders}, the set of terms, defined in \cref{Definition:pterms}, is a superset of $\lamy$ terms and includes terms which are not well formed $\lamy$ terms. For example, the term $\lambda 3$ is not a well-formed term, since the bound variable index is out of scope. Since we don't want to work with terms that do not correspond to $\lamy$ terms, we have to introduce the notion of a _well-formed term_, which restricts the set of pre-terms to only those that correspond to $\lamy$ terms (i.e. this inductive definition ensures that there are no "out of bounds" indices in a given pre-term):
+Similarly to the de Bruijn presentation of binders, the $\lambda$-term no longer includes a bound variable, so a named representation term $\lambda x.x$ becomes $\lambda 0$ in LN. As was mentioned in \cref{binders}, the set of terms, defined in \cref{Definition:pterms}, is a superset of $\lamy$ terms and includes terms which are not well formed $\lamy$ terms. 
+
+<div class="Example">The pre-term $\lambda 3$ is not a well-formed $\lamy$ term, since the bound variable index is out of scope. In other words, there is no corresponding (named) $\lamy$ term to $\lambda 3$.
+</div>
+
+Since we don't want to work with terms that do not correspond to $\lamy$ terms, we have to introduce the notion of a _well-formed term_, which restricts the set of pre-terms to only those that correspond to $\lamy$ terms (i.e. this **?inductive definition?** ensures that there are no "out of bounds" indices in a given pre-term):
 
 <div class="Definition" head="Well-formed terms">
 We assume that $L$ is a finite set in the following definition. $\\$
@@ -167,7 +173,7 @@ We assume that $L$ is a finite set in the following definition. $\\$
 Already, we see that this formalization introduces some overheads with respect to the informal/nominal encoding of the $\lamy$ calculus.    
 The upside of this definition of $\lamy$ terms becomes apparent when we start thinking about $\alpha$-equivalence and capture-avoiding substitution. Since the LN terms use de Bruijn levels for bound variables, there is only one way to write the term $\lambda x.x$ or $\lambda y.y$ as a LN term, namely $\lambda 0$. As the $\alpha$-equivalence classes of named $\lamy$ terms collapse into a singleton $\alpha$-equivalence class in a LN representation, the notion of $\alpha$-equivalence becomes trivial.
 
-As a result of using LN representation of binders, the notion of substitution is split into two distinct operations. One operations is the substitution of bound variables, called _opening_. The other substitution is defined for free variables.
+As a result of using LN representation of binders, the notion of substitution is split into two distinct operations. One operation is the substitution of bound variables, called _opening_. The other is substitution, defined only for free variables.
 
 <div class="Definition" head="Opening and substitution">We will usually assume that $S$ is a well-formed LN term when proving properties about substitution and opening. The abbreviation $M^N \equiv \{0 \to N\}M$ is used throughout this chapter.
 
@@ -226,7 +232,7 @@ Having defined the _open_ operation, we turn back to the definition of well form
 \end{center}
 
 We assumed that $x \not\equiv y \not\equiv z$ in the proof tree above and thus omitted the $x \not\in \fv \hdots$ branches, as they are not important for this example.<!--, i.e. it is always possible to find a fresh free variable that doesn't appear in a $\lamy$ term, as the set of atoms/free variables is countably-infinite and every $\lamy$ terms is finite.-->   
-If on the other hand, we try construct a similar tree for a term which is obviously not well formed, such as $\lambda \lambda 2(z\ 1)$, we get a proof tree with a branch which cannot be closed (i.e. $\trm (2)$):
+If on the other hand, we try construct a similar tree for a term which is obviously not well formed, such as $\lambda \lambda 2(z\ 1)$, we get a proof tree with a branch which cannot be closed ($\trm (2)$):
 \newpage
 $\ $
 \begin{center}
@@ -290,8 +296,8 @@ $L$ is a finite set of atoms in the following definition:
 </div>
 
 As expected, the _open_ operation is now used instead of substitution in the $(\beta)$ rule.    
-The $(abs)$ rule is also slightly different, also using the _open_ in its precondition. Intuitively, the usual formulation of the $(abs)$ rule states that in order to prove that $\lambda x. M$ reduces to $\lambda x. M'$, we can simply "un-bind" $x$ in both $M$ and $M'$ and show that $M$ reduces to $M'$. Since in the usual formulation of the $\lambda$-calculus, there is no distinction between free and bound variables, this change (where $x$ becomes free) is implicit. In the LN presentation, however, this operation is made explicit by opening both $M$ and $M'$ with some free variable $x$ (not appearing in either $M$ nor $M'$), which replaces the bound variables/indices (bound to the outermost $\lambda$) with $x$.
-While this definition is equivalent to \cref{Definition:betaRedNom}, the induction principle this definition yields may not always be sufficient, especially in situations where we want to open up a term with a free variable which is not only fresh in $M$ and $M'$, but possibly in a wider context. We therefore followed the approach of @aydemir08 and re-defined the $(abs)$ rule (and other definitions involving picking fresh free variables) using _cofinite quantification_:
+The $(abs)$ rule is also slightly different, also using the _open_ in its precondition. Intuitively, the usual formulation of the $(abs)$ rule states that in order to prove that $\lambda x. M$ reduces to $\lambda x. M'$, we can simply "un-bind" $x$ in both $M$ and $M'$ and show that $M$ reduces to $M'$ (reasoning bottom-up from the conclusion to the premises). Since in the usual formulation of the $\lambda$-calculus, there is no distinction between free and bound variables, this change (where $x$ becomes free) is implicit. In the LN presentation, however, this operation is made explicit by opening both $M$ and $M'$ with some free variable $x$ (not appearing in either $M$ nor $M'$), which replaces the bound variables/indices (bound to the outermost $\lambda$) with $x$.   
+While this definition is equivalent to \cref{Definition:betaRedNom}, the induction principle this definition yields may not always be sufficient, especially in situations where we want to open up a term with a free variable which is not only fresh in $M$ and $M'$, but possibly in a wider context. We therefore followed the approach of @aydemir08 and re-defined the $(abs)$ rule (and other definitions involving picking fresh/free variables) using _cofinite quantification_:
 
 \begin{center}
 	\vskip 1.5em
@@ -321,14 +327,15 @@ where
 
 ##Untyped Church Rosser Theorem
 
-Having described the implementations of the two binder representations along with some basic definitions, such as capture-avoiding substitution, we come the the main part of the comparison, namely the proof of the Church Rosser theorem. This section examines specific instances of some of the major lemmas which are part of the bigger result, that is the Church Rosser theorem. The general outline of the proof has been described in \cref{cr-def}.
+Having described the implementations of the two binder representations along with some basic definitions, such as capture-avoiding substitution or the _open_ operation, we come the the main part of the comparison, namely the proof of the Church Rosser theorem. This section examines specific instances of some of the major lemmas which are part of the bigger result. The general outline of the proof has been described in \cref{cr-def}.
 
 ###Typed vs. untyped proofs {#typ-utyp}
 \label{utypReason}
 
-As mentioned previously, when talking about the terms of the $\lamy$ calculus, we generally refer to simply typed terms, such as $\Gamma \vdash \lambda x. Y_\sigma : \tau \to (\sigma \to \sigma) \to \sigma$. However, the definitions of reduction seen so far and the consecutive proofs using these definitions don't use simply typed $\lamy$ terms, operating instead on untyped terms. The simplest reason why this is the case is one of convenience and simplicity. As is the case in most proofs of the Church Rosser Theorem, the result is usually proved for untyped terms of the $\lambda$-calculus and then extended to simply typed terms by simply restricting the terms we want to reason about. The theorem holds due to subject reduction, which says that if a term $M$ can be given a simple type $\sigma$ and $\beta$-reduces to another term $M'$, the new term can still be typed with the same type $\sigma$. Further details about the proofs of subject reduction for the simply typed $\lamy$ calculus can be found in the next section of this chapter.    
-Another reason, besides convention is convenience, specifically succinctness of code, or the lack thereof, when including simple types in the definition of $\beta$-reduction and all the subsequent lemmas and theorems. Indeed, the choice of excluding typing information wherever possible has also been an engineering choice to a large degree, as it is not good practice (in general) to keep and pass around variables/objects where not needed in classical programming. The same applies to functional programming and theorem proving especially, where notation can easily become bloated and cumbersome.   
-Whilst it is true that the implementation of the proofs of Church Rosser theorem might have been shorter, if the typing information was included directly in the definition of $\beta$-reduction, the downside to this would have been an increased complexity of proofs, resulting in potentially less understandable and maintainable code. **This then also ties into automation? + ex'le??**
+As mentioned previously, when talking about the terms of the $\lamy$ calculus, we generally refer to simply typed terms, such as $\Gamma \vdash \lambda x. Y_\sigma : \tau \to (\sigma \to \sigma) \to \sigma$. However, the definitions of reduction seen so far and the consecutive proofs using these definitions don't use simply typed $\lamy$ terms, operating instead on untyped terms. The simplest reason why this is the case is one of convenience and simplicity.    
+As is the case in most proofs of the Church Rosser Theorem, the result is usually proved for untyped terms of the $\lambda$-calculus and then extended to simply typed terms by simply restricting the terms we want to reason about. The CR theorem holds in the restricted setting of simply typed terms due to subject reduction, which says that if a term $M$ can be given a simple type $\sigma$ and $\beta$-reduces to another term $M'$, the new term can still be typed with the same type $\sigma$. <!--Further details about the proofs of subject reduction for the simply typed $\lamy$ calculus can be found in the next section of this chapter.-->    
+Another reason, besides convention is convenience, specifically succinctness of code, or the lack thereof, when including simple types in the definition of $\beta$-reduction and all the subsequent lemmas and theorems. Indeed, the choice of excluding typing information wherever possible has been an engineering choice to a large degree, as it is generally not good practice to keep and pass around variables/objects which are not needed (in classical programming). The same should also apply to theorem proving, especially since notation can easily become bloated and difficult to present in a "natural" way (i.e. using the notation a mathematician would write).   
+Whilst it is true that the implementation of some of the proofs of Church Rosser might have been shorter, if the typing information was included directly in the definition of $\beta$-reduction, the downside to this would have been an increased complexity of proofs, resulting in potentially less understandable and maintainable code. **This then also ties into automation? + ex'le??**
 
 
 ###\cref{Lemma:maxEx}
@@ -348,9 +355,7 @@ The first major result in both implementations is \cref{Lemma:maxEx}, which stat
 </div>
 
 
-$\ $
-
-<div class="Remark"> **Not that useful in hindsight...axe?**
+<!--<div class="Remark"> **Not that useful in hindsight...axe?**
 In fact this proof is a good example to showcase the automation available in Isabelle, as it can be proven by a simple induction on $M$, where the generated cases are proven by a call to Isabelle's `auto` prover:
 
 ~~~{.isabelle}
@@ -364,10 +369,10 @@ This is a version of the proof found in the nominal mechanization. The formulati
 lemma pbeta_refl[intro]: "trm M ⟹ M ⇒∥ M"
 apply (induct s rule:trm.induct) by auto
 ~~~
-</div>
+</div>-->
 
 Since $\ggg$ restricts the use of the $(app)$ rule to terms which do not contain a $\lambda$ or $Y$ as its left-most sub term, \cref{Lemma:reflM} does not hold in $\ggg$ for terms like $(\lambda x.x)y$, namely, $(\lambda x.x)y \ggg (\lambda x.x)y$ is not a valid reduction (see \cref{Example:ggVsGgg}). It is, however, not difficult to see that such terms can simply be $\beta$-reduced until all the redexes have been contracted, so that we have $(\lambda x.x)y \ggg y$ for the term above.   
-Seen as a weaker version of \cref{Lemma:reflM}, the proof of \cref{Lemma:maxEx}, at least in theory, should then only differ in the case of an application, where we have do a case analysis on the left sub term of any given $M$.
+Seen as a weaker version of \cref{Lemma:reflM}, the proof of \cref{Lemma:maxEx}, at least in theory, should then only differ in the case of an application, where we have do a case analysis on the left sub-term of any given $M$.
 
 This is indeed the case when using the nominal mechanization, where the proof looks like this:
 
@@ -395,7 +400,7 @@ case (2 P Q P' Q')
 qed
 ~~~
 
-After applying induction and calling `auto`, we can inspect the remaining goals at line 5, to see that the only one goal remains, namely the case of $M$ being an application:
+After applying induction and calling `auto`, we can inspect the remaining goals at line 5, to see that the only goal that remains is the case of $M$ being an application:
 
 ~~~{.idris}
 goal (1 subgoal):
@@ -414,7 +419,8 @@ Lines 6 and 7 correspond to doing a case analysis on `trm1` (where `M = App trm1
 The first goal is discharged by calling `auto` again (line 8), since we can simply apply the $(app)$ rule in this instance.
 The two remaining cases are discharged with the additional information that `trm1` is either a $\lambda$-term or a $Y$-term.
 
-So far, we have looked a the version of the proof using nominal Isabelle and this is especially apparent in line 19, where we use the stronger `nominal\_induct` rule, with the extra parameter `avoiding: Q Q'`, which ensures that any new bound variables will be sufficiently fresh with regards to `Q` and `Q'`, in that the fresh variables won't appear in either of the terms. Since bound variables are distinct in the LN representation, the equivalent proof simply uses the usual induction rule (line 19):
+So far, we have looked at the version of the proof using nominal Isabelle and this is especially apparent in line 19, where we use the stronger `nominal\_induct` rule, with the extra parameter `avoiding: Q Q'`, which ensures that any new bound variables will be sufficiently fresh with regards to `Q` and `Q'`, in that the fresh variables won't appear in either of the terms.    
+Since bound variables are distinct in the LN representation, the equivalent proof simply uses the usual induction rule (line 19):
 
 ~~~{.isabelle xleftmargin=1em linenos=true}
 lemma pbeta_max_ex:
@@ -457,7 +463,7 @@ qed
 ~~~
 
 As one can immediately see, this proof proceeds exactly in the same fashion, as the nominal one, up to line 20. However, unlike in the nominal version of the proof, in the LN proof, the `auto` call at line 8 could not automatically prove the case where $M$ is a $\lambda$-term.    
-This is perhaps not too surprising, since the LN encoding is a lot more "bare bones", and thus there is little that would aid Isabelle's automation. The nominal package, on the other hand, was designed to make reasoning with binders as painless as possible, which definitely shows in this example, as we will show below.
+This is perhaps not too surprising, since the LN encoding is a lot more "bare bones", and thus there is little that would aid Isabelle's automation. The nominal package, on the other hand, was designed to make reasoning with binders as painless as possible, which definitely shows in this example.
 
 When we compare the two goals for the $\lambda$ case in both versions of the proof, we clearly see the differences in the treatment of binders:
 
@@ -475,7 +481,7 @@ When we compare the two goals for the $\lambda$ case in both versions of the pro
        (⋀x. x ∉ L ⟹ ∃M''. M^FVar x >>> M'') ⟹ ∃M'. Lam M >>> M'
 ~~~
 
-Unlike in the nominal proof, where from `M >>> M'` we get `Lam [x]. M >>> Lam [x]. M'` by $(abs)$ immediately, the proof of `∃M'. Lam M >>> M'` in the LN mechanization is not so trivial.    
+Unlike in the nominal proof, where from `M >>> M'` we get `Lam [x]. M >>> Lam [x]. M'` by $(abs)$ immediately, the proof of `∃M'. Lam M >>> M'` in the LN mechanization is not as trivial.    
 The difficulty arises with the precondition $\forall x \not\in L.\ M^x \red M'^x$ in the LN version of the $(abs)$ rule:
 
 \begin{center}
@@ -540,7 +546,7 @@ Having defined the _close_ operation and shown that it satisfies certain propert
 
 ###\cref{Lemma:maxClose}
 
-While it may seem that the nominal mechanization was universally more concise and easier to work in than the locally nameless implementation, there were a few instances where using the nominal library turned out to be more difficult to understand and use. One such instance, such as defining a **`nominal\_function`** was already discussed. Another example is \cref{Lemma:maxClose}, which is stated as:
+While it may seem that the nominal mechanization was universally more concise and easier to work in than the locally nameless implementation, there were a few instances where using the nominal library turned out to be more difficult to understand and use. One such instance, namely defining a **`nominal\_function`**, was already discussed. Another example can be found in the implmentation of \cref{Lemma:maxClose}, which is stated as:
 
 $$\forall M, M', M_{max}.\ M \ggg M_{max} \land M \gg M' \implies M' \gg M_{max}$$
 
@@ -639,7 +645,7 @@ There were a few quirks when implementing this proof in the nominal mechanizatio
 
 <!-- 2. ⋀xa N' M M'. [[atom x]]lst. P = [[atom xa]]lst. M ⟹ b = M' [xa ::= N'] ⟹ atom xa ♯ Q ⟹ atom xa ♯ N' ⟹ M ⇒∥ M' ⟹ Q ⇒∥ N' ⟹ b ⇒∥ Pmax [x ::= Qmax]-->
 
-Obviously, this is not the desired shape of the goal, because we obtained a weaker premise, where we have some $R$, such that $\lambda x. P \equiv_\alpha \lambda xa. R$ (this is essentially what `[[atom x]]lst. P = [[atom xa]]lst. R` states) and therefore $P'$ where $M' \equiv P'[Q'/xa]$. What we actually want is a term $P'$ s.t. $M' \equiv P'[Q'/x]$, i.e. $x = xa$. In order to "force" $x$ and $xa$ to actually be the same atom, we had to prove the following "cases" lemma: 
+Obviously, this is not the desired shape of the goal, because we obtained a weaker premise, where we have some $R$, such that $\lambda x. P \equiv_\alpha \lambda xa. R$ (this is essentially what `[[atom x]]lst. P = [[atom xa]]lst. R` states) and therefore we get a $P'$ where $M' \equiv P'[Q'/xa]$. What we actually want is a term $P'$ s.t. $M' \equiv P'[Q'/x]$, i.e. $x = xa$. In order to "force" $x$ and $xa$ to actually be the same atom, we had to prove the following "cases" lemma: 
 
 ~~~{.isabelle}
 lemma pbeta_cases_2:
@@ -651,9 +657,9 @@ lemma pbeta_cases_2:
 ...
 ~~~
 
-In the lemma above, `(⋀t' s'. a2 = s' [x ::= t'] ⟹ atom x ♯ t ⟹ atom x ♯ t' ⟹ s ⇒∥ s' ⟹ t ⇒∥ t' ⟹ P) ⟹ P` corresponds to the case with the premises we want to have, instead of the premised we get from the "cases" lemma generated as part of the definition of $\gg$.    
+In the lemma above, `(⋀t' s'. a2 = s' [x ::= t'] ⟹ atom x ♯ t ⟹ atom x ♯ t' ⟹ s ⇒∥ s' ⟹ t ⇒∥ t' ⟹ P) ⟹ P` corresponds to the case with the premises we want to have, instead of the ones we get from the "cases" lemma generated as part of the definition of $\gg$.    
 
-The proof of this lemma actually required descending into nominal set theory, which was previously hidden away from the mechanization (the proofs of the `have` lemmas were omitted for brevity):
+The proof of this lemma required proving another lemma shown below, which required descending into nominal set theory that was previously mostly hidden away from the mechanization (the proofs of the `have` lemmas were omitted for brevity):
 
 ~~~{.isabelle}
 lemma "(Lam [x]. s) ⇒∥ s' ⟹ ∃t. s' = Lam [x]. t ∧ s ⇒∥ t"
@@ -667,12 +673,14 @@ proof (cases "(Lam [x]. s)" s' rule:pbeta.cases, simp)
 qed
 ~~~
 
-Clearly, the custom "cases" lemma was necessary from a purely technical view, as it would be deemed too trivial to bother proving in an informal setting. The need for such a lemma also demonstrates that whilst the nominal package package tries to hide away the details of the theory, every once in a while, the user has to descent into nominal set theory, to prove certain properties about binders, not handled by the automation. For us, the nominal package thus proved to be a double edged sword, as it initially provided a fairly low cost of entry (there was practically no need to understand any nominal set theory to get started), but proved to be much more challenging to understand in certain places, such as when proving `pbeta\_cases\_2`. Whilst the finial `pbeta\_cases\_2` proof turned out to be fairly short thanks to automation of the nominal set theory, it took some time to work out the proof outline in such a ways as to leverage Isabelle's automation to the highest possible degree.    
+Clearly, the custom "cases" lemma was necessary from a purely technical view, as it would be deemed too trivial to bother proving in an informal setting. The need for such a lemma also demonstrates that whilst the nominal package package tries to hide away the details of the theory, every once in a while, the user has to descent into nominal set theory, to prove certain properties about binders, not handled by the automation.    
+For us, the nominal package thus proved to be a double edged sword, as it initially provided a fairly low cost of entry (there was practically no need to understand any nominal set theory to get started), but proved to be much more challenging to understand in certain places, such as when proving `pbeta\_cases\_2`.    
+Whilst the finial `pbeta\_cases\_2` proof turned out to be fairly short thanks to automation of the nominal set theory, it took some time to work out the proof outline in such a ways as to leverage Isabelle's automation to a high degree.    
 The LN mechanization, whilst having bigger overheads in terms of extra definitions and lemmas that had to be proven "by hand", was in fact a lot more transparent as a result, as the degree of difficulty after the initial cost of entry did not rise significantly with more complicated lemmas.
 
 ####LN implementation
 
-The troublesome case analysis in the Nominal version of the proof was much more straight forward in the LN proof. In fact, there was no need to prove a separate lemma similar to `pbeta\_cases\_2`, since the auto-generated `pbeta.cases` was sufficient. The only overhead in this version of the lemma came from the use of \cref{Lemma:parRed}, in that the lemma was first proved in it's classical formulation, but due to the way substitution of bound terms is handled in the LN mechanization (using the _open function_), a "helper" lemma was proved to convert this result to one using _open_:
+The troublesome case analysis in the Nominal version of the proof was much more straight forward in the LN proof. In fact, there was no need to prove a separate lemma similar to `pbeta\_cases\_2`, since the auto-generated `pbeta.cases` was sufficient. The only overhead in this version of the lemma came from the use of \cref{Lemma:parRed}, in that the lemma was first proved in it's classical formulation using substitution, but due to the way substitution of bound terms is handled in the LN mechanization (using the _open function_), a "helper" lemma was proved to convert this result to one using _open_:
 
 <div class="Lemma" head="Parallel open">
 \label{Lemma:parOpn}The following rule is admissible in the LN version of $\gg$:
@@ -688,11 +696,19 @@ The troublesome case analysis in the Nominal version of the proof was much more 
 \end{center}
 </div>
 
-The reason why \cref{Lemma:parOpn} wasn't proved directly is partially due to the order of implementation of the two mechanizations of the $\lamy$ calculus. Since the nominal version along with all the proofs was carried out first, the LN version of the calculus ended up being more of a port of the nominal theory into a locally nameless setting. The LN mechanization, being a port of the nominal theory, has both advantages and disadvantages. On one hand, it ensures a greater consistency between the two theories and easier direct comparison of lemmas, but on the other hand, it meant that certain lemmas could have been made shorter and more "tailored" to the LN mechanization.
+The reason why \cref{Lemma:parOpn} wasn't proved directly is partially due to the order of implementation of the two mechanizations of the $\lamy$ calculus. Since the nominal version, along with all the proofs was carried out first, the LN version of the calculus ended up being more of a port of the nominal theory into a locally nameless setting.    
+The LN mechanization, being a port of the nominal theory, has both advantages and disadvantages. On the one hand, it ensures a greater consistency between the two theories and easier direct comparison of lemmas, but on the other hand, it meant that certain lemmas could have been made shorter and more "tailored" to the LN mechanization.
 
 ##Subject reduction
 
 **This chapter is already quite long, so this section might end up being quite brief, as the main differences between the mechanizations have already been illustrated...I think...Or?**
 
 ##Verdict
+
+Having given an overview of the main technical points of the $\lamy$ calculus mechanization, we concluded that on the whole, neither mechanization proved to be significantly better than the other.   
+Whilst the LN mechanization proved to have significantly higher "obvious" mechanization overheads[^1] in therms of code length, the implementation using the nominal library proved to be more difficult to use at certain points, due to the more complex nominal sets theory that implicitly underpinned the mechanization. The LN mechanization proved to be much more simple in practice, even without any library support and the automation which comes with using Nominal Isabelle.   
+Continuing with the next round of comparison between the two theorem provers, Isabelle and Agda, this point was the main reason to chose LN over nominal sets, as implementing the LN version of the calculus requires a lot less "background" theory, which was especially important in Agda, where nominal set support is a lot less mature than in Isabelle.
+
+
+[^1]: The nominal version was approximately 770 lines of code vs. 1180 for the LN version, making it about 50% longer.
 

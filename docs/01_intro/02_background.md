@@ -167,7 +167,7 @@ However, using HOAS only works if the notion of $\alpha$-equivalence and substit
 \newpage
 ##Simple types
 
-The simple types presented throughout this work (except for Chapter \ref{chItypes}) are often referred to as simple types _a la Curry_, where a simply typed $\lambda$-term is a triple $(\Gamma, M, \sigma)$ s.t. $\Gamma \vdash M : \sigma$, where $\Gamma$ is the typing context, $M$ is a term of the untyped $\lambda$-calculus and $\sigma$ is a simple type. Such a term is deemed valid, if one can construct a typing tree from the given type and typing context. 
+The simple types presented throughout this work (except for \cref{chap:itypes}) are often referred to as simple types _a la Curry_, where a simply typed $\lambda$-term is a triple $(\Gamma, M, \sigma)$ s.t. $\Gamma \vdash M : \sigma$, where $\Gamma$ is the typing context, $M$ is a term of the untyped $\lambda$-calculus and $\sigma$ is a simple type. Such a term is deemed valid, if one can construct a typing tree from the given type and typing context. 
 
 <div class="Example">
 Take the following simply typed term $\{y:\tau\} \vdash \lambda x.xy : (\tau \to \phi) \to \phi$. To show that this is a well-typed $\lambda$-term, we construct the following typing tree:
@@ -206,7 +206,7 @@ Originally, the field of higher order model checking mainly involved studying hi
 
 ###Definitions
 
-The first part of this project focuses on formalizing the simply typed $\lamy$ calculus and the proof of confluence for this calculus. The usual/informal definition of the $\lamy$ terms and the simple types are given below:
+The first part of this project focuses on formalizing the simply typed $\lamy$ calculus and the proof of confluence for this calculus (proof of the Church Rosser Theorem is sometimes also referred to as proof of confluence). The usual/informal definition of the $\lamy$ terms and the simple types are given below:
 
 <div class="Definition" head="$\lamy$ types and terms">Let $Var$ be a countably infinite set of atoms in the definition of the set of $\lambda$-terms $M$:
 \vspace{-2em}
@@ -235,7 +235,7 @@ Take for example the term $\lambda x.x$, commonly referred to as the _identity_.
 $$Y_\sigma (\lambda x.x) \red (\lambda x.x)(Y_\sigma (\lambda x.x))$$
 </div>
 
-The typed version of the rule illustrates the restricted version of recursion clearly, since a recursive "$Y$-reduction" will only occur if the term $M$ in $Y_\sigma M$ has the matching type $\sigma \to \sigma$ (to $Y_\sigma$'s type $(\sigma \to \sigma) \to \sigma$), as in the example above. Due to the type restriction on $M$, recursion using the $Y$ constant will be **weakly normalizing (this is right? right?)**, which cannot be said of unrestricted recursion in the untyped $\lambda$-calculus.
+The typed version of the rule illustrates the restricted version of recursion clearly, since a recursive "$Y$-reduction" will only occur if the term $M$ in $Y_\sigma M$ has the matching type $\sigma \to \sigma$ (to $Y_\sigma$'s type $(\sigma \to \sigma) \to \sigma$), as in the example above. <!--Due to the type restriction on $M$, recursion using the $Y$ constant will be **weakly normalizing (this is right? right?)**, which cannot be said of unrestricted recursion in the untyped $\lambda$-calculus.-->
 
 ###Church-Rosser Theorem
 \label{cr-def}
@@ -243,7 +243,7 @@ The typed version of the rule illustrates the restricted version of recursion cl
 The Church-Rosser Theorem states that the $\beta$-reduction of the $\lambda$-calculus is confluent, that is, the reflexive-transitive closure of the $\beta$-reduction has the _diamond property_, i.e. $\dip(\red^*)$, where:
 
 <div class="Definition" head="$\dip(R)$">
-A relation $R$ has the _diamond property_, i.e. $\dip(R)$, iff
+A binary relation $R$ has the _diamond property_, i.e. $\dip(R)$, iff
 $$\forall a, b, c.\ aRb \land aRc \implies \exists d.\ bRd \land cRd$$
 </div>
 
@@ -335,7 +335,7 @@ $\ $
 \end{center}
 </div>
 
-The most basic difference between the normal $\beta$-reduction and _parallel_ $\beta Y$-reduction is the $(refl)/(refl_Y)$ rule, where $x \gg x$, for example, is a valid reduction, but we have $x \nRightarrow_Y x$ for the normal $\beta Y$-reduction ($x \red^* x$ is valid, since $\red^*$ is the reflexive transitive closure of $\red$). 
+The most basic difference between the normal $\beta$-reduction and _parallel_ $\beta Y$-reduction is the $(refl)/(refl_Y)$ rule, where $x \gg x$, for example, is a valid reduction, but we have $x \nRightarrow_Y x$ for the normal $\beta Y$-reduction ($x \red^* x$ is valid, since $\red^*$ is the reflexive transitive closure of $\red$). In the example below, $(refl^*)$ is a derived rule $\forall M.\ M \gg M$ (see \cref{Lemma:reflM}):
 
 <div class="Example">
 \label{Example:ggVsGgg}
@@ -362,9 +362,7 @@ Another example where the two reductions differ is the simultaneous reduction of
   \LeftLabel{$(app)$}
   \BinaryInfC{$((\lambda xy.x)z)(\lambda x.x)y \gg (\lambda y.z)y$}
   \DisplayProof
-  \vskip 0.5em
-($(refl^*)$ is a derived rule $\forall M.\ M \gg M$. See \cref{Lemma:reflM})
-  \vskip 1em
+  \vskip 1.5em
 \end{center}
 
 When we try to construct a similar tree for $\beta$-reduction, we can clearly see that the only two rules we can use are $(red_L)$ or $(red_R)$. We can thus only perform the right-side or the left side reduction of the two sub-terms, but not both (for the rules of normal $\beta$-reduction see \cref{Definition:betaRedNom}).
@@ -410,11 +408,12 @@ $\ $
 \end{center}
 </div>
 
-This relation differs from $\gg$ only in the $(app)$ rule, which can only be applied if $M$ is not a $\lambda$ or $Y$ term.
+This relation only differs from $\gg$ in the $(app)$ rule, which can only be applied if $M$ is not a $\lambda$ or $Y$ term.
 
 <div class="Example">
-To demonstrate the difference between $\gg$ and $\ggg$, we take a look at the term $(\lambda xy.x)(\lambda x.x)y$.   
-Whilst $(\lambda xy.x)(\lambda x.x)z \gg (\lambda xy.x)z$ or $(\lambda xy.x)(\lambda x.x)z \gg \lambda y.z$ (amongst others) are valid reductions, the reduction $(\lambda xy.x)(\lambda x.x)z \ggg (\lambda xy.x)z$ is not valid. To see why this is the case, we observe that the last rule applied in the derivation tree must have been the $(app)$ rule, since we see that a reduction on the sub-term $\lambda x.x \ggg z$ occurs:
+To demonstrate the difference between $\gg$ and $\ggg$, we take a look at the term $(\lambda xy.x)((\lambda x.x)z)$.   
+Whilst $(\lambda xy.x)((\lambda x.x)z) \gg (\lambda xy.x)z$ or $(\lambda xy.x)((\lambda x.x)z) \gg \lambda y.z$ (amongst others) are valid reductions, the reduction $(\lambda xy.x)((\lambda x.x)z) \ggg (\lambda xy.x)z$ is not valid.    
+To see why this is the case, we observe that the last rule applied in the derivation tree must have been the $(app)$ rule, since we see that a reduction on the sub-term $(\lambda x.x)z \ggg z$ occurs:
 
 \begin{center}
   \AxiomC{$\vdots$}
@@ -459,6 +458,7 @@ We can now prove $\dip(\gg)$ by simply applying \cref{Lemma:maxClose} twice, nam
 
 \newpage
 ##Intersection types
+\label{itypesIntro}
 
 For the formalization of intersection types, we initially chose a strict intersection-type system, presented in the @bakel notes. Intersection types, as classically presented in @barendregt13 as $\lambda_\cap^{BCD}$, extend simple types by adding a conjunction to the definition of types:
 
@@ -478,7 +478,9 @@ We restrict ourselves to a version of intersection types often called _strict in
 The following conventions for intersection types are adopted throughout this section; 
 $\omega$ stands for the empty intersection and we write $\taui$ for the type $\tau_1 \cap\hdots\cap \tau_n$. We also define a relation $\subseteq$ for intersection types:
 
-<div class="Definition" head="$\subseteq$">This relation is the least pre-order on intersection types s.t.:
+<div class="Definition" head="$\subseteq$">
+\label{Definition:subseteqOrig}
+This relation is the least pre-order on intersection types s.t.:
 \vspace{-2em}
 
 \begin{align*} 
@@ -516,7 +518,7 @@ The definition of the intersection-typing system, like the $\subseteq$ relation,
   \UnaryInfC{$\Gamma \Vdash \lambda x.M : \taui \leadsto \tau$}
   \DisplayProof
   %------------------------------------
-  \hskip 1.5em
+  \vskip 1.5em
   \AxiomC{}
   \LeftLabel{$(Y)$}
   \RightLabel{$(j \in \underline{n})$}
@@ -526,7 +528,7 @@ The definition of the intersection-typing system, like the $\subseteq$ relation,
 \end{center}
 </div>
 
-This is the initial definition, used as a basis for the mechanization, discussed in \cref{chap:itypes}. Due to different obstacles in the formalization of the subject invariance proofs, this definition, along with the definition of intersection types was amended several times. The reasons for these changes are documented in Chapter **?? add specific section!!**.   
+This is the initial definition, used as a basis for the mechanization, discussed in \cref{chap:itypes}. Due to different obstacles in the formalization of the subject invariance proofs, this definition, along with the definition of intersection types was amended several times. The reasons for these changes are documented in \cref{chap:itypes}.   
 The definition above also assumes that the context $\Gamma$ is _well-formed_:
 
 <div class="Definition" head="Well-formed intersection-type context">
