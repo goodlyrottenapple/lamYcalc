@@ -5,7 +5,9 @@
 
 When describing the (untyped) $\lambda$-calculus on paper, the terms of the $\lambda$-calculus are usually inductively defined in the following way:
 
-$$t::= x\ |\ tt\ |\ \lambda x.t \text{ where }x \in Var$$
+\begin{center}
+$t::= x\ |\ tt\ |\ \lambda x.t \text{ where }x \in Var$
+\end{center}
 
 This definition of terms yields an induction/recursion principle, which can be used to define functions over the $\lambda$-terms by structural recursion and prove properties about the $\lambda$-terms using structural induction (recursion and induction being two sides of the same coin).   
 However, whilst the definition above describes valid terms of the $\lambda$-calculus, there are implicit assumptions one makes about the terms, namely, the $x$ in the $\lambda x.t$ case appears bound in $t$. This means that while $x$ and $y$ might be distinct terms of the $\lambda$-calculus (i.e. $x \neq y$), $\lambda x.x$ and $\lambda y.y$ represent the same term, as $x$ and $y$ are bound by the $\lambda$. Without the notion of $\alpha$-equivalence of terms, one cannot prove any properties of terms involving bound variables, such as saying that $\lambda x.x \equiv \lambda y.y$.
@@ -14,7 +16,10 @@ In an informal setting, reasoning with $\alpha$-equivalence of terms is often ve
 One of the main problems is the fact that the inductive/recursive definition does not easily lift to $alpha$-equivalent terms. Take a trivial example of a function on raw terms, which checks whether a variable appears bound in a given $\lambda$-term. Clearly, such function is well formed for "raw" terms, but does not work (or even make sense) for $\alpha$-equivalent terms.   
 Conversely, there are informal definitions over $\alpha$-equivalent terms, which are not straight-forward to define over raw terms. Take the usual definition of substitution, defined over $\alpha$-equivalent terms, which actually relies on this fact in the following case:
 
-$$(\lambda y'. s')[t/x] \equiv \lambda y'.(s'[t/x]) \text{ assuming } y' \not\equiv x\text{ and }y' \not\in FV(t)$$
+\begin{center}
+$(\lambda y'. s')[t/x] \equiv \lambda y'.(s'[t/x]) \text{ assuming } y' \not\equiv x\text{ and }y' \not\in FV(t)$
+\end{center}
+
 
 Here in the $\lambda$ case, it is assumed that a given $\lambda$-term $\lambda y. s$ can always be swapped out for an alpha equivalent term $\lambda y'. s'$, such that $y'$ satisfies the side condition. The assumption that a bound variable can be swapped out for a "fresh" one to avoid name clashes is often referred to as the Barendregt Variable Convention.
 
@@ -74,15 +79,16 @@ To see that this representation of $\lambda$-terms is isomorphic to the usual na
 
 To make things easier, we consider a representation of named terms, where we map named variables, $x, y, z,...$ to indexed variables $x_1,x_2,x_3,...$. Then, the mapping from named terms to de Bruijn term is given by $f$, which we define in terms of an auxiliary function $e$:
 
-\vspace{-2em}
-\begin{align*} 
+\begin{center}
+$\begin{aligned}
 e_k^m(x_n) &= \begin{cases}
 k-m(x_n)-1 & x_n \in \text{dom }m\\
 k+n & otherwise
 \end{cases}\\
 e_k^m(uv) &= e_k^m(u)\ e_k^m(v)\\
 e_k^m(\lambda x_n.u) &= \lambda\ e_{k+1}^{m \oplus (x_n,k)}(u)
-\end{align*}
+\end{aligned}$
+\end{center}
 
 Then $f(t) \equiv e_0^\emptyset(t)$
 
@@ -94,8 +100,8 @@ The function $g$, taking de Bruijn terms to named terms is a little more tricky.
 
 We need two auxiliary functions to define $g$:
 
-\vspace{-2em}
-\begin{align*} 
+\begin{center}
+$\begin{aligned}
 h_k^b(n) &= \begin{cases}
 x_{n-k} & n \geq k\\
 x_{k+b-n-1} & otherwise
@@ -108,7 +114,8 @@ n-k & n \geq k\\
 \end{cases}\\
 \Diamond_k(uv) &= \max (\Diamond_k(u),\ \Diamond_k(v))\\
 \Diamond_k(\lambda u) &= \Diamond_{k+1}(u)
-\end{align*}
+\end{aligned}$
+\end{center}
 
 The function $g$ is then defined as $g(t) \equiv h_0^{\Diamond_0(t)+1}(t)$. As mentioned above, the complicated definition has to do with avoiding free variable capture. A term like $\lambda (\lambda\ 2)$ intuitively represents a named $\lambda$-term with two bound variables and a free variable $x_0$ according to the definition above. If we started giving the bound variables names in a naive way, starting from $x_0$, we would end up with a term $\lambda x_0.(\lambda x_1.x_0)$, which is obviously not the term we had in mind, as $x_0$ is no longer a free variable. To ensure we start naming the bound variables in such a way as to avoid this situation, we use $\Diamond$ to compute the maximal value of any free variable in the given term, and then start naming bound variables with an index one higher than the value returned by $\Diamond$.
 
@@ -122,12 +129,16 @@ As one quickly notices, a term like $\lambda x.x$ and $\lambda y.y$ have a singl
 In their comparison between named vs. nameless/de Bruijn representations of $\lambda$-terms, @berghofer06 give details about the definition of substitution, which no longer needs the variable convention and can therefore be defined using primitive structural recursion.   
 The main disadvantage of using de Bruijn indices is the relative unreadability of both the terms and the formulation of properties about these terms. For instance, take the substitution lemma, which in the named setting would be stated as:
 
-$$\text{If }x \neq y\text{ and }x \not\in FV(L)\text{, then }
-M[N/x][L/y] \equiv M[L/y][N[L/y]/x].$$
+\begin{center}
+$\text{If }x \neq y\text{ and }x \not\in FV(L)\text{, then }
+M[N/x][L/y] \equiv M[L/y][N[L/y]/x].$
+\end{center}
 
 In de Bruijn notation, the statement of this lemma becomes:
 
-$$\text{For all indices }i, j\text{ with }i \leq j\text{, }M[N/i][L/j] = M[L/j + 1][N[L/j - i]/i]$$
+\begin{center}
+$\text{For all indices }i, j\text{ with }i \leq j\text{, }M[N/i][L/j] = M[L/j + 1][N[L/j - i]/i]$
+\end{center}
 
 Clearly, the first version of this lemma is much more intuitive.
 
@@ -167,7 +178,39 @@ However, using HOAS only works if the notion of $\alpha$-equivalence and substit
 \newpage
 ##Simple types
 
-The simple types presented throughout this work (except for \cref{chap:itypes}) are often referred to as simple types _a la Curry_, where a simply typed $\lambda$-term is a triple $(\Gamma, M, \sigma)$ s.t. $\Gamma \vdash M : \sigma$, where $\Gamma$ is the typing context, $M$ is a term of the untyped $\lambda$-calculus and $\sigma$ is a simple type. Such a term is deemed valid, if one can construct a typing tree from the given type and typing context. 
+The simple types presented throughout this work (except for \cref{chap:itypes}) are often referred to as simple types _a la Curry_, where a simply typed $\lambda$-term is a triple $(\Gamma, M, \sigma)$ s.t. $\Gamma \vdash M : \sigma$, where $\Gamma$ is the typing context, $M$ is a term of the untyped $\lambda$-calculus and $\sigma$ is a simple type. 
+
+<div class="Definition" head="Simple-type assignment">
+\begin{center}
+  \vskip 1.5em
+  \AxiomC{$x : A \in \Gamma$}
+  \LeftLabel{$(var)$}
+  \UnaryInfC{$\Gamma \vdash x : A$}
+  \DisplayProof
+  %------------------------------------
+  \hskip 1.5em
+  \AxiomC{$\Gamma \vdash u : A \to B$}
+  \AxiomC{$\Gamma \Vdash v : A$}
+  \LeftLabel{$(app)$}
+  \BinaryInfC{$\Gamma \vdash uv : B$}
+  \DisplayProof
+  %------------------------------------
+  \vskip 1.5em
+  \AxiomC{$x : A,\Gamma \vdash m : B$}
+  \LeftLabel{$(abs)$}
+  \UnaryInfC{$\Gamma \vdash \lambda.m : A \to B$}
+  \DisplayProof
+  %------------------------------------
+  \hskip 1.5em
+  \AxiomC{}
+  \LeftLabel{$(Y)$}
+  \UnaryInfC{$\Gamma \vdash Y_{A} : (A \to A) \to A$}
+  \DisplayProof
+  \vskip 1.5em
+\end{center}
+</div>
+
+Such a term is deemed valid, if one can construct a typing tree from the given type and typing context. 
 
 <div class="Example">
 Take the following simply typed term $\{y:\tau\} \vdash \lambda x.xy : (\tau \to \phi) \to \phi$. To show that this is a well-typed $\lambda$-term, we construct the following typing tree:
@@ -208,13 +251,17 @@ Originally, the field of higher order model checking mainly involved studying hi
 
 The first part of this project focuses on formalizing the simply typed $\lamy$ calculus and the proof of confluence for this calculus (proof of the Church Rosser Theorem is sometimes also referred to as proof of confluence). The usual/informal definition of the $\lamy$ terms and the simple types are given below:
 
-<div class="Definition" head="$\lamy$ types and terms">Let $Var$ be a countably infinite set of atoms in the definition of the set of $\lambda$-terms $M$:
-\vspace{-2em}
+<div class="Definition" head="$\lamy$ types and terms">The set of simple types $\sigma$ is built up inductively form the $\mathsf{o}$ constant and the arrow type $\to$.     
+Let $Var$ be a countably infinite set of atoms in the definition of the set of $\lambda$-terms $M$:
 \label{Definition:lamyTrms}
-\begin{align*}
+
+\begin{center}
+$\begin{aligned}
 \sigma ::=&\ \mathsf{o}\ |\ \sigma \to \sigma \\
 M ::=&\ x\ |\ MM\ |\ \lambda x.M\ |\ Y_\sigma \text{ where }x \in Var
-\end{align*}
+\end{aligned}$
+\end{center}
+
 </div> 
 
 The $\lamy$ calculus differs from the simply typed $\lambda$-calculus only in the addition of the $Y$ constant family, indexed at every simple type $\sigma$, where the (simple) type of a $Y_A$ constant (indexed with the type $A$) is $(A \to A) \to A$. The usual definition of $\beta$-reduction is then augmented with the $(Y)$ rule (this is the typed version of the rule):
@@ -232,7 +279,10 @@ In essence, the $Y$ rule allows (some) well-typed recursive definitions over sim
 
 <div class="Example">
 Take for example the term $\lambda x.x$, commonly referred to as the _identity_. The _identity_ term can be given a type $\sigma \to \sigma$ for any simple type $\sigma$. We can therefore perform the following (well-typed) reduction in the $\lamy$ calculus:
-$$Y_\sigma (\lambda x.x) \red (\lambda x.x)(Y_\sigma (\lambda x.x))$$
+
+\begin{center}
+$Y_\sigma (\lambda x.x) \red (\lambda x.x)(Y_\sigma (\lambda x.x))$
+\end{center}
 </div>
 
 The typed version of the rule illustrates the restricted version of recursion clearly, since a recursive "$Y$-reduction" will only occur if the term $M$ in $Y_\sigma M$ has the matching type $\sigma \to \sigma$ (to $Y_\sigma$'s type $(\sigma \to \sigma) \to \sigma$), as in the example above. <!--Due to the type restriction on $M$, recursion using the $Y$ constant will be **weakly normalizing (this is right? right?)**, which cannot be said of unrestricted recursion in the untyped $\lambda$-calculus.-->
@@ -244,7 +294,10 @@ The Church-Rosser Theorem states that the $\beta$-reduction of the $\lambda$-cal
 
 <div class="Definition" head="$\dip(R)$">
 A binary relation $R$ has the _diamond property_, i.e. $\dip(R)$, iff
-$$\forall a, b, c.\ aRb \land aRc \implies \exists d.\ bRd \land cRd$$
+
+\begin{center}
+$\forall a, b, c.\ aRb \land aRc \implies \exists d.\ bRd \land cRd$
+\end{center}
 </div>
 
 The proof of confluence of $\red$, the $\beta Y$-reduction defined as the standard $\beta$-reduction with the addition of the aforementioned $(Y)$ rule, formalized in this project, follows a variation of the Tait-Martin-Löf Proof originally described in @takahashi95 (specifically using the notes by @pollack95). To show why following this proof over the traditional proof is beneficial, we first give a high level overview of how the usual proof proceeds.
@@ -371,8 +424,7 @@ When we try to construct a similar tree for $\beta$-reduction, we can clearly se
 Having described the intuition behind the _parallel_ $\beta$-reduction, we proceed to define the _maximum parallel reduction_ $\ggg$, which contracts all redexes in a given term with a single step:
 
 
-<div class="Definition" head="$\ggg$">
-$\ $
+<div class="Definition" head="$\ggg$">$\ $
 \begin{center}
   \AxiomC{}
   \LeftLabel{$(refl)$}
@@ -463,32 +515,44 @@ We can now prove $\dip(\gg)$ by simply applying \cref{Lemma:maxClose} twice, nam
 For the formalization of intersection types, we initially chose a strict intersection-type system, presented in the @bakel notes. Intersection types, as classically presented in @barendregt13 as $\lambda_\cap^{BCD}$, extend simple types by adding a conjunction to the definition of types:
 
 <div class="Definition" head="$\lambda_\cap^{BCD}$ types">
-$$\mathcal{T} ::= \phi\ |\ \mathcal{T} \leadsto \mathcal{T}\ |\ \mathcal{T} \cap \mathcal{T}$$
+\begin{center}
+$\mathcal{T} ::= \phi\ |\ \mathcal{T} \leadsto \mathcal{T}\ |\ \mathcal{T} \cap \mathcal{T}$
+\end{center}
 </div>
 
 We restrict ourselves to a version of intersection types often called _strict intersection types_. _Strict intersection types_ are a restriction on $\lambda_\cap^{BCD}$ types, where an intersection of types can only appear on the left side of an "arrow" type:
 
-<div class="Definition" head="Strict intersection types">
-\begin{align*} 
+<div class="Definition" head="Strict intersection types">In the definition below, $\phi$ is a constant (analogous to the constant $\mathsf{o}$, introduced for the simple types in \cref{Definition:lamyTrms}).
+
+\begin{center}
+$\begin{aligned}
 \mathcal{T}_s &::= \phi\ |\ \mathcal{T} \leadsto \mathcal{T}_s \\ 
 \mathcal{T} &::= (\mathcal{T}_s \cap\hdots\cap \mathcal{T}_s)
-\end{align*}
+\end{aligned}$
+\end{center}
+
 </div>
 
 The following conventions for intersection types are adopted throughout this section; 
-$\omega$ stands for the empty intersection and we write $\taui$ for the type $\tau_1 \cap\hdots\cap \tau_n$. We also define a relation $\subseteq$ for intersection types:
+$\omega$ stands for the empty intersection and we write $\taui$ for the type $\tau_1 \cap\hdots\cap \tau_n$. We also define a subtype relation $\subseteq$ for intersection types, which intuitively capture the idea of one intersection of types being a subset of another, where we think of $\tau_1 \cap \hdots \cap \tau_i$ as a finite set $\{\tau_1, \hdots , \tau_i\}$, wherein $\subseteq$ for intersection types corresponds to subset inclusion e.g. $\tau \subseteq \tau \cap \psi$ because $\{\tau\} \subseteq \{\tau, \psi\}$.   
+
+$\ $
+<div class="Remark">
+The reason for defining the subset relation in this way, rather than taking the usual view of $\tau \cap \phi \leq \tau$, was due the implementation of intersection types in Agda. Since intersection types $\mathcal{T}$ ended up being defined as lists of strict types $\mathcal{T}_s$ (the definition of lists in Agda included the notion of list inclusion $\in$ and by extension the $\subseteq$ relation), the above convention seemed more natural.</div>
+
+The formal definition of this relation is given below:
 
 <div class="Definition" head="$\subseteq$">
 \label{Definition:subseteqOrig}
 This relation is the least pre-order on intersection types s.t.:
-\vspace{-2em}
 
-\begin{align*} 
+\begin{center}
+$\begin{aligned}
 \forall\ i \in \underline{n}.\ \ \tau_i \subseteq& \taui \\ 
 \forall\ i \in \underline{n}.\ \ \tau_i \subseteq \tau \implies& \taui \subseteq \tau \\
 \rho \subseteq \psi \land \tau \subseteq \mu \implies& \psi \leadsto \tau \subseteq \rho \leadsto \mu\\
-\end{align*}
-\vspace{-3.5em}
+\end{aligned}$
+\end{center}
 
 (This relation is equivalent the $\leq$ relation, defined in @pollack95 notes, i.e. $\tau \leq \psi \equiv \psi \subseteq \tau$.)
 </div>
@@ -497,7 +561,7 @@ This relation is the least pre-order on intersection types s.t.:
 In this presentation, $\lamy$ terms are typed with the strict types $\mathcal{T}_s$ only. Much like the simple types, presented in the previous sections, an intersection-typing judgment is a triple $\Gamma, M, \tau$, written as $\Gamma \vDash M : \tau$, where $\Gamma$ is the intersection-type context, similar in construction to the simple typing context, $M$ is a $\lamy$ term and $\tau$ is a strict intersection type $\mathcal{T}_s$.    
 The definition of the intersection-typing system, like the $\subseteq$ relation, has also been adapted from the typing system found in the @pollack95 notes, by adding the typing rule for the $Y$ constants:
 
-<div class="Definition" head="Intersection-type assignment">$\\$
+<div class="Definition" head="Intersection-type assignment">$\ $
 \begin{center}
   \AxiomC{$x: \taui \in \Gamma$}
   \AxiomC{$\tau \subseteq \taui$}

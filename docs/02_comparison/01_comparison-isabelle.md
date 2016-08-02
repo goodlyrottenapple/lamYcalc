@@ -49,19 +49,21 @@ We start, by examining the definition of untyped $\beta$-reduction, defined for 
 This definition, with the exception of the added $(Y)$ rule is the standard definition of the untyped $\beta$-reduction found in literature (**link?**). The $\sharp$ symbol is used to denote the _freshness_ relation in nominal set theory. The side-condition $x\ \sharp\ N$ in the $(\beta)$ rule can be read as "$x$ is fresh in $N$", namely, the atom $x$ does not appear in $N$. For a $\lambda$-term $M$, we have $x\ \sharp\ M$ iff $x \not\in \fv(M)$, where we take the usual definition of \fv:
 
 <div class="Definition" >The inductively defined $\fv$ is the set of _free variables_ of a $\lambda$-term $M$.
-\vspace{-2em}
-\begin{align*} 
+\begin{center}
+$\begin{aligned}
 \fv(x) &= \{ x \}\\
 \fv(MN) &= \fv(M) \cup \fv(N)\\
 \fv(\lambda x. M) &= \fv(M) \setminus \{ x \}\\
 \fv(Y_\sigma) &= \emptyset
-\end{align*}
+\end{aligned}$
+\end{center}
 </div>
 
 The definition of substitution, used in the $(\beta)$ rule is also unchanged with regards to the usual definition (except for the addition of the $Y$ case, which is trivial):
 
 <div class="Definition" head="Capture-avoiding substitution">
-\begin{align*} 
+\begin{center}
+$\begin{aligned}
 x[S/y] &= \begin{cases}
 S & \text{if }x \equiv y\\
 x & otherwise
@@ -69,7 +71,8 @@ x & otherwise
 (MN)[S/y] &= (M[S/y])(N[S/y])\\
 x\ \sharp\ y , S \implies (\lambda x.M)[S/y] &= \lambda x.(M[S/y])\\
 (Y_\sigma)[S/y] &= Y_\sigma
-\end{align*}
+\end{aligned}$
+\end{center}
 </div>
 
 ####Nominal Isabelle implementation
@@ -129,13 +132,14 @@ Whilst this formalization required only a handful of other recursive function de
 As we have seen, on paper at least, the definitions of terms and capture-avoiding substitution, using nominal sets, are unchanged from the usual informal definitions. The situation is somewhat different for the locally nameless mechanization. Since the LN approach combines the named and de Bruijn representations, there are two different constructors for free and bound variables:
 
 ####Pre-terms
-<div class="Definition" head="LN pre-terms">$\\$
+<div class="Definition" head="LN pre-terms">
 \label{Definition:pterms}
-\vspace{-2em}
-$$M::= x\ |\ n\ |\ MM\ |\ \lambda M\ |\ Y_\sigma \text{ where }x \in Var \text{ and } n \in \mathbb{N}$$
+\begin{center}
+$M::= x\ |\ n\ |\ MM\ |\ \lambda M\ |\ Y_\sigma \text{ where }x \in Var \text{ and } n \in \mathbb{N}$
+\end{center}
 </div>
 
-Similarly to the de Bruijn presentation of binders, the $\lambda$-term no longer includes a bound variable, so a named representation term $\lambda x.x$ becomes $\lambda 0$ in LN. As was mentioned in \cref{binders}, the set of terms, defined in \cref{Definition:pterms}, is a superset of $\lamy$ terms and includes terms which are not well formed $\lamy$ terms. 
+Similarly to the de Bruijn presentation of binders, the $\lambda$-term no longer includes a bound variable, so a named representation term $\lambda x.x$ becomes $\lambda 0$ in LN. As was mentioned in \cref{binders}, the set of pre-terms, defined in \cref{Definition:pterms}, is a superset of $\lamy$ terms and includes terms which are not well formed $\lamy$ terms. 
 
 <div class="Example">The pre-term $\lambda 3$ is not a well-formed $\lamy$ term, since the bound variable index is out of scope. In other words, there is no corresponding (named) $\lamy$ term to $\lambda 3$.
 </div>
@@ -143,7 +147,6 @@ Similarly to the de Bruijn presentation of binders, the $\lambda$-term no longer
 Since we don't want to work with terms that do not correspond to $\lamy$ terms, we have to introduce the notion of a _well-formed term_, which restricts the set of pre-terms to only those that correspond to $\lamy$ terms (i.e. this **?inductive definition?** ensures that there are no "out of bounds" indices in a given pre-term):
 
 <div class="Definition" head="Well-formed terms">
-We assume that $L$ is a finite set in the following definition. $\\$
 \begin{center}
     \AxiomC{}
     \LeftLabel{$(fvar)$}
@@ -178,7 +181,8 @@ As a result of using LN representation of binders, the notion of substitution is
 <div class="Definition" head="Opening and substitution">We will usually assume that $S$ is a well-formed LN term when proving properties about substitution and opening. The abbreviation $M^N \equiv \{0 \to N\}M$ is used throughout this chapter.
 
 i)	Opening:
-\begin{align*}
+\begin{center}
+$\begin{aligned}
 \{k \to S\}x &= x\\
 \{k \to S\}n &= \begin{cases}
 S & \text{if }k \equiv n\\
@@ -187,10 +191,12 @@ n & otherwise
 \{k \to S\}(MN) &= (\{k \to S\}M)(\{k \to S\}N)\\
 \{k \to S\}(\lambda M) &= \lambda (\{k+1 \to S\}M)\\
 \{k \to S\}Y_\sigma &= Y_\sigma
-\end{align*}
+\end{aligned}$
+\end{center}
 
 ii)	Substitution:
-\begin{align*} 
+\begin{center}
+$\begin{aligned}
 x[S/y] &= \begin{cases}
 S & \text{if }x \equiv y\\
 x & otherwise
@@ -199,7 +205,8 @@ n[S/y] &= n \\
 (MN)[S/y] &= (M[S/y])(N[S/y])\\
 (\lambda M)[S/y] &= \lambda. (M[S/y])\\
 Y_\sigma[S/y] &= Y_\sigma
-\end{align*}
+\end{aligned}$
+\end{center}
 </div>
 
 Having defined the _open_ operation, we turn back to the definition of well formed terms, specifically to the $(lam)$ rule, which has the precondition $\trm (M^x)$. Intuitively, for the given term $\lambda M$, the term $M^x$ is obtained by replacing all indices bound to the outermost $\lambda$ by $x$. Then, if $M^x$ is well formed, so is $\lambda M$.
@@ -261,7 +268,6 @@ $\ $
 Finally, we examine the formulation of $\beta$-reduction in the LN presentation of the $\lamy$ calculus. Since we only want to perform $\beta$-reduction on valid $\lamy$ terms, the inductive definition of $\beta$-reduction in the LN mechanization now includes the precondition that the terms appearing in the reduction are well formed:$\\$
 
 <div class="Definition" head="$\beta$-reduction (LN)">
-$L$ is a finite set of atoms in the following definition:   
 \begin{center}
     \AxiomC{$M \red M'$}
     \AxiomC{$\trm (N)$}
@@ -276,7 +282,7 @@ $L$ is a finite set of atoms in the following definition:
     \DisplayProof
     \vskip 1.5em
     \AxiomC{$ x \not\in \fv(M) \cup \fv(M')$}
-    \AxiomC{$M^x \red M'^x$}
+    \AxiomC{$M^x \red (M')^x$}
     \LeftLabel{$(abs)$}
     \BinaryInfC{$\lambda M \red \lambda M'$}
     \DisplayProof
@@ -504,8 +510,8 @@ This version of the rule with the existential quantification shows the subtle di
 At this point, we cannot proceed without re-examining the definition of _opening_, especially in that this operation lacks an inverse. Whereas in a named representation, where bound variables are bound via context only, LN terms have specific constructors for free and bound variables together with an operation for turning bound variables into free variables, namely the _open_ function. In this proof, however, we need the inverse operation, wherein we turn a free variable into a bound one. We call this the _close_ operation:
 
 <div class="Definition" head="Close operation">This definition was adapted from the @aydemir08 paper. We adopt the following convention, writing $\cls M \equiv \{0 \leftarrow x\}M$.
-\vspace{-2em}
-\begin{align*}
+\begin{center}
+$\begin{aligned}
 \{k \leftarrow x\}y &= \begin{cases}
 k & \text{if }x \equiv y\\
 y & otherwise
@@ -514,7 +520,8 @@ y & otherwise
 \{k \leftarrow S\}(MN) &= (\{k \leftarrow S\}M)(\{k \leftarrow S\}N)\\
 \{k \leftarrow S\}(\lambda M) &= \lambda (\{k+1 \leftarrow S\}M)\\
 \{k \leftarrow S\}Y_\sigma &= Y_\sigma
-\end{align*}
+\end{aligned}$
+\end{center}
 </div>
 
 <div class="Example">To demonstrate the close operation, take the term $\lambda xy$. Applying the close operation with the free variable $x$, we get $\cls (\lambda xy) = \lambda 1y$. Whilst the original term might have been well formed, the closed term, as is the case here, may not be.</div>
@@ -548,7 +555,9 @@ Having defined the _close_ operation and shown that it satisfies certain propert
 
 While it may seem that the nominal mechanization was universally more concise and easier to work in than the locally nameless implementation, there were a few instances where using the nominal library turned out to be more difficult to understand and use. One such instance, namely defining a **`nominal\_function`**, was already discussed. Another example can be found in the implmentation of \cref{Lemma:maxClose}, which is stated as:
 
-$$\forall M, M', M_{max}.\ M \ggg M_{max} \land M \gg M' \implies M' \gg M_{max}$$
+\begin{center}
+$\forall M, M', M_{max}.\ M \ggg M_{max} \land M \gg M' \implies M' \gg M_{max}$
+\end{center}
 
 The proof of this lemma proceeds by induction on the relation $\ggg$. Here we will focus on the $(\beta)$ case, i.e. when we have $M \ggg M_{max}$ by the application of $(\beta)$, first giving an informal proof and then focusing on the implementation specifics in both mechanizations:
 

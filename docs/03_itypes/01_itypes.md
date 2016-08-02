@@ -36,7 +36,34 @@ data IType : Set where
 
 ##Type refinement
 
-One of the first things we needed to add to the $\subseteq$ relation on intersection types and notion of intersection type assignment was simple-type refinement. The main idea of intersection types for $\lamy$ terms is for the intersection types to somehow "refine" the simple types. Intuitively, this notion should capture the relationship between the "shape" of the intersection and simple types. The refinement relation has been defined in @kobayashi09 (amongst others) and is presented below:
+One of the first things we needed to add to the notion of intersection type assignment (and as a result also to the $\subseteq$ relation on intersection types) was the notion of simple-type refinement. The main idea of intersection types for $\lamy$ terms is for the intersection types to somehow "refine" the simple types. Intuitively, this notion should capture the relationship between the "shape" of the intersection and simple types. 
+
+To demonstrate the reason for introducing type refinement, we look at the initial formulation of the (intersection) typing rule $(Y)$:
+
+\begin{center}
+  \vskip 1.5em
+  \AxiomC{}
+  \LeftLabel{$(Y)$}
+  \RightLabel{$(j \in \underline{n})$}
+  \UnaryInfC{$\Gamma \Vdash Y_\sigma : (\taui \leadsto \tau_1 \cap\hdots\cap \taui \leadsto \tau_i) \leadsto \tau_j$}
+  \DisplayProof
+  \vskip 1.5em
+\end{center}
+
+The lack of connection between simple and intersection types in the typing relation is especially apparent here, as $\taui$ seems to be chosen arbitrarily. Once we reformulate the above definition to include type refinement, the choice of $\taui$ makes more sense, since we know that $\tau_1, \hdots, \tau_i$ will somehow be related to the simple type $\sigma$:
+
+\begin{center}
+  \vskip 1.5em
+  \AxiomC{$\taui :: \sigma$}
+  \LeftLabel{$(Y)$}
+  \RightLabel{$(j \in \underline{n})$}
+  \UnaryInfC{$\Gamma \Vdash Y_\sigma : (\taui \leadsto \tau_1 \cap\hdots\cap \taui \leadsto \tau_i) \leadsto \tau_j$}
+  \DisplayProof
+  \vskip 1.5em
+\end{center}
+
+
+The refinement relation has been defined in @kobayashi09 (amongst others) and is presented below:
 
 <div class="Definition" head="Intersection type refinement">
 Since intersection types are defined in terms of strict ($\mathcal{T}_s$) and non-strict ($\mathcal{T}$) intersection types, the definition of refinement ($::$) is split into two versions, one for strict and another for non-strict types. In the definition below, $\tau$ ranges over strict intersection types $\mathcal{T}_s$, with $\tau_i, \tau_j$ ranging over non-strict intersection types $\mathcal{T}$, and $A, B$ range over simple types $\sigma$:
@@ -102,6 +129,8 @@ In the definition below, $\tau, \tau'$ range over $\mathcal{T}_s$, $\tau_i, \hdo
   \vskip 1.5em
 \end{center}
 </div>
+
+The typing relation **add link def** was also modified to include type refinement **... didn't want to include it here because it will differ significantly from the initial** 
 
 ##Quantification
 

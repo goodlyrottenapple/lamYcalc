@@ -97,6 +97,7 @@ header-includes: # Things you may want to include in the latex header
 - \renewenvironment{Theorem}{\begin{OldTheorem}\begin{mdframed}[style=example, linecolor=cyan]}{\end{mdframed}\end{OldTheorem}}
 - \BeforeBeginEnvironment{minted}{\vspace{1em}\begin{mdframed}[style=example, linecolor=magenta]}
 - \AfterEndEnvironment{minted}{\end{mdframed}}
+
 include-before:  # Options to insert before the TOC
 include-after:   # Options to insert after the last page
 
