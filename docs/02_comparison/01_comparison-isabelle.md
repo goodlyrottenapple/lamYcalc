@@ -543,7 +543,7 @@ By _IH_, we have $\forall z \not\in L.\ \{k+1 \to y\} \{k+1 \leftarrow x\} M^z =
 \{k+1 \to y\} \{k+1 \leftarrow x\} \{0 \to z\} M = (\{0 \to z\} M)[y/x]&
 \end{align}
 
-Starting from the goal (4.1), we expand the definitions of _open_, _close_ and substitution for the $\lambda$ case in (4.2). (4.3) holds by injectivity of $\lambda$. THen, by choosing a sufficiently fresh $z$ that does not appear in the given context $L$ as well as in neither $\fv(M)$ nor $\{x, y\}$, we have (4.4). We can reorder the open and close operations in (4.5) because it can never be the case that $k+1 = 0$ and $z$ is different from both $x$ and $y$. Finally, (4.6) follows from the fact that we have chosen a $z$ that does not appear in $M$ and is different from $y$.   
+Starting from the goal (4.1), we expand the definitions of _open_, _close_ and substitution for the $\lambda$ case in (4.2). (4.3) holds by injectivity of $\lambda$. Then, by choosing a sufficiently fresh $z$ that does not appear in the given context $L$ as well as in neither $\fv(M)$ nor $\{x, y\}$, we have (4.4). We can reorder the open and close operations in (4.5) because it can never be the case that $k+1 = 0$ and $z$ is different from both $x$ and $y$. Finally, (4.6) follows from the fact that we have chosen a $z$ that does not appear in $M$ and is different from $y$.   
 We can now see that $\{k+1 \to y\} \{k+1 \leftarrow x\} \{0 \to z\} M = (\{0 \to z\} M)[y/x]$ is in fact the _IH_ $\{k+1 \to y\} \{k+1 \leftarrow x\} M^z = (M^z)[y/x]$.
 </div></div>
 

@@ -6,6 +6,7 @@ Whilst the proof is not novel, there is, to our knowledge, no known of it for th
 The chapter is presented in sections, each explaining implementation details that had to be considered and any tweaks to the definitions, presented in \cref{itypesIntro}, that were needed to be made.
 
 ##Intersection types in Agda
+\label{itypesAgda}
 
 The first implementation detail we had to consider was the implementation of the definition of intersection types themselves. Unlike simple types, the definition of intersection-types is split into two mutually recursive definitions of strict `ITypeS` ($\mathcal{T}_s$) and non-strict `IType` ($\mathcal{T}$) intersection types:
 
@@ -71,24 +72,24 @@ Since intersection types are defined in terms of strict ($\mathcal{T}_s$) and no
 \begin{center}
   \AxiomC{}
   \LeftLabel{$(base)$}
-  \UnaryInfC{$\phi ::_s \mathsf{o}$}
+  \UnaryInfC{$\phi :: \mathsf{o}$}
   \DisplayProof
   \hskip 1.5em
-  \AxiomC{$\tau_i :: A$}
-  \AxiomC{$\tau_j :: B$}
+  \AxiomC{$\tau_i ::_\ell A$}
+  \AxiomC{$\tau_j ::_\ell B$}
   \LeftLabel{$(arr)$}
-  \BinaryInfC{$\tau_i \leadsto \tau_j ::_s A \to B$}
+  \BinaryInfC{$\tau_i \leadsto \tau_j :: A \to B$}
   \DisplayProof
   \vskip 1.5em
   \AxiomC{}
   \LeftLabel{$(nil)$}
-  \UnaryInfC{$\omega :: A$}
+  \UnaryInfC{$\omega ::_\ell A$}
   \DisplayProof
   \hskip 1.5em
-  \AxiomC{$\tau ::_s A$}
-  \AxiomC{$\tau_i :: A$}
+  \AxiomC{$\tau :: A$}
+  \AxiomC{$\tau_i ::_\ell A$}
   \LeftLabel{$(cons)$}
-  \BinaryInfC{$\tau , \tau_i :: A$}
+  \BinaryInfC{$\tau , \tau_i ::_\ell A$}
   \DisplayProof
 \end{center}
 </div>
@@ -101,37 +102,157 @@ In the definition below, $\tau, \tau'$ range over $\mathcal{T}_s$, $\tau_i, \hdo
 \begin{center}
   \AxiomC{}
   \LeftLabel{$(base)$}
-  \UnaryInfC{$\phi \subseteq^\mathsf{o}_s \phi$}
+  \UnaryInfC{$\phi \subseteq^\mathsf{o} \phi$}
   \DisplayProof
   \hskip 1.5em
-  \AxiomC{$\tau_i \subseteq^A \tau_j$}
+  \AxiomC{$\tau_i \subseteq^A_\ell \tau_j$}
   \AxiomC{$\tau_m \subseteq^B \tau_n$}
   \LeftLabel{$(arr)$}
-  \BinaryInfC{$\tau_j \leadsto \tau_m \subseteq^{A \to B}_s \tau_i \leadsto \tau_n$}
+  \BinaryInfC{$\tau_j \leadsto \tau_m \subseteq^{A \to B} \tau_i \leadsto \tau_n$}
   \DisplayProof
   \vskip 1.5em
-  \AxiomC{$\tau_i :: A$}
+  \AxiomC{$\tau_i ::_\ell A$}
   \LeftLabel{$(nil)$}
-  \UnaryInfC{$\omega \subseteq^A \tau_i$}
+  \UnaryInfC{$\omega \subseteq^A_\ell \tau_i$}
   \DisplayProof
   \hskip 1.5em
-  \AxiomC{$\exists \tau' \in \tau_j.\ \tau \subseteq^A_s \tau'$}
-  \AxiomC{$\tau_i \subseteq^A \tau_j$}
+  \AxiomC{$\exists \tau' \in \tau_j.\ \tau \subseteq^A \tau'$}
+  \AxiomC{$\tau_i \subseteq^A_\ell \tau_j$}
   \LeftLabel{$(cons)$}
-  \BinaryInfC{$\tau , \tau_i \subseteq^A \tau_j$}
-  \DisplayProof
-  \vskip 1.5em
-  \AxiomC{$\tau_i \subseteq^A \tau_j$}
-  \AxiomC{$\tau_j \subseteq^A \tau_k$}
-  \LeftLabel{$(trans)$}
-  \BinaryInfC{$\tau_i \subseteq^A \tau_k$}
+  \BinaryInfC{$\tau , \tau_i \subseteq^A_\ell \tau_j$}
   \DisplayProof
   \vskip 1.5em
 \end{center}
 </div>
 
-The typing relation **add link def** was also modified to include type refinement **... didn't want to include it here because it will differ significantly from the initial** 
+The typing relation **add link to future def** was also modified to include type refinement **... didn't want to include it here because it will differ significantly from the initial** 
 
-##Quantification
+##Well typed $\subseteq$
 
-There are several differences between the presentation of the $\subseteq$ relation in \cref{Definition:subseteqOrig} and the one above. The main differences arise mainly in
+The presentation of the $\subseteq$ relation in \cref{Definition:subseteqOrig} differs quite significantly from the one presented above. The main difference is obviously the addition of type refinement, but the definition now also includes the $(base)$ rule, which allows one to derive the  previously **?verbally/implicitly?** stated reflexivity and transitivity rules.
+<!--\vspace{1.5em}
+<div class="Remark">
+From $(base)$, one can prove the general $(refl_S)$ and $(refl)$ rules: 
+
+<div class="Lemma">
+The following rules are admissible in $\subseteq^A_s/\subseteq^A$:
+
+\begin{center}
+  \AxiomC{$\tau ::_s A$}
+  \LeftLabel{$(refl_s)$}
+  \UnaryInfC{$\tau \subseteq^A_s \tau$}
+  \DisplayProof
+  \hskip 1.5em
+  \AxiomC{$\tau_i :: A$}
+  \LeftLabel{$(refl)$}
+  \UnaryInfC{$\tau_i \subseteq^A \tau_i$}
+  \DisplayProof
+\end{center}
+
+</div>
+</div>-->   
+Another departure from the original definition is the formulation of the following two properties as the $(nil)$ and $(cons)$ rules:
+
+\begin{center}
+$\begin{aligned}
+\forall\ i \in \underline{n}.\ \ \tau_i \subseteq& \taui \\ 
+\forall\ i \in \underline{n}.\ \ \tau_i \subseteq \tau \implies& \taui \subseteq \tau \\
+\end{aligned}$
+\end{center}
+
+To give a motivation as to why we chose the formulation of these rules, we first examine the original definition and show why it's not rigorous enough for a well typed Agda definition.   
+As we've shown in \cref{itypesAgda}, the definition of intersection types is implicitly split into strict `IType`'s and intersections, encoded as `List IType`'s. All the preceding definitions follow this split with the strict and non strict versions of the type refinement ($::$ and $::_\ell$ respectively) and sub-typing relations ($\subseteq$ and $\subseteq_\ell$ respectively).    
+If we now tried to turn the first property above into a rule, such as:
+
+\begin{center}
+  \AxiomC{$\tau \in \tau_i$}
+  \LeftLabel{$(prop'\ 1)$}
+  \UnaryInfC{$\tau \subseteq \tau_i$}
+  \DisplayProof
+\end{center}
+
+Where $\tau$ is a strict type and $\tau_i$ is an intersection, we would immediately get an error because the type signature of $\subseteq$ (does not include type refinement) is:
+
+~~~{.agda}
+data _⊆_ : IType -> IType -> Set
+~~~
+
+In order to get a well typed version of this rule, we would have to write something like:
+
+\begin{center}
+  \AxiomC{$\tau \in \tau_i$}
+  \LeftLabel{$(prop'\ 1)$}
+  \UnaryInfC{$[\tau] \subseteq_\ell \tau_i$}
+  \DisplayProof
+\end{center}
+
+Similarly for the second property, the well typed version might be formulated as:
+
+\begin{center}
+  \AxiomC{$\forall \tau' \in \tau_i.\ [\tau'] \subseteq_\ell \tau$}
+  \LeftLabel{$(prop'\ 2)$}
+  \UnaryInfC{$\tau_i \subseteq_\ell \tau$}
+  \DisplayProof
+\end{center}
+
+However, in the rule above, we assumed/forced $\tau$ to be an intersection, yet the property does not enforce this, and thus the two rules above do not actually capture the two properties from \cref{Definition:subseteqOrig}. 
+
+<div class="Example">
+For example, take the two intersection types $((\psi \cap \tau) \to \psi) \cap ((\psi \cap \tau \cap \rho) \to \psi)$ and $(\psi \cap \tau) \to \psi$. According to the original definition, we will have: 
+
+\begin{center}
+  \AxiomC{}
+  \LeftLabel{$(refl)$}
+  \UnaryInfC{$(\psi \cap \hdots$}
+
+  \AxiomC{}
+  \LeftLabel{$(prop\ 1)$}
+  \UnaryInfC{$\psi \subseteq \psi \cap \tau \cap \rho$}
+  \AxiomC{}
+  \LeftLabel{$(prop\ 1)$}
+  \UnaryInfC{$\tau \subseteq \psi \cap \tau \cap \rho$}
+  \LeftLabel{$(prop\ 2)$}
+  \BinaryInfC{$\psi \cap \tau \subseteq \psi \cap \tau \cap \rho$}
+  \AxiomC{}
+  \LeftLabel{$(refl)$}
+  \UnaryInfC{$\psi \subseteq \psi$}
+  \LeftLabel{$(prop\ 3)$}
+  \BinaryInfC{$(\psi \cap \tau \cap \rho) \to \psi \subseteq (\psi \cap \tau) \to \psi$}
+  \LeftLabel{$(prop\ 2)$}
+  \BinaryInfC{$((\psi \cap \tau) \to \psi) \cap ((\psi \cap \tau \cap \rho) \to \psi) \subseteq (\psi \cap \tau) \to \psi$}
+  \DisplayProof
+\end{center}
+
+When we try to prove the above using the well typed rules, we first need to coerce $(\psi \cap \tau) \to \psi$ into an intersection:
+
+\begin{center}
+  \AxiomC{}
+  \LeftLabel{$(refl)$}
+  \UnaryInfC{$[[\psi , \tau] \to \psi] \subseteq_\ell [[\psi , \tau] \to \psi]$}
+
+  \AxiomC{$[[\psi , \tau , \rho] \to \psi] \subseteq_\ell [[\psi , \tau] \to \psi]$}
+  \LeftLabel{$(prop'\ 2)$}
+  \BinaryInfC{$[[\psi , \tau] \to \psi, [\psi , \tau , \rho] \to \psi] \subseteq_\ell [[\psi , \tau] \to \psi]$}
+  \DisplayProof
+\end{center}
+
+The open branch $[[\psi , \tau , \rho] \to \psi] \subseteq_\ell [[\psi , \tau] \to \psi]$ in the example clearly demonstrates that the current formulation of the rules clearly doesn't capture the properties, outlined in \cref{Definition:subseteqOrig}.
+</div>
+
+Since we know by reflexivity that $\tau \subseteq \tau$, we can reformulate $(prop'\ 1)$ as:
+
+\begin{center}
+  \AxiomC{$\exists \tau' \in \tau_i.\ \tau \subseteq \tau'$}
+  \LeftLabel{$(prop'\ 1)$}
+  \UnaryInfC{$[\tau] \subseteq_\ell \tau_i$}
+  \DisplayProof
+\end{center}
+
+Using this rule, we can complete the previously open branch in the example above. Also, since the only rules that can proceed $(prop'\ 2)$ in the derivation tree are $(refl)$ or $(prop'\ 1)$, and it's easy to see that in case of $(refl)$ preceding, we can always apply $(prop'\ 1)$ before $(refl)$, we can in fact merge $(prop'\ 1)$ and $(prop'\ 2)$ into the single rule:
+
+\begin{center}
+  \AxiomC{$\forall \tau' \in \tau_i.\ \exists \tau'' \in \tau.\ \tau' \subseteq \tau''$}
+  \LeftLabel{$(prop'\ 12)$}
+  \UnaryInfC{$\tau_i \subseteq_\ell \tau$}
+  \DisplayProof
+\end{center}

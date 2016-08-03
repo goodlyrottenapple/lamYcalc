@@ -28,7 +28,13 @@ The typed versions of substitution and the open and close operations are virtual
 
 --------Rules ~>^ and trans for  <=A -----------------
 
-\AxiomC{$(\tau_i \leadsto (\tau_j \concat \tau_k) ,\ \tau_m) :: A \to B$}
+\AxiomC{$\tau_i \subseteq^A \tau_j$}
+  \AxiomC{$\tau_j \subseteq^A \tau_k$}
+  \LeftLabel{$(trans)$}
+  \BinaryInfC{$\tau_i \subseteq^A \tau_k$}
+  \DisplayProof
+  \vskip 1.5em
+  \AxiomC{$(\tau_i \leadsto (\tau_j \concat \tau_k) ,\ \tau_m) :: A \to B$}
   \LeftLabel{$(\tocap)$}
   \UnaryInfC{$(\tau_i \leadsto (\tau_j \concat \tau_k) ,\ \tau_m) \subseteq^{A \to B} (\tau_i \leadsto \tau_j ,\ \tau_i \leadsto \tau_k ,\ \tau_m)$}
   \DisplayProof
