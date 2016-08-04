@@ -1,39 +1,37 @@
 #Intersection types
 \label{chap:itypes}
 
-Having compared different mechanizations and implementation languages for the simply typed $\lamy$ calculus in the previous two chapters, we arrived at the "winning" combination of a locally nameless mechanization using Agda. Carrying on in this setting, in this chapter, we present the formalization of intersection types for the $\lamy$ calculus along with the proof of subject invariance for intersection types.   
-Whilst the proof is not novel, there is, to our knowledge, no known of it for the $\lamy$ calculus. The chapter mainly focuses on the engineering choices that were made in order to simplify the proofs as much as possible, as well as the necessary implementation overheads that were necessary for the implementation.    
-The chapter is presented in sections, each explaining implementation details that had to be considered and any tweaks to the definitions, presented in \cref{itypesIntro}, that were needed to be made.
+Having compared different mechanizations and implementation languages for the simply typed $\lamy$ calculus in the previous two chapters, we arrived at the "winning" combination of a locally nameless mechanization using Agda. Carrying on in this setting, we present the formalization of intersection types for the $\lamy$ calculus along with the proof of subject invariance for intersection types.   
+Whilst the proof is not novel, there is, to our knowledge, no known fully formal version of it for the $\lamy$ calculus. The chapter mainly focuses on the engineering choices that were made in order to simplify the proofs as much as possible, as well as the necessary implementation overheads that were necessary for the implementation.    
+The chapter is presented in sections, each explaining implementation details that had to be considered and any tweaks to the definitions, presented in \cref{itypesIntro}, that needed to be made. Some of the definitions presented early on in this chapter, thus undergo several revisions, as we discuss the necessities for these changes in a pseudo-chronological manner in which they occurred throughout the mechanization.
 
 ##Intersection types in Agda
 \label{itypesAgda}
 
-The first implementation detail we had to consider was the implementation of the definition of intersection types themselves. Unlike simple types, the definition of intersection-types is split into two mutually recursive definitions of strict `ITypeS` ($\mathcal{T}_s$) and non-strict `IType` ($\mathcal{T}$) intersection types:
+The first implementation detail we had to consider was the implementation of the definition of intersection types themselves. Unlike simple types, the definition of intersection-types is split into two mutually recursive definitions of strict (`IType` $/\mathcal{T}_s$) and intersection (`ITypeI` $/\mathcal{T}$) types:
 
 ~~~{.agda xleftmargin=1em linenos=true}
+data ITypeI : Set
 data IType : Set
-data ITypeS : Set
-
-data ITypeS where
-  φ : ITypeS
-  _~>_ : (s : IType) -> (t : ITypeS) -> ITypeS
 
 data IType where
-  ∩ : List ITypeS -> IType
+  φ : IType
+  _~>_ : (s : ITypeI) -> (t : IType) -> IType
+
+data ITypeI where
+  ∩ : List IType -> ITypeI
 ~~~
 
-The reason why `IType` is defined as a list of strict types `ITypeS` in line 9, is due to the (usually) implicit requirement that the types in $\mathcal{T}$ be finite. The decision to use lists was taken because the Agda standard library includes a definition of lists along with definitions of list membership $\in$ for lists and other associated lemmas, which proved to be useful for definitions of the $\subseteq$ relation on types. 
+The reason why the intersection `ITypeI` is defined as a list of strict types `IType` in line 9, is due to the (usually) implicit requirement that the types in $\mathcal{T}$ be finite. The decision to use lists as an implementation of fine sets was taken, because the Agda standard library includes a definition of lists with definitions of list membership $\in$ and other associated lemmas, which proved to be useful for definitions of the $\subseteq$ relation on types. 
 
 
-From the above definition, it is obvious that the above definition is redundant, in that `IType` only has one constructor `∩`, taking a list of strict types `ITypeS`, and therefore, any instance of `IType` in the definition of `ITypeS` can simply be replaced by `List ITypeS`:
+From the above definition, it is obvious that the split definitions of `IType` and `ITypeI` are somewhat redundant, in that `ITypeI` only has one constructor `∩` and therefore, any instance of `IType` in the definition of `ITypeS` can simply be replaced by `List IType`:
 
 ~~~{.agda}
 data IType : Set where
   φ : IType
   _~>_ : List IType -> IType -> IType
 ~~~
-
-(Note that `ITypeS` was renamed to `IType` for convenience.)
 
 ##Type refinement
 
@@ -97,6 +95,7 @@ Since intersection types are defined in terms of strict ($\mathcal{T}_s$) and no
 Having a notion of type refinement, we then modified the subset relation on intersection types, s.t. $\subseteq$ is defined only for pairs of intersection types, which refine the same simple type:
 
 <div class="Definition" head="$\subseteq^A$">
+\label{Definition:subseteqNew}
 In the definition below, $\tau, \tau'$ range over $\mathcal{T}_s$, $\tau_i, \hdots, \tau_n$ range over $\mathcal{T}$ and $A, B$ range over $\sigma$:
 
 \begin{center}
@@ -256,3 +255,43 @@ Using this rule, we can complete the previously open branch in the example above
   \UnaryInfC{$\tau_i \subseteq_\ell \tau$}
   \DisplayProof
 \end{center}
+
+The final version of this rule, as it appears in \cref{Definition:subseteqNew}, is simply an iterated version, split into the $(nil)$ and $(cons)$ cases, to mirror the constructors of lists, since these rules "operate" with `List IType`'s. This iterated style of rules was adopted throughout this chapter for all definitions involving `List IType`'s, wherever possible, since it is more natural to work with in Agda.
+
+<div class="Example">
+To illustrate this take the following lemma about type refinement:
+
+<div class="Lemma"> The following rule is admissible in the typing refinement relation $::_\ell$:
+\begin{center}
+  \AxiomC{$\tau_i ::_\ell A$}
+  \AxiomC{$\tau_j ::_\ell A$}
+  \LeftLabel{$(\ \ \ensuremath{+\!\!\!\!\!\!\!+\,}\ )$}
+  \BinaryInfC{$\tau_i \concat \tau_j ::_\ell A$}
+  \DisplayProof
+\end{center}
+
+<div class="proof">By induction on $\tau_i ::_\ell A$:
+
+- $(nil)$: Therefore $\tau_i \equiv []$ and thus $[] \concat \tau_j ::_\ell A \equiv \tau_j ::_\ell A$, which holds by assumption.
+- $(cons)$: We have $\tau_i \equiv \tau : \tau_s$. Thus we know that $\tau :: A$ and $\tau_s ::_\ell A$. Then, by IH, we have $\tau_s \concat \tau_j ::_\ell A$ and thus:
+
+\begin{center}
+  \AxiomC{$\tau ::_ A$}
+  \AxiomC{$\tau_s \concat \tau_j ::_\ell A$}
+  \LeftLabel{$(cons)$}
+  \BinaryInfC{$\tau : \tau_s \concat \tau_j ::_\ell A$}
+\DisplayProof
+\end{center}
+</div>
+</div>
+
+For comparison, the same proof in Agda reads much the same as the "paper" one, given above: 
+
+~~~{.agda}
+++-∷'l : ∀ {A τi τj} -> τi ∷'l A -> τj ∷'l A -> (τi ++ τj) ∷'l A
+++-∷'l nil τj∷'A = τj∷'A
+++-∷'l (cons τ∷'A τs∷'A) τj∷'A = cons τ∷'A (++-∷'l τs∷'A τj∷'A)
+~~~
+</div>
+
+## 
