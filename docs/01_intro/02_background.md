@@ -241,6 +241,7 @@ $\Gamma \vdash M : \sigma \land M \red^* M' \land M \red^* M'' \implies \exists 
 In order to prove this typed version of the Church Rosser Theorem, we need to prove an additional result of subject reduction for $\lamy$ calculus, namely:
 
 <div class="Theorem" head="Subject reduction for $\red^*$">
+\label{Theorem:subRedSimp}
 $\Gamma \vdash M : \sigma \land M \red^* M' \implies \Gamma \vdash M' : \sigma$
 </div>
 
@@ -522,7 +523,9 @@ $\mathcal{T} ::= \phi\ |\ \mathcal{T} \leadsto \mathcal{T}\ |\ \mathcal{T} \cap 
 
 We restrict ourselves to a version of intersection types often called _strict intersection types_. _Strict intersection types_ are a restriction on $\lambda_\cap^{BCD}$ types, where an intersection of types can only appear on the left side of an "arrow" type:
 
-<div class="Definition" head="Strict intersection types">In the definition below, $\phi$ is a constant (analogous to the constant $\mathsf{o}$, introduced for the simple types in \cref{Definition:lamyTrms}).
+<div class="Definition" head="Strict intersection types">
+\label{Definition:itypes}
+In the definition below, $\phi$ is a constant (analogous to the constant $\mathsf{o}$, introduced for the simple types in \cref{Definition:lamyTrms}).
 
 \begin{center}
 $\begin{aligned}
@@ -530,7 +533,6 @@ $\begin{aligned}
 \mathcal{T} &::= (\mathcal{T}_s \cap\hdots\cap \mathcal{T}_s)
 \end{aligned}$
 \end{center}
-
 </div>
 
 The following conventions for intersection types are adopted throughout this section; 

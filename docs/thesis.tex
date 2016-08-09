@@ -175,6 +175,8 @@ xetex]{hyperref}
 \Crefname{Definition}{Definition}{Definitions}
 \crefname{Lemma}{Lemma}{Lemmas}
 \Crefname{Lemma}{Lemma}{Lemmas}
+\crefname{Theorem}{Theorem}{Theorems}
+\Crefname{Theorem}{Theorem}{Theorems}
 \crefname{Example}{Example}{Examples}
 \Crefname{Example}{Example}{Examples}
 
@@ -199,6 +201,7 @@ xetex]{hyperref}
 
 
 
+\usepackage{longtable,booktabs}
 
 % Make links footnotes instead of hotlinks:
 \renewcommand{\href}[2]{#2\footnote{\url{#1}}}
@@ -234,6 +237,7 @@ xetex]{hyperref}
 \usepackage{minted}
 \usepackage{tikz}
 \usetikzlibrary{arrows,automata, positioning}
+\usepackage{isabelle,isabellesym}
 \newcommand{\lamy}{\lambda\text{-}Y}
 \newcommand{\concat}{\ensuremath{+\!\!\!\!+\,}}
 \newcommand{\wf}{\textsf{Wf-ICtxt}\ }
@@ -861,6 +865,7 @@ calculus, namely:
 
 \begin{Theorem}[Subject reduction for $\red^*$]
 
+\label{Theorem:subRedSimp}
 \(\Gamma \vdash M : \sigma \land M \red^* M' \implies \Gamma \vdash M' : \sigma\)
 
 \end{Theorem}
@@ -1294,9 +1299,9 @@ types can only appear on the left side of an ``arrow'' type:
 
 \begin{Definition}[Strict intersection types]
 
-In the definition below, \(\phi\) is a constant (analogous to the
-constant \(\mathsf{o}\), introduced for the simple types in
-\cref{Definition:lamyTrms}).
+\label{Definition:itypes} In the definition below, \(\phi\) is a
+constant (analogous to the constant \(\mathsf{o}\), introduced for the
+simple types in \cref{Definition:lamyTrms}).
 
 \begin{center}
 $\begin{aligned}
@@ -1433,9 +1438,6 @@ Assuming that \(\Gamma\) is a finite list, consisting of pairs of atoms
 
 \chapter{Methodology}\label{methodology}
 
-\section{Comparison of
-formalizations}\label{comparison-of-formalizations}
-
 The idea of formalizing a functional language in multiple theorem
 provers and objectively assessing the merits and pitfalls of the
 different formalizations is definitely not a new idea. The most well
@@ -1480,7 +1482,7 @@ mechanization in two different theorem provers, Isabelle and Agda.\\
 The ``winning'' theorem prover from this round was then used to
 formalize intersection-types and prove subject invariance.
 
-\subsection{Evaluation criteria}\label{evaluation-criteria}
+\section{Evaluation criteria}\label{evaluation-criteria}
 
 The \(\poplm\) challenge stated three main criteria for evaluating the
 submitted mechanizations of the benchmark calculus:
@@ -1495,137 +1497,34 @@ submitted mechanizations of the benchmark calculus:
   Cost of entry
 \end{itemize}
 
-To this, we add another criterion:
+This project focuses mainly on the two criteria of mechanization
+overheads and technology transparency, since the focus of our comparison
+is to chose the best mechanization and theorem prover to use for
+implementing intersection types for the \(\lamy\) calculus, rather than
+asses the viability of theorem provers in general, which was the
+original goal of the \(\poplm\) challenge. These criteria are described
+in greater detail below:
 
-\begin{itemize}
-\tightlist
-\item
-  Proof automation
-\end{itemize}
+\subsection{Technology transparency}\label{technology-transparency}
 
-This project focuses mainly on the three criteria of mechanization
-overheads, technology transparency and automation, since the focus of
-our comparison is to chose the best mechanization and theorem prover to
-use for implementing intersection types for the \(\lamy\) calculus (and
-proving subject invariance). These criteria are described in greater
-detail below:
-
-\subsubsection{Mechanization/implementation
-overheads}\label{mechanizationimplementation-overheads}
-
-When talking about mechanization overheads, we usually mean the
-additional theory needed to translate the informal theory we reason
-about on paper into the fully formal setting of a theorem prover.
-Implementation overheads are usually things deemed too trivial to
-consider in a paper proof and a good mechanization will leverage
-automation and other language features to hide as much of these
-overheads as possible. The best example of a mechanization overhead in
-this project is the formalization of binders, discussed in
-\cref{binders} of the previous chapter.
+Technology transparency, within the context of this work, is mostly
+concerned with the presentation of the theory inside a proof assistant,
+such as Isabelle or Agda. Whilst there is no direct measure of
+transparency, per se, it is almost always immediately obvious which
+presentation is more transparent, when one is presented with examples.
+This work makes a case for transparency, or the lack thereof, by
+providing side-by-side snippets from different mechanizations of the
+same theory.
 
 \begin{Example}
 
-\label{Example:commNat} Another classic example of mechanization
-overheads, imposed by a fully formal setting of a theorem prover is
-something as trivial as the proof of commutativity of addition of
-natural numbers. In order to prove this property formally in Agda, we
-first have to define what is a natural number, using peano numbers where
-we have a \texttt{Z} zero constructor and a successor function
-\texttt{S}:
-
-\begin{minted}[]{agda}
-data ℕ : Set where
-  Z : ℕ
-  S : ℕ -> ℕ
-\end{minted}
-
-Then we can define the addition operation for natural numbers:
-
-\begin{minted}[]{agda}
-_+_ : ℕ -> ℕ -> ℕ
-Z + x = x
-S x + y = S (x + y)
-\end{minted}
-
-Finally, the proof of commutativity of addition may end up looking
-something like this:
-
-\begin{minted}[]{agda}
-S-inj : ∀ {x y} -> x ≡ y -> S x ≡ S y
-S-inj refl = refl
-
-+-comm' : ∀ x -> x + Z ≡ x
-+-comm' Z = refl
-+-comm' (S x) = S-inj (+-comm' x)
-
-+-comm'' : ∀ x y -> x + S y ≡ S (x + y)
-+-comm'' Z y = refl
-+-comm'' (S x) y = S-inj (+-comm'' x y)
-
-+-comm : ∀ x y -> (x + y) ≡ (y + x)
-+-comm Z y rewrite +-comm' y = refl
-+-comm (S x) y rewrite +-comm'' y x = S-inj (+-comm x y)
-\end{minted}
-
-As we see here, this proof is quite long for something seemingly so
-trivial. Proofs of this type are usually unavoidable in a theorem
-prover, especially when we want to use such lemmas in a more interesting
-result we wan to formalize. Having low implementation overheads thus
-usually depends on the automation of the tool, wherein the tool itself
-is able to prove these properties automatically. What is more likely,
-however, is that a ``good'' tool will include something such a base
-theory (of natural numbers) in its library, so that he user does not
-have to re-prove these basic properties and instead can focus on the
-specific theory she/he wants to prove. This is indeed largely what
-happened when we used the nominal library, where the theory was
-conveniently hidden away and managed for us by Isabelle's automatic
-provers.
-
-\end{Example}
-
-For the scope of this project, binders are discussed and used for
-comparison often, since they are the ``weak spot'' where mechanization
-overheads are most apparent.\\
-In this project, we decided to use nominal sets and locally nameless
-representation for binders, due to several reasons. The choice of
-nominal sets was tied to the implementation language, namely Isabelle,
-which has a well developed
-\href{http://www.inf.kcl.ac.uk/staff/urbanc/Nominal/}{nominal sets
-library}, maintained by Christian Urban. The appeal of using nominal
-sets is of course the touted minimal overheads in comparison to the
-informal presentation.\\
-The choice of locally nameless encoding, as opposed to using pure de
-Bruijn indices, was motivated by the claim that locally nameless
-encoding largely mitigates the disadvantages of de Bruijn indices
-especially when it comes to technology transparency (i.e.~theorems about
-locally nameless presentation are much closer in formulation to the
-informal presentation than theorems formulated for de Bruijn indices).\\
-Both of these choices were guided in part by the initial choice of
-implementation language, Isabelle, which had good support both
-mechanizations. Isabelle was also chosen due to previous experience in
-mechanizing similar proofs.\\
-The comparison between nominal and locally nameless versions of the
-\(\lamy\) calculus, presented in \cref{chap:compIsa}, tries to highlight
-the differences in the two approaches in contrast to the usual informal
-reasoning.
-
-\subsubsection{Technology transparency}\label{technology-transparency}
-
-Technology transparency, as discussed here, is usually concerned with
-the presentation of the theory inside a proof assistant, such as
-Isabelle or Agda. As the snippets from \cref{Example:commNat}
-demonstrate, Agda includes features, such as Unicode support for
-mathematical symbols like \(\mathbb{N}\), to make the implementation
-look more ``natural''. Other features, like Isabelle's proof
-representation language Isar (discussed in \cref{proofAsProg}), are
-built into theorem provers to try to make the proofs and definitions
-look as close to conventional notation as possible.
-
-\begin{Example}
-
-To demonstrate the Isar proof language and showcase the technology
+\label{Example:sqareOdd} As an example, we take the two different
+(though not completely distinct) styles of writing proofs in Isabelle,
+namely using apply-style proofs or the Isar proof language. First, to
+demonstrate the Isar proof language and showcase the technology
 transparency it affords, we take the proof that a square of an odd
-number is itself odd\footnotemark:
+number is itself odd\footnotemark and present the mechanized version in
+Isar:
 
 \begin{Lemma}[The square of an odd number is also odd]
 
@@ -1667,7 +1566,7 @@ lemma sq_odd:
 proof -
   from assms obtain k where n_def: "n = 2 * k + 1" 
     unfolding odd_def by auto
-  then have "n * n = ( 2 * k + 1) * ( 2 * k + 1)" by simp
+  then have "n * n = (2 * k + 1) * (2 * k + 1)" by simp
   then have "n * n = (4 * k * k) + (4 * k) + 1" by simp
   hence     "n * n = 2 * ((2 * k * k) + (2 * k)) + 1" by simp
   thus "odd (n * n)" unfolding odd_def by blast
@@ -1675,46 +1574,207 @@ qed
 \end{minted}
 
 Clearly, this mechanized proof reads much like the rigorous paper proof
-that precedes it.
+that precedes it.\\
+When the same proof is presented using the ``apply'' style proof in
+Isabelle, it is immediately apparent that it is much less transparent,
+as we obfuscate the natural flow of the informal proof, hiding most of
+the reasoning in automation (the last line \texttt{by simp+}):
+
+\begin{minted}[]{isabelle}
+lemma sq_odd: "⋀ n ::nat. (∃k. n = 2 * k + 1) ⟹ ∃k. n*n = 2 * k + 1"
+apply (erule_tac P="λk. n = 2 * k + 1" in exE)
+apply (rule_tac x="(2 * x * x) + (2 * x)" in exI)
+apply (rule_tac s="(2 * x + 1) * (2 * x + 1)" in subst)
+by simp+
+\end{minted}
+
+(Note that the whole apply script can in fact just be substituted by the
+single line command: \texttt{by (auto, presburger)})
 
 \end{Example}
 
 \footnotetext{The proof was copied from \url{https://en.wikipedia.org/wiki/Direct_proof}}
 
-This criterion of technology transparency is discussed mainly in
-\cref{chap:compAgda}, which deals with the comparison of Isabelle and
-Agda. The choice of the two theorem provers, but especially of Isabelle,
-was largely subjective. Having had previous experience with Isabelle, it
-was natural to use it initially, to lower the cost of entry. Initially
-only using Isabelle for both formalizations of binders also allowed for
-a more uniform comparison of the mechanization overheads.\\
-The choice of Agda as the second implementation language was motivated
-by Agda having a dependent-type system. As a result, the style of proofs
-in Agda seems quite different to Isabelle, since the distinction between
-proofs and programs is largely erased. Agda was chosen over Coq, which
-is also a dependently-typed language, because it is more ``bare-bones''
-and thus seemed more accessible to a novice in dependently-typed
-languages. Agda also has a higher ``cool''-factor than Coq, being a
-newer language.
+The example given above demonstrates, that transparency is a comparative
+measure, as it depends directly on some point of reference. As is also
+apparent from the example, transparency can often come at a cost of
+brevity. The reason why apply-style proofs exist and are used, even
+though Isar proofs are generally regarded as the better alternative, is
+the fact that they can be significantly faster to write, as they are a
+lot less verbose. Of course, relying more on automation, these proofs
+naturally tend to be harder to follow. However, much like in an informal
+setting, where we rarely write proofs in a completely rigorous detail,
+especially those which are ``uninteresting'' from point of the whole
+theory, so the different styles of proofs are used for different proofs.
+The short, ``boring'' ones are often written using apply-style scripts,
+whereas longer more interesting lemmas use the Isar language, to make
+the reasoning intuitive, i.e.~transparent.\\
+This trade-off brings us to the second criterion, namely the
+mechanization overheads.
 
-\subsubsection{Proof automation}\label{proof-automation}
+\subsection{Mechanization/implementation
+overheads}\label{mechanizationimplementation-overheads}
 
-Proof automation ties into both the mechanization overheads and
-transparency aspects of a formalization, since high degree of automation
-can often result in a more natural/transparent looking proof where the
-``menial'' reasoning steps are taken care of by the theorem prover, and
-the user only sees the higher-level reasoning of informal proofs.
+\label{mechOverheads}
 
-\textbf{maybe link to \cref{Lemma:opnSwap}}
+When talking about mechanization overheads, we usually mean the
+additional theory needed to translate the informal theory we reason
+about on paper into the fully formal setting of a theorem prover.
 
-Both following chapters discuss the automation features of Isabelle and
-Agda and try to draw comparisons by analyzing the same/equivalent lemmas
-in different mechanizations and theorem provers, in terms of automation.
-Whilst on paper, Isabelle includes a lot more automation, in the form of
-several tactics and automated theorem provers, whereas Agda comes with
-only very simple proof search tactics, Agda's more sophisticated
-type-system takes on and replicates at least some of the automation seen
-in Isabelle.
+\begin{Example}
+
+\label{Example:listITypes} To demonstrate what we mean by this, we will
+take the definition of intersection types and its implmentation in Agda
+(further discussed in \cref{itypesAgda}). Taking the
+\cref{Definition:itypes} as a starting point, namely defining
+intersection types as:
+
+\begin{center}
+$\begin{aligned}
+\mathcal{T}_s &::= \phi\ |\ \mathcal{T} \leadsto \mathcal{T}_s \\ 
+\mathcal{T} &::= (\mathcal{T}_s \cap\hdots\cap \mathcal{T}_s)
+\end{aligned}$
+\end{center}
+
+we translate the strict types \(\mathcal{T}_s\) to Agda in a
+straightforward way, since we only need to translate\(\mathcal{T}_s\)
+into the style of a GADT (generalized algebraic datatype) definition:
+
+\begin{minted}[]{agda}
+data Ts where
+  φ : Ts
+  _~>_ : (s : T) -> (t : Ts) -> Ts
+\end{minted}
+
+\(\ \)
+
+\begin{Remark}
+
+The definition above is perhaps more obvious, when \(\mathcal{T}_s\) is
+presented inductively as:
+
+\begin{center}
+  \AxiomC{}
+  \UnaryInfC{$\phi \in \mathcal{T}_s$}
+  \DisplayProof
+  \hskip 1.5em
+  \AxiomC{$\tau \in \mathcal{T}$}
+  \AxiomC{$\psi \in \mathcal{T}_s$}
+  \BinaryInfC{$\tau \leadsto \psi \in \mathcal{T}_s$}
+  \DisplayProof
+\end{center}
+
+\end{Remark}
+
+The informal definition of \(\mathcal{T}\), however, is slightly more
+complicated, since intuitively,
+\(\mathcal{T}_s \cap\hdots\cap \mathcal{T}_s\) represents a finite set
+of elements of \(\mathcal{T}_s\). We can describe the set of
+intersection terms \(\mathcal{T}\) with the following inductive
+definition:
+
+\begin{center}
+  \AxiomC{$\{\tau_1, \hdots, \tau_n\} \subset \mathcal{T}_s$}
+  \UnaryInfC{$\tau_1 \cap\hdots\cap \tau_n \in \mathcal{T}$}
+  \DisplayProof
+\end{center}
+
+In order to encode this definition in Agda, we will have to rely on some
+definition of a finite set (since the rule above assumes knowledge of
+finite sets and the subset relation \(\subset\) in its precondition).\\
+Whilst the notion of a finite set is so trivial, we rarely bother
+axiomatizing it, Agda does not actually know about finite sets by
+default and its standard library only includes the definition of finite
+sets of natural numbers. We can instead use lists to ``simulate'' finite
+sets, as they are similar in many regards, i.e.~the Agda implementation
+of lists includes the notion of subset inclusion for lists, so that one
+can write a proof of \([1,2] \subseteq [2,2,1]\) easily:
+
+\begin{minted}[]{agda}
+data T where
+  ∩ : List Ts -> T
+\end{minted}
+
+Whilst this definition is now largely equivalent to the informal
+inductive definition, we have lost quite a bit of transparency as a
+result. Consider the strict type \(\tau \cap \psi \leadsto \tau\), is
+written as \texttt{∩ (τ ∷ ψ ∷ [])  \textasciitilde > τ} in Agda. We can
+improve thigs somewhat by getting rid of the pointless constructor
+\texttt{∩}, by merging the two definitions of \(\mathcal{T}\) and
+\(\mathcal{T}_s\) into a single definition, namely:
+
+\begin{minted}[]{agda}
+data Ts where
+  φ : Ts
+  _~>_ : (s : List Ts) -> (t : Ts) -> Ts
+\end{minted}
+
+\(\ \)
+
+\begin{Remark}
+
+This definition now corresponds to the merging of the two previously
+given inductive definitions of \(\mathcal{T}\) and \(\mathcal{T}_s\):
+
+\begin{center}
+  \AxiomC{}
+  \UnaryInfC{$\phi \in \mathcal{T}_s$}
+  \DisplayProof
+  \hskip 1.5em
+  \AxiomC{$\{\tau_1, \hdots, \tau_n\} \subset \mathcal{T}_s$}
+  \AxiomC{$\psi \in \mathcal{T}_s$}
+  \BinaryInfC{$\tau_1 \cap\hdots\cap \tau_n \leadsto \psi \in \mathcal{T}_s$}
+  \DisplayProof
+\end{center}
+
+\end{Remark}
+
+Now, \(\tau \cap \psi \leadsto \tau\), corresponds to the Agda term
+\texttt{(τ ∷ ψ ∷ [])  \textasciitilde > τ}, which is still not ideal. We
+can, however, define some simple sugar notation:
+
+\begin{minted}[]{agda}
+_∩_ : Ts -> Ts -> List Ts
+A ∩ B = A ∷ B ∷ []
+\end{minted}
+
+so that we finally get the Agda term \texttt{τ ∩ ψ \textasciitilde > τ}
+which now clearly corresponds to \(\tau \cap \psi \leadsto \tau\).
+
+\end{Example}
+
+As the above example clearly shows, the first/simplest measure of the
+amount of implementation overheads, is simply the length of the
+code/proof scrips, defining the terms and lemmas of a theory. Whilst the
+length of code might provide an indication of the possible level of
+implementation overheads, it is important to keep in mind, that brevity
+of code can often also depend on the level of transparency, as evidenced
+by both \cref{Example:sqareOdd} and the one above, where the shorter
+code turned also the less transparent one. Depending on the priorities,
+we therefore often sacrifice either transparency for brevity or vice
+versa (which can greatly impact his simple metric for overheads).\\
+Therefore, instead of simply looking at the length of the produced
+document, we also compare the number of lemmas, disregarding the length
+of each one. Even though this measure also carries disadvantages (one
+could, for example, in-line the whole Church Rosser proof into one giant
+lemma) it is less sensitive in regard to transparency.
+
+A clear mechanization overhead in this project is the treatment of
+binders, introduced in \cref{binders} of the previous chapter and
+described in more detail in the following Chapter. In the project, we
+decided to use nominal sets and locally nameless representation for
+binders. The choice of nominal sets was tied to the implementation
+language Isabelle, which has a well developed
+\href{http://www.inf.kcl.ac.uk/staff/urbanc/Nominal/}{nominal sets
+library}, maintained by Christian Urban. The appeal of using nominal
+sets is of course the touted transparency with regards to the usual
+informal definitions as well as minimal overheads.\\
+The choice of locally nameless encoding, as opposed to using pure de
+Bruijn indices, was motivated by the claim that locally nameless
+encoding largely mitigates the disadvantages of de Bruijn indices
+especially when it comes to technology transparency (i.e.~theorems about
+locally nameless presentation are much closer in formulation to the
+informal presentation than theorems formulated for de Bruijn indices).
 
 \chapter{Nominal vs.~Locally nameless}\label{comp-isa}
 
@@ -1728,6 +1788,103 @@ binders in \cref{binders}, this chapter explores the consequences of
 choosing either mechanization, especially in terms of technology
 transparency and overheads introduced as a result of the chosen
 mechanization.
+
+Whilst we found that the nominal version of the definitions and proofs
+turned out to be more transparent than the locally nameless
+mechanization, there were some large overheads associated with the
+implementation of certain features in the \(\lamy\) calculus. The LN
+mechanization, on the other hand, carried a small but consistent level
+of overhead throughout the formalization, proving that it was indeed a
+good compromise between implementation overheads and transparency.
+
+\section{Overview}\label{overview-1}
+
+We chose the length of the implemented theory files as a simple measure
+of implementation overheads. As expected, the Locally nameless version
+of the calculus (1145 lines) was about 50\% longer than the Nominal
+encoding (723 lines). However, this measure is not always ideal (due to
+the reasons outlined in \cref{mechOverheads}), and we therefore also
+present the comparison between the two versions in terms of the
+individual definitions and lemmas that correspond to each other in the
+two mechanizations and the informal definitions/lemmas:
+
+\newcommand{\lem}[1]{\bf{lemma}\ \it{#1}}
+\newcommand{\fun}[1]{\bf{fun}\ \it{#1}}
+\newcommand{\nfun}[1]{\bf{nominal\_function}\ \it{#1}}
+\newcommand{\dat}[1]{\bf{datatype}\ \it{#1}}
+\newcommand{\ndat}[1]{\bf{nominal\_datatype}\ \it{#1}}
+\newcommand{\induct}[1]{\bf{inductive}\ \it{#1}}
+
+
+\begin{longtable}[]{@{}lll@{}}
+\toprule
+\begin{minipage}[b]{0.21\columnwidth}\raggedright\strut
+Informal\strut
+\end{minipage} & \begin{minipage}[b]{0.35\columnwidth}\raggedright\strut
+Nominal\strut
+\end{minipage} & \begin{minipage}[b]{0.35\columnwidth}\raggedright\strut
+Locally nameless\strut
+\end{minipage}\tabularnewline
+\midrule
+\endhead
+\begin{minipage}[t]{0.21\columnwidth}\raggedright\strut
+Definition of terms\strut
+\end{minipage} & \begin{minipage}[t]{0.35\columnwidth}\raggedright\strut
+\ndat{trm}\strut
+\end{minipage} & \begin{minipage}[t]{0.35\columnwidth}\raggedright\strut
+\dat{ptrm} \newline \induct{trm}\strut
+\end{minipage}\tabularnewline
+\begin{minipage}[t]{0.21\columnwidth}\raggedright\strut
+Definition of substitution\strut
+\end{minipage} & \begin{minipage}[t]{0.35\columnwidth}\raggedright\strut
+\nfun{subst}\strut
+\end{minipage} & \begin{minipage}[t]{0.35\columnwidth}\raggedright\strut
+\fun{opn} \newline \fun{cls} \newline \fun{subst}\strut
+\end{minipage}\tabularnewline
+\begin{minipage}[t]{0.21\columnwidth}\raggedright\strut
+\cref{Lemma:maxEx} (\(\forall M.\ \exists M'.\ M \ggg M'\))\strut
+\end{minipage} & \begin{minipage}[t]{0.35\columnwidth}\raggedright\strut
+\lem{pbeta\_max\_ex}\strut
+\end{minipage} & \begin{minipage}[t]{0.35\columnwidth}\raggedright\strut
+\lem{pbeta\_max\_ex} \newline \lem{fv\_opn\_cls\_id2}
+\newline \lem{pbeta\_max\_cls}\strut
+\end{minipage}\tabularnewline
+\begin{minipage}[t]{0.21\columnwidth}\raggedright\strut
+\cref{Lemma:maxClose}
+(\(\forall M, M', M''.\ M \ggg M'' \land M \gg M' \implies M' \gg M''\))\strut
+\end{minipage} & \begin{minipage}[t]{0.35\columnwidth}\raggedright\strut
+\lem{pbeta\_max\_closes\_pbeta} \newline \lem{pbeta\_cases\_2}
+\newline \lem{Lem2\_5\_1} \newline \lem{pbeta\_lam\_case\_ex}\strut
+\end{minipage} & \begin{minipage}[t]{0.35\columnwidth}\raggedright\strut
+\lem{pbeta\_max\_closes\_pbeta} \newline \lem{Lem2\_5\_1opn}\strut
+\end{minipage}\tabularnewline
+\begin{minipage}[t]{0.21\columnwidth}\raggedright\strut
+\cref{Theorem:subRedSimp} (Subject reduction for \(\red^*\))\strut
+\end{minipage} & \begin{minipage}[t]{0.35\columnwidth}\raggedright\strut
+\lem{beta\_Y\_typ} \newline \lem{subst\_typ}
+\newline \lem{wt\_terms\_impl\_wf\_ctxt}
+\newline \lem{wt\_terms\_cases\_2}\strut
+\end{minipage} & \begin{minipage}[t]{0.35\columnwidth}\raggedright\strut
+\lem{beta\_Y\_typ} \newline \lem{opn\_typ}
+\newline \lem{wt\_terms\_impl\_wf\_ctxt}\strut
+\end{minipage}\tabularnewline
+\bottomrule
+\end{longtable}
+
+The table above lists the major lemmas discussed throughout this thesis,
+along with the names of these lemmas in the concrete implementations
+(these can be found in the Appendix), as well as the additional lemmas
+the proofs of these depend on. For example, the lemma
+\emph{pbeta\_max\_ex} depends on \emph{fv\_opn\_cls\_id2} and
+\emph{pbeta\_max\_cls} (which may themselves depend on other smaller
+lemmas). Overall, the mechanization using nominal sets includes 33
+lemmas, whereas the locally nameless has 71 individual lemmas. The fact
+that whilst the LN mechanization includes more than twice as many lemmas
+as the nominal formalization, its only roughly 50\% longer, meaning that
+many of these lemmas are short simple proofs, which supports our
+assertion that using the locally nameless representation of binders
+carries larger overhead, but keeps the difficulty of proving these
+additional lemmas low.
 
 \section{\texorpdfstring{Capture-avoiding substitution and
 \(\beta\)-reduction}{Capture-avoiding substitution and \textbackslash{}beta-reduction}}\label{capture-avoiding-substitution-and-beta-reduction}
@@ -2672,11 +2829,11 @@ case (beta x Q Qmax P Pmax)
   apply (simp, simp)
   proof -
   case (goal2 Q' P')
-    with beta have "P' ⇒∥ Pmax" "Q' ⇒∥ Qmax" by simp+
+    with beta have "P' ≫ Pmax" "Q' ≫ Qmax" by simp+
     thus ?case unfolding goal2 apply (rule_tac Lem2_5_1) by simp+
   next
   case (goal1 P' Q')
-    with beta have ih: "P' ⇒∥ Pmax" "Q' ⇒∥ Qmax" by simp+
+    with beta have ih: "P' ≫ Pmax" "Q' ≫ Qmax" by simp+
     show ?case unfolding goal1 
     apply (rule_tac pbeta.beta) using goal1 beta ih
     by simp_all
@@ -2693,8 +2850,8 @@ case where \(M' \equiv P'[Q'/x]\):
  2. ⋀xa Q' R P'.
        [[atom x]]lst. P = [[atom xa]]lst. R ⟹
        M' = P' [xa ::= Q'] ⟹
-       atom xa ♯ Q ⟹ atom xa ♯ Q' ⟹ R ⇒∥ P' ⟹ Q ⇒∥ Q' ⟹ 
-       M' ⇒∥ Pmax [x ::= Qmax]
+       atom xa ♯ Q ⟹ atom xa ♯ Q' ⟹ R ≫ P' ⟹ Q ≫ Q' ⟹ 
+       M' ≫ Pmax [x ::= Qmax]
 \end{minted}
 
 Obviously, this is not the desired shape of the goal, because we
@@ -2708,16 +2865,16 @@ the following ``cases'' lemma:
 
 \begin{minted}[]{isabelle}
 lemma pbeta_cases_2:
-  shows "atom x ♯ t ⟹ App (Lam [x]. s) t ⇒∥ a2 ⟹ 
+  shows "atom x ♯ t ⟹ App (Lam [x]. s) t ≫ a2 ⟹ 
     (⋀s' t'. a2 = App (Lam [x]. s') t' ⟹ atom x ♯ t' ⟹ 
-        s ⇒∥ s' ⟹ t ⇒∥ t' ⟹ P) ⟹
+        s ≫ s' ⟹ t ≫ t' ⟹ P) ⟹
     (⋀t' s'. a2 = s' [x ::= t'] ⟹ atom x ♯ t ⟹ atom x ♯ t' ⟹ 
-        s ⇒∥ s' ⟹ t ⇒∥ t' ⟹ P) ⟹ P"
+        s ≫ s' ⟹ t ≫ t' ⟹ P) ⟹ P"
 ...
 \end{minted}
 
 In the lemma above,
-\texttt{(⋀t' s'. a2 = s' [x ::= t'] ⟹ atom x ♯ t ⟹ atom x ♯ t' ⟹ s ⇒∥ s' ⟹ t ⇒∥ t' ⟹ P) ⟹ P}
+\texttt{(⋀t' s'. a2 = s' [x ::= t'] ⟹ atom x ♯ t ⟹ atom x ♯ t' ⟹ s ≫ s' ⟹ t ≫ t' ⟹ P) ⟹ P}
 corresponds to the case with the premises we want to have, instead of
 the ones we get from the ``cases'' lemma generated as part of the
 definition of \(\gg\).
@@ -2728,10 +2885,10 @@ mostly hidden away from the mechanization (the proofs of the
 \texttt{have} lemmas were omitted for brevity):
 
 \begin{minted}[]{isabelle}
-lemma "(Lam [x]. s) ⇒∥ s' ⟹ ∃t. s' = Lam [x]. t ∧ s ⇒∥ t"
+lemma "(Lam [x]. s) ≫ s' ⟹ ∃t. s' = Lam [x]. t ∧ s ≫ t"
 proof (cases "(Lam [x]. s)" s' rule:pbeta.cases, simp)
   case (goal1 _ _ x')
-    then have 1: "s ⇒∥ ((x' ↔ x) ∙ M')" ...
+    then have 1: "s ≫ ((x' ↔ x) ∙ M')" ...
     from goal1 have 2: "(x' ↔ x) ∙ s' = Lam [x]. ((x' ↔ x) ∙ M')" ...
     from goal1 have "atom x ♯ (Lam [x']. M')"  using fresh_in_pbeta ...
     with 2 have "s' = Lam [x]. ((x' ↔ x) ∙ M')" ...
@@ -3683,10 +3840,6 @@ range over \(\mathcal{T}_s\), \(\tau_i, \hdots, \tau_n\) range over
 
 \end{Definition}
 
-The typing relation \textbf{add link to future def} was also modified to
-include type refinement \textbf{\ldots{} didn't want to include it here
-because it will differ significantly from the initial}
-
 \section{\texorpdfstring{Well typed
 \(\subseteq\)}{Well typed \textbackslash{}subseteq}}\label{well-typed-subseteq}
 
@@ -3706,16 +3859,16 @@ $\begin{aligned}
 \end{aligned}$
 \end{center}
 
-To give a motivation as to why we chose the formulation of these rules,
-we first examine the original definition and show why it's not rigorous
-enough for a well typed Agda definition.\\
+To give a motivation as to why we chose a different formulation of these
+properties, we first examine the original definition and show why it's
+not rigorous enough for a well typed Agda definition.\\
 As we've shown in \cref{itypesAgda}, the definition of intersection
-types is implicitly split into strict \texttt{IType}'s and
-intersections, encoded as \texttt{List IType}'s. All the preceding
-definitions follow this split with the strict and non strict versions of
-the type refinement (\(::\) and \(::_\ell\) respectively) and sub-typing
+types is implicitly split into strict \texttt{IType}s and intersections,
+encoded as \texttt{List IType}s. All the preceding definitions follow
+this split with the strict and non strict versions of the type
+refinement (\(::\) and \(::_\ell\) respectively) and sub-typing
 relations (\(\subseteq\) and \(\subseteq_\ell\) respectively).\\
-If we now tried to turn the first property above into a rule, such as:
+If we tried to turn the first property above into a rule, such as:
 
 \begin{center}
   \AxiomC{$\tau \in \tau_i$}
@@ -3724,9 +3877,10 @@ If we now tried to turn the first property above into a rule, such as:
   \DisplayProof
 \end{center}
 
-Where \(\tau\) is a strict type and \(\tau_i\) is an intersection, we
-would immediately get an error because the type signature of
-\(\subseteq\) (does not include type refinement) is:
+where \(\tau\) is a strict type \texttt{IType} and \(\tau_i\) is an
+intersection \texttt{List IType}, we would immediately get a type error,
+because the type signature of \(\subseteq\) (which does not include type
+refinement) is:
 
 \begin{minted}[]{agda}
 data _⊆_ : IType -> IType -> Set
@@ -3759,7 +3913,7 @@ rules above do not actually capture the two properties from
 
 \begin{Example}
 
-For example, take the two intersection types
+To demonstrate this, take the two intersection types
 \(((\psi \cap \tau) \to \psi) \cap ((\psi \cap \tau \cap \rho) \to \psi)\)
 and \((\psi \cap \tau) \to \psi\). According to the original definition,
 we will have:
@@ -3788,7 +3942,8 @@ we will have:
 \end{center}
 
 When we try to prove the above using the well typed rules, we first need
-to coerce \((\psi \cap \tau) \to \psi\) into an intersection:
+to coerce \((\psi \cap \tau) \to \psi\) into an intersection. Then, we
+try to construct the derivation tree:
 
 \begin{center}
   \AxiomC{}
@@ -3804,8 +3959,8 @@ to coerce \((\psi \cap \tau) \to \psi\) into an intersection:
 The open branch
 \([[\psi , \tau , \rho] \to \psi] \subseteq_\ell [[\psi , \tau] \to \psi]\)
 in the example clearly demonstrates that the current formulation of the
-rules clearly doesn't capture the properties, outlined in
-\cref{Definition:subseteqOrig}.
+two properties clearly doesn't quite capture the intended
+\textbf{??meaning??}.
 
 \end{Example}
 
@@ -3814,17 +3969,48 @@ reformulate \((prop'\ 1)\) as:
 
 \begin{center}
   \AxiomC{$\exists \tau' \in \tau_i.\ \tau \subseteq \tau'$}
-  \LeftLabel{$(prop'\ 1)$}
+  \LeftLabel{$(prop''\ 1)$}
   \UnaryInfC{$[\tau] \subseteq_\ell \tau_i$}
   \DisplayProof
 \end{center}
 
-Using this rule, we can complete the previously open branch in the
-example above. Also, since the only rules that can proceed
-\((prop'\ 2)\) in the derivation tree are \((refl)\) or \((prop'\ 1)\),
-and it's easy to see that in case of \((refl)\) preceding, we can always
-apply \((prop'\ 1)\) before \((refl)\), we can in fact merge
-\((prop'\ 1)\) and \((prop'\ 2)\) into the single rule:
+Using this rule, we can now complete the previously open branch in the
+example above:
+
+\begin{center}
+  \AxiomC{$\vdots$}
+
+  \AxiomC{}
+  \LeftLabel{$(refl)$}
+  \UnaryInfC{$\psi \subseteq \psi$}
+  \LeftLabel{$(prop''\ 1)$}
+  \UnaryInfC{$[\psi] \subseteq_\ell [\psi , \tau , \rho]$}
+
+  \AxiomC{}
+  \LeftLabel{$(refl)$}
+  \UnaryInfC{$\tau \subseteq \tau$}
+  \LeftLabel{$(prop''\ 1)$}
+  \UnaryInfC{$[\tau] \subseteq_\ell [\psi , \tau , \rho]$}
+  \LeftLabel{$(prop'\ 2)$}
+  \BinaryInfC{$[\psi , \tau] \subseteq_\ell [\psi , \tau , \rho]$}
+  
+  \AxiomC{}
+  \LeftLabel{$(refl)$}
+  \UnaryInfC{$\psi \subseteq \psi$}
+  \LeftLabel{$(arr)$}
+  \BinaryInfC{$[\psi , \tau , \rho] \to \psi \subseteq [\psi , \tau] \to \psi$}
+  \LeftLabel{$(prop''\ 1)$}
+  \UnaryInfC{$[[\psi , \tau , \rho] \to \psi] \subseteq_\ell [[\psi , \tau] \to \psi]$}
+  \LeftLabel{$(prop'\ 2)$}
+  \BinaryInfC{$[[\psi , \tau] \to \psi, [\psi , \tau , \rho] \to \psi] \subseteq_\ell [[\psi , \tau] \to \psi]$}
+  \DisplayProof
+\end{center}
+
+Also, since the only rules that can proceed \((prop'\ 2)\) in the
+derivation tree are \((refl)\) or \((prop'\ 1)\), and it's easy to see
+that in case of \((refl)\) preceding, we can always apply \((prop'\ 1)\)
+before \((refl)\), we can in fact merge \((prop'\ 1)\) and
+\((prop'\ 2)\) into the single rule:
 
 \begin{center}
   \AxiomC{$\forall \tau' \in \tau_i.\ \exists \tau'' \in \tau.\ \tau' \subseteq \tau''$}
@@ -3836,14 +4022,14 @@ apply \((prop'\ 1)\) before \((refl)\), we can in fact merge
 The final version of this rule, as it appears in
 \cref{Definition:subseteqNew}, is simply an iterated version, split into
 the \((nil)\) and \((cons)\) cases, to mirror the constructors of lists,
-since these rules ``operate'' with \texttt{List IType}'s. This iterated
+since these rules ``operate'' with \texttt{List IType}. This iterated
 style of rules was adopted throughout this chapter for all definitions
-involving \texttt{List IType}'s, wherever possible, since it is more
-natural to work with in Agda.
+involving \texttt{List IType}, wherever possible, since it is more
+natural to work with, in Agda.
 
 \begin{Example}
 
-To illustrate this take the following lemma about type refinement:
+To illustrate this, take the following lemma about type refinement:
 
 \begin{Lemma}
 
@@ -3865,20 +4051,24 @@ By induction on \(\tau_i ::_\ell A\):
 \begin{itemize}
 \tightlist
 \item
-  \((nil)\): Therefore \(\tau_i \equiv []\) and thus
-  \([] \concat \tau_j ::_\ell A \equiv \tau_j ::_\ell A\), which holds
+  \((nil)\): Therefore \(\tau_i \equiv []\) and
+  \([] \concat \tau_j \equiv \tau_j\). Thus \(\tau_j ::_\ell A\) holds
   by assumption.
 \item
-  \((cons)\): We have \(\tau_i \equiv \tau : \tau_s\). Thus we know that
+  \((cons)\): We have \(\tau_i \equiv \tau , \tau_s\). Thus we know that
   \(\tau :: A\) and \(\tau_s ::_\ell A\). Then, by IH, we have
   \(\tau_s \concat \tau_j ::_\ell A\) and thus:
 \end{itemize}
 
 \begin{center}
-  \AxiomC{$\tau ::_ A$}
-  \AxiomC{$\tau_s \concat \tau_j ::_\ell A$}
+  \AxiomC{}
+  \LeftLabel{$(assm)$}
+  \UnaryInfC{$\tau :: A$}
+  \AxiomC{}
+  \LeftLabel{$(IH)$}
+  \UnaryInfC{$\tau_s \concat \tau_j ::_\ell A$}
   \LeftLabel{$(cons)$}
-  \BinaryInfC{$\tau : \tau_s \concat \tau_j ::_\ell A$}
+  \BinaryInfC{$\tau , \tau_s \concat \tau_j ::_\ell A$}
 \DisplayProof
 \end{center}
 
@@ -3897,7 +4087,221 @@ For comparison, the same proof in Agda reads much the same as the
 
 \end{Example}
 
-\section{}\label{section-2}
+\section{Intersection-type
+assignment}\label{intersection-type-assignment}
+
+Having modified the initial definition of sub-typing and added the
+notion of type refinement, we now take a look at the definition of
+intersection type assignment and the modifications that were needed for
+the mechanization.
+
+Whilst before, intersection typing consisted of the triple
+\(\Gamma \Vdash M : \tau)\), where \(\Gamma\) was the intersection type
+context, \(M\) was an untyped \(\lamy\) term and \(\tau\) was an
+intersection type, this information is not actually sufficient when we
+introduce type refinement. As we've shown with the \((Y)\) rule, the
+refinement relation \(::\) provides a connection between intersection
+and simple types. We therefore want \(M\) in the triple to be a simply
+typed \(\lamy\) term.\\
+Even though, we could use the definition of simple types from the
+previous chapters, this notation would be rather cumbersome.
+
+\begin{Example}
+
+Consider the simply typed term \(\{\} \vdash \lambda x.x : A \to A\)
+being substituted for the untyped \(\lambda x.x\) in
+\(\{\} \Vdash \lambda x.x : (\tau \cap \phi) \leadsto \phi\) (where
+\(\tau :: A\) and \(\phi :: A\)):
+
+\begin{center}
+$\{\} \Vdash (\{\} \vdash \lambda x.x : A \to A) : (\tau \cap \phi) \leadsto \phi$
+\end{center}
+
+Already, this simple example demonstrates the clutter of using
+\emph{Curry}-style simple types in conjunction with the intersection
+typing.
+
+\end{Example}
+
+Instead of using the \emph{a la Curry} simple typing, presented in the
+example above, we chose to define typed \(\lamy\) terms \emph{a la
+Church}. However, since we are using the Locally Nameless representation
+of binders, we actually give the definition of simply typed pre-terms:
+
+\begin{Definition}[Simply typed pre-terms a la Church]
+
+For every simple type \(A\), the set of simply typed pre-terms
+\(\Lambda_A\) is inductively defined in the following way:
+
+\begin{center}
+  \AxiomC{}
+  \LeftLabel{$(fv)$}
+  \UnaryInfC{$x \in \Lambda_A$}
+  \DisplayProof
+  \hskip 1.5em
+  \AxiomC{}
+  \LeftLabel{$(bv)$}
+  \UnaryInfC{$n \in \Lambda_A$}
+  \DisplayProof
+  \hskip 1.5em
+  \AxiomC{$s \in \Lambda_{B \to A}$}
+  \AxiomC{$t \in \Lambda_B$}
+  \LeftLabel{$(app)$}
+  \BinaryInfC{$st \in \Lambda_A$}
+  \DisplayProof
+  \hskip 1.5em
+  \AxiomC{$s \in \Lambda_B$}
+  \LeftLabel{$(lam)$}
+  \UnaryInfC{$\lambda_A.s \in \Lambda_{A \to B}$}
+  \DisplayProof
+  \vskip 1.5em
+  \AxiomC{}
+  \LeftLabel{$(Y)$}
+  \UnaryInfC{$Y_A \in \Lambda_{(A \to A) \to A}$}
+  \DisplayProof
+\end{center}
+
+\end{Definition}
+
+It's easy to see that the definition of Church-style simply typed
+\(\lamy\) pre-terms differs form the untyped pre-terms only in the
+\(\lambda\) case, with the addition of the extra typing information,
+much like in the case of \(Y\). We also adopt a typing convention, where
+we write \(M_{\{A\}}\) to mean \(M \in \Lambda_A\).
+
+The next hurdle we faced in defining the intersection typing relation
+was the formulation of the \((Y)\) rule. The intuition behind this rule
+is to type a \(Y_A\) constant with a type \(\tau\) s.t.
+\(\tau :: (A \to A) \to A\). If we used the \(\lambda_\cap^{BCD}\) types
+(introduced in \cref{itypesIntro}), we could easily have
+\(\tau \equiv (\taui \leadsto \taui) \leadsto \taui\), where
+\(\taui :: A\). However, as we have restricted ourselves to
+strict-intersection types, the initial definition for the \((Y)\) rule
+was the somewhat cumbersome:
+
+\begin{center}
+  \vskip 1.5em
+  \AxiomC{$\taui :: \sigma$}
+  \LeftLabel{$(Y)$}
+  \RightLabel{$(j \in \underline{n})$}
+  \UnaryInfC{$\Gamma \Vdash Y_\sigma : (\taui \leadsto \tau_1 \cap\hdots\cap \taui \leadsto \tau_i) \leadsto \tau_j$}
+  \DisplayProof
+  \vskip 1.5em
+\end{center}
+
+The implementation of this rule clearly demonstrates the complexity,
+which made it difficult to reason with in proofs:
+
+\begin{minted}[]{agda}
+Y :    ∀ {Γ A τi τ} -> (τi∷A : τi ∷'l A) -> (τ∈τi : τ ∈ τi) ->
+    ------------------------------------------------------------
+    Γ ⊩ Y A ∶ (∩ (Data.List.map (λ τk -> (∩ τi ~> τk)) τi) ~> τ)
+\end{minted}
+
+Even though Agda's main strength is its the powerful pattern matching,
+it was quickly realized that pattern matching on the type
+\texttt{(∩ (Data.List.map (λ τk -> (∩ τi ~> τk)) τi) ~> τ)} is difficult
+due to the map function, which appears inside the definition.\\
+Several modifications were made to the rule, until we arrived at it's
+current form. To create a compromise between the unrestricted
+intersection-types of \(\lambda_\cap^{BCD}\), which made expressing the
+\((Y)\) rule much simpler, and the strict typing, which provided a
+restricted version of type derivation over the \(\lambda_\cap^{BCD}\)
+system, we modified strict types to include intersections on both the
+left and right sub-terms of a strict type:
+
+\begin{Definition}[Semi-strict intersection types]
+
+\begin{center}
+$\begin{aligned}
+\mathcal{T}_s &::= \phi\ |\ (\mathcal{T}_s \cap\hdots\cap \mathcal{T}_s) \leadsto (\mathcal{T}_s \cap\hdots\cap \mathcal{T}_s) \\ 
+\end{aligned}$
+\end{center}
+
+\end{Definition}
+
+\(\ \)
+
+\begin{Remark}
+
+\textbf{Maybe too much detail??} After redefining the intersection
+types, the definition of the \((arr)\) rule for the type subset relation
+is now:
+
+\begin{center}
+\AxiomC{$\tau_i \subseteq^A_\ell \tau_j$}
+  \AxiomC{$\tau_m \subseteq^B_\ell \tau_n$}
+  \LeftLabel{$(arr)$}
+  \BinaryInfC{$\tau_j \leadsto \tau_m \subseteq^{A \to B} \tau_i \leadsto \tau_n$}
+  \DisplayProof
+\end{center}
+
+\end{Remark}
+
+The final version of the \((Y)\) rule, along with the other modified
+rules of the typing relation are presented below:
+
+\begin{Definition}[Intersection-type assignment]
+
+This definition assumes that the typing context \(\Gamma\), which is a
+list of triples \((x, \tau_i, A)\), is well formed. For each triple,
+written as \(x : \tau_i ::_\ell A\), this means that the free variable
+\(x\) does not appear elsewhere in the domain of \(\Gamma\). Each
+intersection type \(\tau_i\), associated with a variable \(x\), also
+refines a simple type \(A\). In the definition below, we also assume the
+following convention \(\bigcap \tau \equiv [\tau]\):
+\label{Definition:itypAssignment}
+
+\begin{center}
+  \AxiomC{$\exists (x : \tau_i ::_\ell A) \in \Gamma.\ \bigcap \tau \subseteq^A \tau_i$}
+  \LeftLabel{$(var)$}
+  \UnaryInfC{$\Gamma \Vdash x_{\{A\}} : \tau$}
+  \DisplayProof
+  %------------------------------------
+  \vskip 1.5em
+  \AxiomC{$\Gamma \Vdash u_{\{A \to B\}} : \tau_i \leadsto \tau_j$}
+  \AxiomC{$\Gamma \Vdash_\ell v_{\{A\}} : \tau_i$}
+  \LeftLabel{$(app)$}
+  \RightLabel{$(\bigcap \tau \subseteq^B \tau_j)$}
+  \BinaryInfC{$\Gamma \Vdash uv : \tau$}
+  \DisplayProof
+  %------------------------------------
+  \vskip 1.5em
+  \AxiomC{$\forall x \not\in L.\ (x : \tau_i ::_\ell A),\Gamma \Vdash_\ell m^x : \tau_j$}
+  \LeftLabel{$(abs)$}
+  \UnaryInfC{$\Gamma \Vdash \lambda_A.m : \tau_i \leadsto \tau_j$}
+  \DisplayProof
+  %------------------------------------
+  \hskip 1.5em
+  \AxiomC{$\exists \tau_x.\ \bigcap (\tau_x \leadsto \tau_x) \subseteq^{A \to A} \tau_i \land \tau_j \subseteq^A \tau_x$}
+  \LeftLabel{$(Y)$}
+  \UnaryInfC{$\Gamma \Vdash_s Y_{A} : \tau_i \leadsto \tau_j$}
+  \DisplayProof
+  %------------------------------------
+  \vskip 1.5em
+  \AxiomC{}
+  \LeftLabel{$(nil)$}
+  \UnaryInfC{$\Gamma \Vdash_\ell m : \omega$}
+  \DisplayProof
+  %------------------------------------
+  \hskip 1.5em
+  \AxiomC{$\Gamma \Vdash m : \tau$}
+  \AxiomC{$\Gamma \Vdash_\ell m : \tau_i$}
+  \LeftLabel{$(cons)$}
+  \BinaryInfC{$\Gamma \Vdash_\ell m : \tau , \tau_i$}
+  \DisplayProof
+  \vskip 1.5em
+\end{center}
+
+\end{Definition}
+
+\section{Proofs?}\label{proofs}
+
+To further motivate the final version of the \((Y)\) rule, we look at ?
+\ldots{}.
+
+precondition is as it is because we need \(\tocap\) and subtyping
+rule\ldots{}.
 
 \footnotesize
 
@@ -4015,6 +4419,15 @@ doi:\href{https://doi.org/10.1145/2603088.2603133}{10.1145/2603088.2603133}.
 % - Back matter ----------------------------------------------------------------
 
 
+
+\setcounter{secnumdepth}{0}
+\chapter*{Appendix}\label{appendix}
+\addcontentsline{toc}{chapter}{Appendix}
+\addtocontents{toc}{\protect\setcounter{tocdepth}{1}}
+\input{appendix/LamYNom.tex}
+\newpage
+\input{appendix/LamYNmless.tex}
+\newpage
 
 
 \end{document}

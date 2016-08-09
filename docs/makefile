@@ -45,6 +45,7 @@ default: all
 
 all:
 	@$(call pandoc,"$(out_name).tex")
+	export PATH="$(basedir):$(styledir):($PATH)"
 	xelatex -shell-escape "$(out_name).tex"
 
 clean: 

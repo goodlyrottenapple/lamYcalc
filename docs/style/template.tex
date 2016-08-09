@@ -235,6 +235,8 @@ $endif$
 \Crefname{Definition}{Definition}{Definitions}
 \crefname{Lemma}{Lemma}{Lemmas}
 \Crefname{Lemma}{Lemma}{Lemmas}
+\crefname{Theorem}{Theorem}{Theorems}
+\Crefname{Theorem}{Theorem}{Theorems}
 \crefname{Example}{Example}{Examples}
 \Crefname{Example}{Example}{Examples}
 
@@ -507,6 +509,17 @@ $endif$
 
 $if(biblatex)$
 \printbibliography$if(bibtitle)$[title=$bibtitle$]$endif$
+$endif$
+
+$if(appendix)$
+\setcounter{secnumdepth}{0}
+\chapter*{Appendix}\label{appendix}
+\addcontentsline{toc}{chapter}{Appendix}
+\addtocontents{toc}{\protect\setcounter{tocdepth}{1}}
+$for(appendix)$
+\input{$appendix$}
+\newpage
+$endfor$
 $endif$
 
 $for(include-after)$

@@ -1,8 +1,32 @@
 #Nominal vs. Locally nameless {#comp-isa}
 \label{chap:compIsa}
 
-
 This chapter looks at the two different mechanizations of the $\lamy$ calculus, introduced in the previous chapter, namely an implementation of the calculus using nominal sets and a locally nameless (LN) mechanization. Having presented the two approaches to formalizing binders in \cref{binders}, this chapter explores the consequences of choosing either mechanization, especially in terms of technology transparency and overheads introduced as a result of the chosen mechanization.
+
+Whilst we found that the nominal version of the definitions and proofs turned out to be more transparent than the locally nameless mechanization, there were some large overheads associated with the implementation of certain features in the $\lamy$ calculus. The LN mechanization, on the other hand, carried a small but consistent level of overhead throughout the formalization, proving that it was indeed a good compromise between implementation overheads and transparency.
+
+##Overview
+
+We chose the length of the implemented theory files as a simple measure of implementation overheads. As expected, the Locally nameless version of the calculus (1145 lines) was about 50% longer than the Nominal encoding (723 lines). However, this measure is not always ideal (due to the reasons outlined in \cref{mechOverheads}), and we therefore also present the comparison between the two versions in terms of the individual definitions and lemmas that correspond to each other in the two mechanizations and the informal definitions/lemmas:
+
+\newcommand{\lem}[1]{\bf{lemma}\ \it{#1}}
+\newcommand{\fun}[1]{\bf{fun}\ \it{#1}}
+\newcommand{\nfun}[1]{\bf{nominal\_function}\ \it{#1}}
+\newcommand{\dat}[1]{\bf{datatype}\ \it{#1}}
+\newcommand{\ndat}[1]{\bf{nominal\_datatype}\ \it{#1}}
+\newcommand{\induct}[1]{\bf{inductive}\ \it{#1}}
+
+
+| Informal              | Nominal                               | Locally nameless                      |
+|-----------------------|---------------------------------------|---------------------------------------|
+| Definition of terms | \ndat{trm} | \dat{ptrm} \newline \induct{trm} |
+| Definition of substitution | \nfun{subst} | \fun{opn} \newline \fun{cls} \newline \fun{subst} |
+| \cref{Lemma:maxEx} ($\forall M.\ \exists M'.\ M \ggg M'$) | \lem{pbeta\_max\_ex} | \lem{pbeta\_max\_ex} \newline \lem{fv\_opn\_cls\_id2} \newline \lem{pbeta\_max\_cls} |
+| \cref{Lemma:maxClose} ($\forall M, M', M''.\ M \ggg M'' \land M \gg M' \implies M' \gg M''$) | \lem{pbeta\_max\_closes\_pbeta} \newline \lem{pbeta\_cases\_2} \newline \lem{Lem2\_5\_1} \newline \lem{pbeta\_lam\_case\_ex} | \lem{pbeta\_max\_closes\_pbeta} \newline \lem{Lem2\_5\_1opn} |
+| \cref{Theorem:subRedSimp} (Subject reduction for $\red^*$) | \lem{beta\_Y\_typ} \newline \lem{subst\_typ} \newline \lem{wt\_terms\_impl\_wf\_ctxt} \newline \lem{wt\_terms\_cases\_2} | \lem{beta\_Y\_typ} \newline \lem{opn\_typ} \newline \lem{wt\_terms\_impl\_wf\_ctxt} |
+
+The table above lists the major lemmas discussed throughout this thesis, along with the names of these lemmas in the concrete implementations (these can be found in the Appendix), as well as the additional lemmas the proofs of these depend on. For example, the lemma _pbeta_max_ex_ depends on _fv_opn_cls_id2_ and _pbeta_max_cls_ (which may themselves depend on other smaller lemmas).
+Overall, the mechanization using nominal sets includes 33 lemmas, whereas the locally nameless has 71 individual lemmas. The fact that whilst the LN mechanization includes more than twice as many lemmas as the nominal formalization, its only roughly 50% longer, meaning that many of these lemmas are short simple proofs, which supports our assertion that using the locally nameless representation of binders carries larger overhead, but keeps the difficulty of proving these additional lemmas low.
 
 ##Capture-avoiding substitution and $\beta$-reduction
 
@@ -365,14 +389,14 @@ The first major result in both implementations is \cref{Lemma:maxEx}, which stat
 In fact this proof is a good example to showcase the automation available in Isabelle, as it can be proven by a simple induction on $M$, where the generated cases are proven by a call to Isabelle's `auto` prover:
 
 ~~~{.isabelle}
-lemma pbeta_refl[intro]: "M ⇒∥ M"
+lemma pbeta_refl[intro]: "M ≫ M"
 apply (induct s rule:trm.induct) by auto
 ~~~
 
 This is a version of the proof found in the nominal mechanization. The formulation of the same proof in the LN mechanization differs only slightly, wherein $M$ may not be well formed (since $M$ is a pre-term) and thus this definition requires that $M$ be well formed (i.e. $\trm (M)$, written as `trm M` in the Isabelle implementation):
 
 ~~~{.isabelle}
-lemma pbeta_refl[intro]: "trm M ⟹ M ⇒∥ M"
+lemma pbeta_refl[intro]: "trm M ⟹ M ≫ M"
 apply (induct s rule:trm.induct) by auto
 ~~~
 </div>-->
@@ -631,11 +655,11 @@ case (beta x Q Qmax P Pmax)
   apply (simp, simp)
   proof -
   case (goal2 Q' P')
-    with beta have "P' ⇒∥ Pmax" "Q' ⇒∥ Qmax" by simp+
+    with beta have "P' ≫ Pmax" "Q' ≫ Qmax" by simp+
     thus ?case unfolding goal2 apply (rule_tac Lem2_5_1) by simp+
   next
   case (goal1 P' Q')
-    with beta have ih: "P' ⇒∥ Pmax" "Q' ⇒∥ Qmax" by simp+
+    with beta have ih: "P' ≫ Pmax" "Q' ≫ Qmax" by simp+
     show ?case unfolding goal1 
     apply (rule_tac pbeta.beta) using goal1 beta ih
     by simp_all
@@ -648,33 +672,33 @@ There were a few quirks when implementing this proof in the nominal mechanizatio
  2. ⋀xa Q' R P'.
        [[atom x]]lst. P = [[atom xa]]lst. R ⟹
        M' = P' [xa ::= Q'] ⟹
-       atom xa ♯ Q ⟹ atom xa ♯ Q' ⟹ R ⇒∥ P' ⟹ Q ⇒∥ Q' ⟹ 
-       M' ⇒∥ Pmax [x ::= Qmax]
+       atom xa ♯ Q ⟹ atom xa ♯ Q' ⟹ R ≫ P' ⟹ Q ≫ Q' ⟹ 
+       M' ≫ Pmax [x ::= Qmax]
 ~~~
 
-<!-- 2. ⋀xa N' M M'. [[atom x]]lst. P = [[atom xa]]lst. M ⟹ b = M' [xa ::= N'] ⟹ atom xa ♯ Q ⟹ atom xa ♯ N' ⟹ M ⇒∥ M' ⟹ Q ⇒∥ N' ⟹ b ⇒∥ Pmax [x ::= Qmax]-->
+<!-- 2. ⋀xa N' M M'. [[atom x]]lst. P = [[atom xa]]lst. M ⟹ b = M' [xa ::= N'] ⟹ atom xa ♯ Q ⟹ atom xa ♯ N' ⟹ M ≫ M' ⟹ Q ≫ N' ⟹ b ≫ Pmax [x ::= Qmax]-->
 
 Obviously, this is not the desired shape of the goal, because we obtained a weaker premise, where we have some $R$, such that $\lambda x. P \equiv_\alpha \lambda xa. R$ (this is essentially what `[[atom x]]lst. P = [[atom xa]]lst. R` states) and therefore we get a $P'$ where $M' \equiv P'[Q'/xa]$. What we actually want is a term $P'$ s.t. $M' \equiv P'[Q'/x]$, i.e. $x = xa$. In order to "force" $x$ and $xa$ to actually be the same atom, we had to prove the following "cases" lemma: 
 
 ~~~{.isabelle}
 lemma pbeta_cases_2:
-  shows "atom x ♯ t ⟹ App (Lam [x]. s) t ⇒∥ a2 ⟹ 
+  shows "atom x ♯ t ⟹ App (Lam [x]. s) t ≫ a2 ⟹ 
     (⋀s' t'. a2 = App (Lam [x]. s') t' ⟹ atom x ♯ t' ⟹ 
-    	s ⇒∥ s' ⟹ t ⇒∥ t' ⟹ P) ⟹
+    	s ≫ s' ⟹ t ≫ t' ⟹ P) ⟹
     (⋀t' s'. a2 = s' [x ::= t'] ⟹ atom x ♯ t ⟹ atom x ♯ t' ⟹ 
-    	s ⇒∥ s' ⟹ t ⇒∥ t' ⟹ P) ⟹ P"
+    	s ≫ s' ⟹ t ≫ t' ⟹ P) ⟹ P"
 ...
 ~~~
 
-In the lemma above, `(⋀t' s'. a2 = s' [x ::= t'] ⟹ atom x ♯ t ⟹ atom x ♯ t' ⟹ s ⇒∥ s' ⟹ t ⇒∥ t' ⟹ P) ⟹ P` corresponds to the case with the premises we want to have, instead of the ones we get from the "cases" lemma generated as part of the definition of $\gg$.    
+In the lemma above, `(⋀t' s'. a2 = s' [x ::= t'] ⟹ atom x ♯ t ⟹ atom x ♯ t' ⟹ s ≫ s' ⟹ t ≫ t' ⟹ P) ⟹ P` corresponds to the case with the premises we want to have, instead of the ones we get from the "cases" lemma generated as part of the definition of $\gg$.    
 
 The proof of this lemma required proving another lemma shown below, which required descending into nominal set theory that was previously mostly hidden away from the mechanization (the proofs of the `have` lemmas were omitted for brevity):
 
 ~~~{.isabelle}
-lemma "(Lam [x]. s) ⇒∥ s' ⟹ ∃t. s' = Lam [x]. t ∧ s ⇒∥ t"
+lemma "(Lam [x]. s) ≫ s' ⟹ ∃t. s' = Lam [x]. t ∧ s ≫ t"
 proof (cases "(Lam [x]. s)" s' rule:pbeta.cases, simp)
   case (goal1 _ _ x')
-    then have 1: "s ⇒∥ ((x' ↔ x) ∙ M')" ...
+    then have 1: "s ≫ ((x' ↔ x) ∙ M')" ...
     from goal1 have 2: "(x' ↔ x) ∙ s' = Lam [x]. ((x' ↔ x) ∙ M')" ...
     from goal1 have "atom x ♯ (Lam [x']. M')"  using fresh_in_pbeta ...
     with 2 have "s' = Lam [x]. ((x' ↔ x) ∙ M')" ...

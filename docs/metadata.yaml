@@ -64,6 +64,8 @@ header-includes: # Things you may want to include in the latex header
 - \usepackage{minted}
 - \usepackage{tikz}
 - \usetikzlibrary{arrows,automata, positioning}
+- \usepackage{isabelle,isabellesym}
+# - \usepackage{pdfsetup}
 # - \let\OldTexttt\texttt
 # - \renewcommand{\texttt}[1]{\OldTexttt{\small{#1}}}
 - \newcommand{\lamy}{\lambda\text{-}Y}
@@ -101,6 +103,9 @@ header-includes: # Things you may want to include in the latex header
 include-before:  # Options to insert before the TOC
 include-after:   # Options to insert after the last page
 
+appendix:
+- appendix/LamYNom.tex  
+- appendix/LamYNmless.tex
 
 # amsthm settings
 amsthm:
