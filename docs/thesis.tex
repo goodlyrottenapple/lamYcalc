@@ -1886,8 +1886,7 @@ assertion that using the locally nameless representation of binders
 carries larger overhead, but keeps the difficulty of proving these
 additional lemmas low.
 
-\section{\texorpdfstring{Capture-avoiding substitution and
-\(\beta\)-reduction}{Capture-avoiding substitution and \textbackslash{}beta-reduction}}\label{capture-avoiding-substitution-and-beta-reduction}
+\section{Definitions}\label{definitions-1}
 
 We give a brief overview of the basic definitions of well-typed terms
 and \(\beta\)-reduction, specific to both mechanizations.
@@ -1897,104 +1896,14 @@ Unsurprisingly, the main differences in these definitions involve
 \subsection{Nominal sets
 representation}\label{nominal-sets-representation}
 
-As was shown already, nominal set representation of terms is largely
-identical with the informal definitions, which is the main reason why
-this representation was chosen. This section will examine the
-implementation of \(\lamy\) calculus in Isabelle, using the Nominal
-package.\\
-We start, by examining the definition of untyped \(\beta\)-reduction,
-defined for the \(\lamy\) calculus (referred to as \(\beta Y\)-reduction
-due to the addition of the \((Y)\) reduction rule):
+As was shown already in \cref{binders}, nominal set representation of
+terms is largely identical with the informal definition, which is the
+main reason why this representation was chosen. This section will
+examine the implementation of \(\lamy\) calculus in Isabelle, using the
+Nominal package.
 
-\begin{Definition}[$\beta Y$-reduction]
-
-\label{Definition:betaRedNom}
-
-\begin{center}
-    \vskip 1.5em
-    \AxiomC{$M \red M'$}
-    \LeftLabel{$(red_L)$}
-    \UnaryInfC{$MN \red M'N$}
-    \DisplayProof
-    \hskip 1.5em
-    \AxiomC{$N \red N'$}
-    \LeftLabel{$(red_R)$}
-    \UnaryInfC{$MN \red M'N$}
-    \DisplayProof
-    \vskip 1.5em
-    \AxiomC{$M \red M'$}
-    \LeftLabel{$(abs)$}
-    \UnaryInfC{$\lambda x. M \red \lambda x. M'$}
-    \DisplayProof
-    \hskip 1.5em
-    \AxiomC{}
-    \LeftLabel{$(\beta)$}
-    \RightLabel{$(x\ \sharp\ N)$}
-    \UnaryInfC{$(\lambda x. M)N \red M[N/x]$}
-    \DisplayProof
-    \hskip 1.5em
-    \AxiomC{}
-    \LeftLabel{$(Y)$}
-    \UnaryInfC{$Y_\sigma M \red M (Y_\sigma M)$}
-    \DisplayProof
-    \vskip 1.5em
-\end{center}
-
-\end{Definition}
-
-This definition, with the exception of the added \((Y)\) rule is the
-standard definition of the untyped \(\beta\)-reduction found in
-literature (\textbf{link?}). The \(\sharp\) symbol is used to denote the
-\emph{freshness} relation in nominal set theory. The side-condition
-\(x\ \sharp\ N\) in the \((\beta)\) rule can be read as ``\(x\) is fresh
-in \(N\)'', namely, the atom \(x\) does not appear in \(N\). For a
-\(\lambda\)-term \(M\), we have \(x\ \sharp\ M\) iff
-\(x \not\in \fv(M)\), where we take the usual definition of \fv:
-
-\begin{Definition}
-
-The inductively defined \(\fv\) is the set of \emph{free variables} of a
-\(\lambda\)-term \(M\).
-
-\begin{center}
-$\begin{aligned}
-\fv(x) &= \{ x \}\\
-\fv(MN) &= \fv(M) \cup \fv(N)\\
-\fv(\lambda x. M) &= \fv(M) \setminus \{ x \}\\
-\fv(Y_\sigma) &= \emptyset
-\end{aligned}$
-\end{center}
-
-\end{Definition}
-
-The definition of substitution, used in the \((\beta)\) rule is also
-unchanged with regards to the usual definition (except for the addition
-of the \(Y\) case, which is trivial):
-
-\begin{Definition}[Capture-avoiding substitution]
-
-\begin{center}
-$\begin{aligned}
-x[S/y] &= \begin{cases}
-S & \text{if }x \equiv y\\
-x & otherwise
-\end{cases}\\
-(MN)[S/y] &= (M[S/y])(N[S/y])\\
-x\ \sharp\ y , S \implies (\lambda x.M)[S/y] &= \lambda x.(M[S/y])\\
-(Y_\sigma)[S/y] &= Y_\sigma
-\end{aligned}$
-\end{center}
-
-\end{Definition}
-
-\subsubsection{Nominal Isabelle
-implementation}\label{nominal-isabelle-implementation}
-
-Whilst on paper, all these definitions are unchanged from the usual
-presentation, there are a few caveats when it comes to actually
-implementing these definitions in Isabelle, using the Nominal package.
-The declaration of the terms and types is handled using the reserved
-keywords \textbf{\texttt{atom\_decl}} and
+The declaration of the terms and types in Nominal Isabelle is handled
+using the reserved keywords \textbf{\texttt{atom\_decl}} and
 \textbf{\texttt{nominal\_datatype}}, which are special versions of the
 \textbf{\texttt{typedecl}} and \textbf{\texttt{datatype}} primitives,
 used in the usual Isabelle/HOL session:
@@ -2029,8 +1938,39 @@ generates definitions of free variables/freshness and other
 simplification rules. (Note: These can be inspected in Isabelle, using
 the \textbf{\texttt{print\_theorems}} command.)
 
-Next, we define capture avoiding substitution, using a
-\textbf{\texttt{nominal\_function}} declaration:
+Other definition, such as \(\beta\)-reduction and the definition of
+substitution are also unchanged with regards to the usual definition
+(except for the addition of the \(Y\) case, which is trivial):
+
+\begin{Definition}[Capture-avoiding substitution]
+
+\begin{center}
+$\begin{aligned}
+x[S/y] &= \begin{cases}
+S & \text{if }x \equiv y\\
+x & otherwise
+\end{cases}\\
+(MN)[S/y] &= (M[S/y])(N[S/y])\\
+x\ \sharp\ y , S \implies (\lambda x.M)[S/y] &= \lambda x.(M[S/y])\\
+(Y_\sigma)[S/y] &= Y_\sigma
+\end{aligned}$
+\end{center}
+
+\end{Definition}
+
+The side-condition \(x\ \sharp\ y , S\) in the definition above can be
+read as ``\(x\) is fresh in \(N\)'', namely, the atom \(x\) is not the
+same as \(y\) and does not appear in \(S\), i.e.~for a \(\lambda\)-term
+\(M\), we have \(x\ \sharp\ M\) iff \(x \not\in \fv(M)\).
+
+Whilst on paper, all this definition is unchanged from the informal
+presentation, there are a few caveats when it comes to actually
+implementing these definitions in Isabelle, using the Nominal package.
+Since this definition of substitution includes the freshness condition,
+it cannot be defined using the usual structural recursion via the
+\textbf{\texttt{primrec}} or \textbf{\texttt{fun}} keywords, generally
+used for this purpose. Instead we have to define capture avoiding
+substitution using a \textbf{\texttt{nominal\_function}} declaration:
 
 \begin{minted}[]{isabelle}
 nominal_function
@@ -2042,16 +1982,19 @@ where
 | "(Y t)[y ::= s] = Y t"
 \end{minted}
 
-Whilst using \textbf{\texttt{nominal\_datatype}} is automatic and
-requires no user input, the declaration of a function in Nominal
-Isabelle is less straightforward. Unlike using the usual
-``\textbf{\texttt{fun}}'' declaration of a recursive function in
-Isabelle, where the theorem prover can automatically prove properties
-like termination or pattern exhaustiveness, there are several goals (13
-in the case of the \texttt{subst} definition) which the user has to
-manually prove for any function using nominal data types, such as the
-\(\lamy\) terms. This turned out to be a bit problematic, as the goals
-involved proving properties like:
+Unlike using the usual \textbf{\texttt{fun}} declaration of a recursive
+function in Isabelle, where Isabelle automatically checks the definition
+for pattern completeness (for the term being pattern matched on) and
+overlap. The \textbf{\texttt{fun}} definition also automatically
+checks/proves termination of such recursive functions and generates
+simplification rules, which can be used for equational reasoning
+involving the function.\\
+Unfortunately, this isn't the case for the
+\textbf{\texttt{nominal\_function}} declaration, where there are several
+goals (13 in the case of the \texttt{subst} definition) which the user
+has to manually prove about the function definition, including proving
+termination and \textbf{???}. This turned out to be a bit problematic,
+as the goals involved proving properties like:
 
 \begin{minted}[]{idris}
 ⋀x t xa ya sa ta.
@@ -2070,17 +2013,12 @@ Whilst most of the goals were trivial, proving cases involving
 \(\lambda\)-terms involved a substantial understanding of the internal
 workings of Isabelle and the Nominal package early on into the
 mechanization and as a novice to using Nominal Isabelle, understanding
-and proving these properties proved challenging. The proof script for
-the definition of substitution was actually \textbf{lifted/copied?} from
-the sample document, found in the Nominal package documentation, which
-had a definition of substitution for the untyped \(\lambda\)-calculus
-similar enough to be adaptable for the \(\lamy\) calculus.\\
-Whilst this formalization required only a handful of other recursive
-function definitions, most of which could be copied from the sample
-document, in a different theory with significantly more function
-definitions, proving such goals from scratch would prove a challenge to
-a Nominal Isabelle newcomer as well as a tedious implementation
-overhead.
+and proving these properties proved challenging.\\
+Whilst our formalization required only a handful of other recursive
+function definitions, in a different theory with significantly more
+function definitions, proving such goals from scratch would prove a
+challenge to a Nominal Isabelle newcomer as well as a tedious
+implementation overhead.
 
 \subsection{Locally nameless
 representation}\label{locally-nameless-representation}
@@ -2122,9 +2060,8 @@ corresponding (named) \(\lamy\) term to \(\lambda 3\).
 Since we don't want to work with terms that do not correspond to
 \(\lamy\) terms, we have to introduce the notion of a \emph{well-formed
 term}, which restricts the set of pre-terms to only those that
-correspond to \(\lamy\) terms (i.e.~this \textbf{?inductive definition?}
-ensures that there are no ``out of bounds'' indices in a given
-pre-term):
+correspond to \(\lamy\) terms (i.e.~this inductive definition ensures
+that there are no ``out of bounds'' indices in a given pre-term):
 
 \begin{Definition}[Well-formed terms]
 
@@ -2365,77 +2302,28 @@ using \emph{cofinite quantification}:
 For an example, where this formulation using \emph{cofinite
 quantification} was necessary, see \cref{Lemma:opnClsSubst}).
 
-\subsubsection{Implementation details}\label{implementation-details}
-
-Unlike using the nominal package, the implementation of all the
-definitions and functions listed for the LN representation is very
-straightforward. To demonstrate this, we present the definition of the
-\(\beta\)-reduction in the LN mechanization:
-
-\begin{minted}[]{isabelle}
-inductive beta_Y :: "ptrm ⇒ ptrm ⇒ bool" (infix "⇒β" 300)
-where
-  red_L[intro]: "⟦ trm N ; M ⇒β M' ⟧ ⟹ App M N ⇒β App M' N"
-| red_R[intro]: "⟦ trm M ; N ⇒β N' ⟧ ⟹ App M N ⇒β App M N'"
-| abs[intro]: "⟦ finite L ; (⋀x. x ∉ L ⟹ M^(FVar x) ⇒β M'^(FVar x)) ⟧ ⟹ 
-    Lam M ⇒β Lam M'"
-| beta[intro]: "⟦ trm (Lam M) ; trm N ⟧ ⟹ App (Lam M) N ⇒β M^N"
-| Y[intro]: "trm M ⟹ App (Y σ) M ⇒β App M (App (Y σ) M)"
-\end{minted}
-
-\section{Untyped Church Rosser
-Theorem}\label{untyped-church-rosser-theorem}
+\section{Proofs}\label{proofs}
 
 Having described the implementations of the two binder representations
-along with some basic definitions, such as capture-avoiding substitution
-or the \emph{open} operation, we come the the main part of the
+along with the definitions of capture-avoiding substitution using
+nominal sets and the corresponding \emph{subsitution} and \emph{open}
+operations in the LN mechanization, we come the the main part of the
 comparison, namely the proof of the Church Rosser theorem. This section
-examines specific instances of some of the major lemmas which are part
-of the bigger result. The general outline of the proof has been
+examines specific instances of some of the major lemmas which form parts
+of this bigger result. The general outline of the proof has been
 described in \cref{cr-def}.
-
-\subsection{Typed vs.~untyped proofs}\label{typ-utyp}
-
-\label{utypReason}
-
-As mentioned previously, when talking about the terms of the \(\lamy\)
-calculus, we generally refer to simply typed terms, such as
-\(\Gamma \vdash \lambda x. Y_\sigma : \tau \to (\sigma \to \sigma) \to \sigma\).
-However, the definitions of reduction seen so far and the consecutive
-proofs using these definitions don't use simply typed \(\lamy\) terms,
-operating instead on untyped terms. The simplest reason why this is the
-case is one of convenience and simplicity.\\
-As is the case in most proofs of the Church Rosser Theorem, the result
-is usually proved for untyped terms of the \(\lambda\)-calculus and then
-extended to simply typed terms by simply restricting the terms we want
-to reason about. The CR theorem holds in the restricted setting of
-simply typed terms due to subject reduction, which says that if a term
-\(M\) can be given a simple type \(\sigma\) and \(\beta\)-reduces to
-another term \(M'\), the new term can still be typed with the same type
-\(\sigma\). \\
-Another reason, besides convention is convenience, specifically
-succinctness of code, or the lack thereof, when including simple types
-in the definition of \(\beta\)-reduction and all the subsequent lemmas
-and theorems. Indeed, the choice of excluding typing information
-wherever possible has been an engineering choice to a large degree, as
-it is generally not good practice to keep and pass around
-variables/objects which are not needed (in classical programming). The
-same should also apply to theorem proving, especially since notation can
-easily become bloated and difficult to present in a ``natural'' way
-(i.e.~using the notation a mathematician would write).\\
-Whilst it is true that the implementation of some of the proofs of
-Church Rosser might have been shorter, if the typing information was
-included directly in the definition of \(\beta\)-reduction, the downside
-to this would have been an increased complexity of proofs, resulting in
-potentially less understandable and maintainable code. \textbf{This then
-also ties into automation? + ex'le??}
 
 \subsection{\texorpdfstring{\cref{Lemma:maxEx}}{}}\label{section}
 
 The first major result in both implementations is \cref{Lemma:maxEx},
 which states that for every \(\lamy\) term \(M\), there is a term
-\(M'\), s.t. \(M \ggg M'\). This is trivial for \(\gg\), as we can
-easily prove the derived rule \((refl^*)\):
+\(M'\), s.t. \(M \ggg M'\).\\
+\(\ \)
+
+\begin{Remark}
+
+This result is trivial for \(\gg\), as we can easily prove the derived
+rule \((refl^*)\), but not for \(\ggg\):
 
 \begin{Lemma}[$\gg$ admits $(refl^*)$]
 
@@ -2456,6 +2344,8 @@ By induction on \(M\).
 \end{proof}
 
 \end{Lemma}
+
+\end{Remark}
 
 Since \(\ggg\) restricts the use of the \((app)\) rule to terms which do
 not contain a \(\lambda\) or \(Y\) as its left-most sub term,
@@ -2479,8 +2369,8 @@ lemma pbeta_max_ex:
   shows "∃M'. M >>> M'"
 apply (induct M rule:trm.induct)
 apply auto
-apply (case_tac "not_abst trm1")
-apply (case_tac "not_Y trm1")
+apply (case_tac "not_abst S")
+apply (case_tac "not_Y S")
 apply auto[1]
 proof goal_cases
 case (1 P Q P' Q')
@@ -2497,31 +2387,31 @@ case (2 P Q P' Q')
 qed
 \end{minted}
 
-After applying induction and calling \texttt{auto}, we can inspect the
-remaining goals at line 5, to see that the only goal that remains is the
-case of \(M\) being an application:
+After applying induction and calling \texttt{auto}, which is Isabelle's
+automatic prover that does simple term rewriting and basic proof search,
+we can inspect the remaining goals at line 5, to see that the only goal
+that remains is the case of \(M\) being an application, naley we have to
+prove the following:
+
+\begin{center}
+$\forall S\ T\ U\ V.\ S \ggg U \implies T \ggg V \implies \exists M'.\ ST \ggg M'$
+\end{center}
+
+Lines 6 and 7 in the proof script then correspond to doing a case
+analysis on \(S\) (where \(M = ST\)). We end up with 3 goals,
+corresponding to \(S\) either being a \(\lambda\)-term, \(Y\)-term or
+neither (shown below in reverse order):
 
 \begin{minted}[]{idris}
-goal (1 subgoal):
- 1. ⋀trm1 trm2 M' M'a.
-       trm1 >>> M' ⟹ trm2 >>> M'a ⟹ ∃M'. App trm1 trm2 >>> M'
-\end{minted}
-
-Lines 6 and 7 correspond to doing a case analysis on \texttt{trm1}
-(where \texttt{M = App trm1 trm2}). We end up with 3 goals,
-corresponding to \texttt{trm1} either being a \(\lambda\)-term,
-\(Y\)-term or neither (shown below in reverse order):
-
-\begin{minted}[]{idris}
- 1. ... not_abst trm1 ⟹ not_Y trm1 ⟹ ∃M'. App trm1 trm2 >>> M'
- 2. ... not_abst trm1 ⟹ ¬ not_Y trm1 ⟹ ∃M'. App trm1 trm2 >>> M'
- 3. ... ¬ not_abst trm1 ⟹ ∃M'. App trm1 trm2 >>> M'
+ 1. ... not_abst S ⟹ not_Y S ⟹ ∃M'. App S T >>> M'
+ 2. ... not_abst S ⟹ ¬ not_Y S ⟹ ∃M'. App S T >>> M'
+ 3. ... ¬ not_abst S ⟹ ∃M'. App S T >>> M'
 \end{minted}
 
 The first goal is discharged by calling \texttt{auto} again (line 8),
 since we can simply apply the \((app)\) rule in this instance. The two
 remaining cases are discharged with the additional information that
-\texttt{trm1} is either a \(\lambda\)-term or a \(Y\)-term.
+\(S\) is either a \(\lambda\)-term or a \(Y\)-term.
 
 So far, we have looked at the version of the proof using nominal
 Isabelle and this is especially apparent in line 19, where we use the
@@ -2587,49 +2477,43 @@ When we compare the two goals for the \(\lambda\) case in both versions
 of the proof, we clearly see the differences in the treatment of
 binders:
 
-\textbf{Nominal:}
+\begin{center}
+$\begin{aligned}
+\textbf{Nominal:}\ \ &\forall x\ M.\ \exists M'.\ M \ggg M' \implies \exists M'. \lambda x. M \ggg M'\\
+\textbf{Locally nameless:}\ \ &\forall L\ M.\ \textbf{fin}\ L \implies \trm(\lambda.M) \implies (\forall x \not\in L.\ \exists M''.\ M^x \ggg M'')\\
+&\implies \exists M'.\ \lambda.M \ggg M'
+\end{aligned}$
+\end{center}
 
-\begin{minted}[]{idris}
-⋀x M. ∃M'. M >>> M' ⟹ ∃M'. Lam [x]. M >>> M'
-\end{minted}
-
-\textbf{Locally nameless:}
-
-\begin{minted}[]{idris}
-⋀L M. finite L ⟹
-       (⋀x. x ∉ L ⟹ trm M^FVar x) ⟹
-       (⋀x. x ∉ L ⟹ ∃M''. M^FVar x >>> M'') ⟹ ∃M'. Lam M >>> M'
-\end{minted}
-
-Unlike in the nominal proof, where from \texttt{M >>> M'} we get
-\texttt{Lam [x]. M >>> Lam [x]. M'} by \((abs)\) immediately, the proof
-of \texttt{∃M'. Lam M >>> M'} in the LN mechanization is not as
+Unlike in the nominal proof, where from \(M \ggg M'\) we get
+\(\lambda x.M \ggg \lambda x.M'\) by \((abs)\) immediately, the proof of
+\(\exists M'.\ \lambda.M \ggg M'\) in the LN mechanization is not as
 trivial.\\
 The difficulty arises with the precondition
-\(\forall x \not\in L.\ M^x \red M'^x\) in the LN version of the
+\(\forall x \not\in L.\ M^x \ggg (M')^x\) in the LN version of the
 \((abs)\) rule:
 
 \begin{center}
     \vskip 1.5em
-    \AxiomC{$\exists M'.\ \forall x \not\in L.\ M^x \ggg M'^x$}
+    \AxiomC{$\exists M'.\ \forall x \not\in L.\ M^x \ggg (M')^x$}
     \LeftLabel{$(abs)$}
     \UnaryInfC{$\exists M'.\ \lambda M \ggg \lambda M'\footnotemark$}
     \DisplayProof
     \vskip 1.5em
 
 \footnotetext{ 
-While the original goal is \texttt{∃M'. Lam M >>> M'}, since there is only one possible ``shape'' for the right-hands side term, namely \texttt{M'} must be a \(\lambda\)-term, we can easily rewrite this goal as \texttt{∃M'. Lam M >>> Lam M'}.
+While the original goal is $\exists M'.\ \lambda.M \ggg M'$, since there is only one possible ``shape'' for the right-hands side term, namely $M'$ must be a \(\lambda\)-term, we can easily rewrite this goal as $\exists M'.\ \lambda.M \ggg \lambda.M'$.
 }
 \end{center}
 
 This version of the rule with the existential quantification shows the
 subtle difference between the inductive hypothesis
-\(\forall x \not\in L.\ \exists M'.\ M^x \ggg M'^x\)\footnote{The
-  nominal version was approximately 770 lines of code vs.~1180 for the
-  LN version, making it about 50\% longer.} we have and the premise
-\(\exists M'.\ \forall x \not\in L.\ M^x \ggg M'^x\) that we want to
-show. In order to prove the latter, we assume that there is some \(M'\)
-for a specific \(x \not\in L\) s.t. \(M^x \ggg M'^x\).
+\(\forall x \not\in L.\ \exists M'.\ M^x \ggg (M')^x\)\footnote{It can
+  easily be shown that any pre-term \(M\) can be written using another
+  pre-term \(N\) s.t. \(M \equiv N^x\) for some \(x\).} we have, and the
+premise \(\exists M'.\ \forall x \not\in L.\ M^x \ggg (M')^x\) that we
+want to show. In order to prove the latter, we assume that there is some
+\(M'\) for a specific \(x \not\in L\) s.t. \(M^x \ggg (M')^x\).
 
 At this point, we cannot proceed without re-examining the definition of
 \emph{opening}, especially in that this operation lacks an inverse.
@@ -2928,7 +2812,8 @@ this version of the lemma came from the use of \cref{Lemma:parRed}, in
 that the lemma was first proved in it's classical formulation using
 substitution, but due to the way substitution of bound terms is handled
 in the LN mechanization (using the \emph{open function}), a ``helper''
-lemma was proved to convert this result to one using \emph{open}:
+lemma was proved to convert this result to one using \emph{open}:\\
+\(\ \)
 
 \begin{Lemma}[Parallel open]
 
@@ -2957,12 +2842,6 @@ advantages and disadvantages. On the one hand, it ensures a greater
 consistency between the two theories and easier direct comparison of
 lemmas, but on the other hand, it meant that certain lemmas could have
 been made shorter and more ``tailored'' to the LN mechanization.
-
-\section{Subject reduction}\label{subject-reduction}
-
-\textbf{This chapter is already quite long, so this section might end up
-being quite brief, as the main differences between the mechanizations
-have already been illustrated\ldots{}I think\ldots{}Or?}
 
 \section{Verdict}\label{verdict}
 
@@ -4295,7 +4174,7 @@ following convention \(\bigcap \tau \equiv [\tau]\):
 
 \end{Definition}
 
-\section{Proofs?}\label{proofs}
+\section{Proofs?}\label{proofs-1}
 
 To further motivate the final version of the \((Y)\) rule, we look at ?
 \ldots{}.
