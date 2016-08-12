@@ -2,7 +2,8 @@
 \label{chap:itypes}
 
 Having compared different mechanizations and implementation languages for the simply typed $\lamy$ calculus in the previous two chapters, we arrived at the "winning" combination of a locally nameless mechanization using Agda. Carrying on in this setting, we present the formalization of intersection types for the $\lamy$ calculus along with the proof of subject invariance for intersection types.   
-Whilst the proof is not novel, there is, to our knowledge, no known fully formal version of it for the $\lamy$ calculus. The chapter mainly focuses on the engineering choices that were made in order to simplify the proofs as much as possible, as well as the necessary implementation overheads that were necessary for the implementation.    
+Whilst the theory formalized so far "only"  includes the basic definitions of intersection type assignment and the proof of subject invariance, these proofs turned out to be significantly more difficult than their simply typed counterparts (e.g. in case of sub-tying and subject reduction lemmas). Indeed the whole formalization of simple types, along with the proof of the Church Rosser theorem, is roughly only 1250 lines of code in Agda, in comparison to roughly 1,600 lines, for the intersection typing together with proofs of subject invariance.   
+Even though the proof is not novel, there is, to our knowledge, no known fully formal version of it for the $\lamy$ calculus. The chapter mainly focuses on the engineering choices that were made in order to simplify the proofs as much as possible, as well as the necessary implementation overheads that were necessary for the implementation.    
 The chapter is presented in sections, each explaining implementation details that had to be considered and any tweaks to the definitions, presented in \cref{itypesIntro}, that needed to be made. Some of the definitions presented early on in this chapter, thus undergo several revisions, as we discuss the necessities for these changes in a pseudo-chronological manner in which they occurred throughout the mechanization.
 
 ##Intersection types in Agda
@@ -400,7 +401,7 @@ Y :    ∀ {Γ A τi τ} -> (τi∷A : τi ∷'l A) -> (τ∈τi : τ ∈ τi) -
     Γ ⊩ Y A ∶ (∩ (Data.List.map (λ τk -> (∩ τi ~> τk)) τi) ~> τ)
 ~~~
 
-Even though Agda's main strength is its the powerful pattern matching, it was quickly realized that pattern matching on the type `(∩ (Data.List.map (λ τk -> (∩ τi ~> τk)) τi) ~> τ)` is difficult due to the map function, which appears inside the definition.    
+Even though Agda's main strength is its the powerful pattern matching, it was quickly realized that pattern matching on the type `(∩ (Data.List.map (λ τk -> (∩ τi \textasciitilde > τk)) τi) \textasciitilde > τ)` is difficult due to the map function, which appears inside the definition.    
 Several modifications were made to the rule, until we arrived at it's current form. To create a compromise between the unrestricted intersection-types of $\lambda_\cap^{BCD}$, which made expressing the $(Y)$ rule much simpler, and the strict typing, which provided a restricted version of type derivation over the $\lambda_\cap^{BCD}$ system, we modified strict types to include intersections on both the left and right sub-terms of a strict type:
 
 <div class="Definition" head="Semi-strict intersection types">
@@ -410,18 +411,43 @@ $\begin{aligned}
 \end{aligned}$
 \end{center}
 </div>
-
+ 
 $\ $
-<div class="Remark">**Maybe too much detail??**
-After redefining the intersection types, the definition of the $(arr)$ rule for the type subset relation is now:
+<div class="Remark">Using strict intersection types and having two intersection typing relations $\Vdash$ and $\Vdash_\ell$ makes proving lemmas about the system much easier. The clearest example of this is the nice property of _inversion_, one gets "for free" with strict types. Take, for example, the term $\Gamma \Vdash uv : \tau$ (where for the puproses of this example, $uv$ is a term of the simply-typed $\lambda$-calculus and not a $\lamy$ term). Since for the $\Vdash$ relation, $uv$ can only be given a strict intersection type, we can easily prove the following inversion lemma:
+
+<div class="Lemma" head="Inversion Lemma for $(app)$">
+\label{Lemma:invApp}
+In the following lemma, $\tau_i$ is an intersection, i.e. a list of strict intersection types $\mathcal{T}_s$:
 
 \begin{center}
-\AxiomC{$\tau_i \subseteq^A_\ell \tau_j$}
-  \AxiomC{$\tau_m \subseteq^B_\ell \tau_n$}
-  \LeftLabel{$(arr)$}
-  \BinaryInfC{$\tau_j \leadsto \tau_m \subseteq^{A \to B} \tau_i \leadsto \tau_n$}
-  \DisplayProof
+$\Gamma \Vdash uv : \tau \iff \exists \tau_i.\ \Gamma \Vdash u : \tau_i \leadsto \tau \land \Gamma \Vdash_\ell v : \tau_i$
 \end{center}
+</div>
+
+
+Such a lemma is in fact not even needed in Agda, since the shape of the term $uv$ and the type $\tau$ uniquely determine that the derivation tree must have had an application of the $(app)$ rule at its base. In an Agda proof, such as:
+
+~~~{.agda}
+sample-lemma Γ⊩uv∶τ = ?
+~~~
+
+One can perform a case analysis on the variable `Γ⊩uv∶τ` (the type of which is `Γ ⊩ uv ∶ τ`) and obtain:
+
+~~~{.agda}
+sample-lemma (app Γ⊩u∶τi~>τ Γ⊩bv∶τi) = ?
+~~~
+
+In the $\lambda_\cap^{BCD}$ system (or similar), such an inversion lemma would be a lot more complicated and might look something like:
+
+\begin{center}
+$\begin{aligned}
+\Gamma \Vdash uv : \tau \iff &\exists k \geq 1.\ \exists \tau_1,\hdots,\tau_k,\psi_1,\hdots,\psi_k.\\
+&\tau \subseteq \psi_1 \cap \hdots \cap \psi_k \land\\
+&\forall i \in \{1,\hdots,k\}.\ \Gamma \Vdash u : \tau_i \leadsto \psi_i \land \Gamma \Vdash v : \tau_i
+\end{aligned}$
+\end{center}
+
+The semi-strict typing loses some of the advantages of the strict types, as we will later modify the typing relation, losing the "free" _inversion_ properties that we currently have, i.e. for a given term $uv$, \cref{Lemma:invApp} won't be trivial any more. However, the complexity of the inversion lemmas for semi-strict typing is still lower than that of the unrestricted intersection-typing systems.
 </div>
 
 The final version of the $(Y)$ rule, along with the other modified rules of the typing relation are presented below:
@@ -470,8 +496,90 @@ The final version of the $(Y)$ rule, along with the other modified rules of the 
 \end{center}
 </div>
 
-##Proofs?
+##Proof of subject expansion
 
-To further motivate the final version of the $(Y)$ rule, we look at ? ....
+An interesting property of the intersection types is the fact that they admit both subject expansion and subject reduction, namely $\Vdash$ is closed under $\beta$-equality. In this section, we will focus on the subject expansion lemma:
 
-precondition is as it is because we need $\tocap$ and subtyping rule....
+<div class="Theorem" head="Subject expansion for $\Vdash/\Vdash_\ell$">
+
+i)    $\Gamma \Vdash m : \tau \implies m \red m' \implies \Gamma \Vdash m' : \tau$
+ii)   $\Gamma \Vdash_\ell m : \tau_i \implies m \red m' \implies \Gamma \Vdash_\ell m' : \tau_i$
+</div>
+
+The proof of this theorem follows by induction on the $\beta$-reduction $m \red m'$. We will focus on the $(Y)$ reduction rule and show that given a well typed term $\Gamma \Vdash m(Y_\sigma m) : \tau$, s.t. $Y_\sigma m \red m(Y_\sigma m)$, we can also type $Y_\sigma m$ with the same intersection type $\tau$.    
+We will start with a very high-level overview of the proof. Having assumed, $\Gamma \Vdash m(Y_\sigma m) : \tau$, we must necessarily have the following derivation tree for the intersection typing relation $\Vdash$:
+
+\begin{center}
+  \vskip 1em
+  \AxiomC{$\vdots$}
+  \UnaryInfC{$\Gamma \Vdash_s m : \tau_i \leadsto \tau_j$}
+  \AxiomC{$\vdots$}
+  \UnaryInfC{$\Gamma \Vdash_\ell Y_A m : \tau_i$}
+  \LeftLabel{$(app)$}
+  \RightLabel{$([\tau] \subseteq^A \tau_j)$}
+  \BinaryInfC{$\Gamma \Vdash m(Y_{A} m) : \tau$}
+  \DisplayProof
+  \vskip 1em
+\end{center}
+
+We have two cases, where $\tau_i$ is an empty intersection $\tau_i \equiv \omega$ or a non-empty list of strict intersection types $\tau_i \equiv [\tau_1,\hdots,\tau_n]$.
+
+###$\tau_i \equiv \omega$
+
+From the tree above, we have $(1): \Gamma \Vdash_s m : \omega \leadsto \tau_j$. Then, we can construct the following proof tree:
+
+\begin{center}
+  \AxiomC{}
+  \UnaryInfC{$[[\tau] \leadsto [\tau]] \subseteq^{A \to A} [\omega \leadsto [\tau]] \land [\tau] \subseteq^A [\tau]$}
+  \LeftLabel{$(Y)$}
+  \UnaryInfC{$\Gamma \Vdash Y : [\omega \leadsto [\tau]] \leadsto [\tau]$}
+
+  \AxiomC{$\Gamma \Vdash m : \omega \leadsto [\tau]$}
+  \AxiomC{}
+  \LeftLabel{$(nil)$}
+  \UnaryInfC{$\Gamma \Vdash_\ell m : \omega$}
+  \LeftLabel{$(cons)$}
+  \BinaryInfC{$\Gamma \Vdash_\ell m : [\omega \leadsto [\tau]]$)}
+  \LeftLabel{$(app)$}
+  \BinaryInfC{$\Gamma \Vdash Y_{A} m : \tau$}
+  \DisplayProof
+  \vskip 1em
+\end{center}
+
+The only open branch in the above tree is to show that $\Gamma \Vdash m : \omega \leadsto [\tau]$. In order to do so, we need to use the sub-typing lemma for intersection types:
+
+<div class="Lemma" head="Sub-typing for $\Vdash/\Vdash_\ell$">
+In the definition below, the binary relation $\subseteq_\Gamma$ is defined for any well-formed contexts $\Gamma$ and $\Gamma'$, where for each triple $(x : \tau_i ::_\ell A) \in \Gamma$, there is a corresponding triple $(x : \tau_j ::_\ell A) \in \Gamma'$ s.t. $\tau_i \subseteq^A \tau_j\ $:
+
+\begin{center}
+  \vskip 1em
+  \AxiomC{$\Gamma \Vdash_s m_{\{A\}} : \tau$}
+  \LeftLabel{$(\subseteq)$}
+  \RightLabel{$(\Gamma \subseteq_\Gamma \Gamma', \tau' \subseteq^A \tau)$}
+  \UnaryInfC{$\Gamma' \Vdash_s m_{\{A\}} : \tau'$}
+  \DisplayProof
+  \hskip 1.5em
+  \AxiomC{$\Gamma \Vdash_\ell m_{\{A\}} : \tau_i$}
+  \LeftLabel{$(\subseteq_\ell)$}
+  \RightLabel{$(\Gamma \subseteq_\Gamma \Gamma', \tau_j \subseteq^A_\ell \tau_i)$}
+  \UnaryInfC{$\Gamma' \Vdash_\ell m_{\{A\}} : \tau_j$}
+  \DisplayProof
+  \vskip 1em
+\end{center}
+<div class="proof">Ommited.</div>
+</div>
+
+Thus, we have:
+
+\begin{center}
+  \AxiomC{}
+  \LeftLabel{$(1)$}
+  \UnaryInfC{$\Gamma \Vdash m : \omega \leadsto \tau_j$}
+  \LeftLabel{$(\subseteq)$}
+  \RightLabel{$(\Gamma \subseteq_\Gamma \Gamma, [\tau] \subseteq^A \tau_j)$}
+  \UnaryInfC{$\Gamma \Vdash m : \omega \leadsto [\tau]$}
+  \DisplayProof
+  \vskip 1em
+\end{center}
+
+###$\tau_i \equiv [\tau_1,\hdots,\tau_n]$

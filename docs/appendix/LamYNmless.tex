@@ -35,15 +35,7 @@
 \ type\ {\isacharequal}\ O\ {\isacharbar}\ Arr\ type\ type\ {\isacharparenleft}{\isachardoublequoteopen}{\isacharunderscore}\ {\isasymrightarrow}\ {\isacharunderscore}{\isachardoublequoteclose}{\isacharparenright}\isanewline
 \isanewline
 \isacommand{datatype}\isamarkupfalse%
-\ ptrm\ {\isacharequal}\ FVar\ atom\ {\isacharbar}\ BVar\ nat\ {\isacharbar}\ App\ ptrm\ ptrm\ {\isacharbar}\ Lam\ ptrm\ {\isacharbar}\ Y\ type\isanewline
-\isanewline
-\isacommand{fun}\isamarkupfalse%
-\ FV\ {\isacharcolon}{\isacharcolon}\ {\isachardoublequoteopen}ptrm\ {\isasymRightarrow}\ atom\ set{\isachardoublequoteclose}\ \ \isakeyword{where}\isanewline
-{\isachardoublequoteopen}FV\ {\isacharparenleft}FVar\ x{\isacharparenright}\ {\isacharequal}\ {\isacharbraceleft}x{\isacharbraceright}{\isachardoublequoteclose}\ {\isacharbar}\isanewline
-{\isachardoublequoteopen}FV\ {\isacharparenleft}BVar\ i{\isacharparenright}\ {\isacharequal}\ {\isacharbraceleft}{\isacharbraceright}{\isachardoublequoteclose}\ {\isacharbar}\isanewline
-{\isachardoublequoteopen}FV\ {\isacharparenleft}App\ t{\isadigit{1}}\ t{\isadigit{2}}{\isacharparenright}\ {\isacharequal}\ {\isacharparenleft}FV\ t{\isadigit{1}}{\isacharparenright}\ {\isasymunion}\ {\isacharparenleft}FV\ t{\isadigit{2}}{\isacharparenright}{\isachardoublequoteclose}\ {\isacharbar}\isanewline
-{\isachardoublequoteopen}FV\ {\isacharparenleft}Lam\ t{\isacharparenright}\ {\isacharequal}\ FV\ t{\isachardoublequoteclose}\ {\isacharbar}\isanewline
-{\isachardoublequoteopen}FV\ {\isacharparenleft}Y\ {\isasymsigma}{\isacharparenright}\ {\isacharequal}\ {\isacharbraceleft}{\isacharbraceright}{\isachardoublequoteclose}%
+\ ptrm\ {\isacharequal}\ FVar\ atom\ {\isacharbar}\ BVar\ nat\ {\isacharbar}\ App\ ptrm\ ptrm\ {\isacharbar}\ Lam\ ptrm\ {\isacharbar}\ Y\ type%
 \isamarkupsubsection{Definition of the open operation%
 }
 \isamarkuptrue%
@@ -139,9 +131,19 @@ Y{\isacharcolon}\ {\isachardoublequoteopen}trm\ {\isacharparenleft}Y\ {\isasymsi
 {\isafoldproof}%
 %
 \isadelimproof
-\isanewline
 %
 \endisadelimproof
+%
+\isamarkupsubsection{Definition of substitution%
+}
+\isamarkuptrue%
+\isacommand{fun}\isamarkupfalse%
+\ FV\ {\isacharcolon}{\isacharcolon}\ {\isachardoublequoteopen}ptrm\ {\isasymRightarrow}\ atom\ set{\isachardoublequoteclose}\ \ \isakeyword{where}\isanewline
+{\isachardoublequoteopen}FV\ {\isacharparenleft}FVar\ x{\isacharparenright}\ {\isacharequal}\ {\isacharbraceleft}x{\isacharbraceright}{\isachardoublequoteclose}\ {\isacharbar}\isanewline
+{\isachardoublequoteopen}FV\ {\isacharparenleft}BVar\ i{\isacharparenright}\ {\isacharequal}\ {\isacharbraceleft}{\isacharbraceright}{\isachardoublequoteclose}\ {\isacharbar}\isanewline
+{\isachardoublequoteopen}FV\ {\isacharparenleft}App\ t{\isadigit{1}}\ t{\isadigit{2}}{\isacharparenright}\ {\isacharequal}\ {\isacharparenleft}FV\ t{\isadigit{1}}{\isacharparenright}\ {\isasymunion}\ {\isacharparenleft}FV\ t{\isadigit{2}}{\isacharparenright}{\isachardoublequoteclose}\ {\isacharbar}\isanewline
+{\isachardoublequoteopen}FV\ {\isacharparenleft}Lam\ t{\isacharparenright}\ {\isacharequal}\ FV\ t{\isachardoublequoteclose}\ {\isacharbar}\isanewline
+{\isachardoublequoteopen}FV\ {\isacharparenleft}Y\ {\isasymsigma}{\isacharparenright}\ {\isacharequal}\ {\isacharbraceleft}{\isacharbraceright}{\isachardoublequoteclose}\isanewline
 \isanewline
 \isacommand{lemma}\isamarkupfalse%
 \ FV{\isacharunderscore}finite{\isacharcolon}\ {\isachardoublequoteopen}finite\ {\isacharparenleft}FV\ u{\isacharparenright}{\isachardoublequoteclose}\isanewline
@@ -157,12 +159,10 @@ Y{\isacharcolon}\ {\isachardoublequoteopen}trm\ {\isacharparenleft}Y\ {\isasymsi
 {\isafoldproof}%
 %
 \isadelimproof
+\isanewline
 %
 \endisadelimproof
-%
-\isamarkupsubsection{Definition of substitution%
-}
-\isamarkuptrue%
+\isanewline
 \isacommand{primrec}\isamarkupfalse%
 \ subst\ {\isacharcolon}{\isacharcolon}\ {\isachardoublequoteopen}ptrm\ {\isasymRightarrow}\ atom\ {\isasymRightarrow}\ ptrm\ {\isasymRightarrow}\ ptrm{\isachardoublequoteclose}\ {\isacharparenleft}{\isachardoublequoteopen}{\isacharunderscore}\ {\isacharbrackleft}{\isacharunderscore}\ {\isacharcolon}{\isacharcolon}{\isacharequal}\ {\isacharunderscore}{\isacharbrackright}{\isachardoublequoteclose}\ {\isacharbrackleft}{\isadigit{9}}{\isadigit{0}}{\isacharcomma}\ {\isadigit{9}}{\isadigit{0}}{\isacharcomma}\ {\isadigit{9}}{\isadigit{0}}{\isacharbrackright}\ {\isadigit{9}}{\isadigit{0}}{\isacharparenright}\ \isakeyword{where}\isanewline
 {\isachardoublequoteopen}{\isacharparenleft}FVar\ x{\isacharparenright}{\isacharbrackleft}z\ {\isacharcolon}{\isacharcolon}{\isacharequal}\ u{\isacharbrackright}\ {\isacharequal}\ {\isacharparenleft}if\ x\ {\isacharequal}\ z\ then\ u\ else\ FVar\ x{\isacharparenright}{\isachardoublequoteclose}\ {\isacharbar}\isanewline
@@ -581,226 +581,6 @@ Y{\isacharcolon}\ {\isachardoublequoteopen}trm\ {\isacharparenleft}Y\ {\isasymsi
 %
 \endisadelimproof
 %
-\isamarkupsubsection{$\beta Y$-reduction%
-}
-\isamarkuptrue%
-\isacommand{inductive}\isamarkupfalse%
-\ beta{\isacharunderscore}Y\ {\isacharcolon}{\isacharcolon}\ {\isachardoublequoteopen}ptrm\ {\isasymRightarrow}\ ptrm\ {\isasymRightarrow}\ bool{\isachardoublequoteclose}\ {\isacharparenleft}\isakeyword{infix}\ {\isachardoublequoteopen}{\isasymRightarrow}{\isachardoublequoteclose}\ {\isadigit{3}}{\isadigit{0}}{\isadigit{0}}{\isacharparenright}\isanewline
-\isakeyword{where}\isanewline
-\ \ red{\isacharunderscore}L{\isacharbrackleft}intro{\isacharbrackright}{\isacharcolon}\ {\isachardoublequoteopen}{\isasymlbrakk}\ trm\ N\ {\isacharsemicolon}\ M\ {\isasymRightarrow}\ M{\isacharprime}\ {\isasymrbrakk}\ {\isasymLongrightarrow}\ App\ M\ N\ {\isasymRightarrow}\ App\ M{\isacharprime}\ N{\isachardoublequoteclose}\isanewline
-{\isacharbar}\ red{\isacharunderscore}R{\isacharbrackleft}intro{\isacharbrackright}{\isacharcolon}\ {\isachardoublequoteopen}{\isasymlbrakk}\ trm\ M\ {\isacharsemicolon}\ N\ {\isasymRightarrow}\ N{\isacharprime}\ {\isasymrbrakk}\ {\isasymLongrightarrow}\ App\ M\ N\ {\isasymRightarrow}\ App\ M\ N{\isacharprime}{\isachardoublequoteclose}\isanewline
-{\isacharbar}\ abs{\isacharbrackleft}intro{\isacharbrackright}{\isacharcolon}\ {\isachardoublequoteopen}{\isasymlbrakk}\ finite\ L\ {\isacharsemicolon}\ {\isacharparenleft}{\isasymAnd}x{\isachardot}\ x\ {\isasymnotin}\ L\ {\isasymLongrightarrow}\ M{\isacharcircum}{\isacharparenleft}FVar\ x{\isacharparenright}\ {\isasymRightarrow}\ M{\isacharprime}{\isacharcircum}{\isacharparenleft}FVar\ x{\isacharparenright}{\isacharparenright}\ {\isasymrbrakk}\ {\isasymLongrightarrow}\ Lam\ M\ {\isasymRightarrow}\ Lam\ M{\isacharprime}{\isachardoublequoteclose}\isanewline
-{\isacharbar}\ beta{\isacharbrackleft}intro{\isacharbrackright}{\isacharcolon}\ {\isachardoublequoteopen}{\isasymlbrakk}\ trm\ {\isacharparenleft}Lam\ M{\isacharparenright}\ {\isacharsemicolon}\ trm\ N\ {\isasymrbrakk}\ {\isasymLongrightarrow}\ App\ {\isacharparenleft}Lam\ M{\isacharparenright}\ N\ {\isasymRightarrow}\ M{\isacharcircum}N{\isachardoublequoteclose}\isanewline
-{\isacharbar}\ Y{\isacharbrackleft}intro{\isacharbrackright}{\isacharcolon}\ {\isachardoublequoteopen}trm\ M\ {\isasymLongrightarrow}\ App\ {\isacharparenleft}Y\ {\isasymsigma}{\isacharparenright}\ M\ {\isasymRightarrow}\ App\ M\ {\isacharparenleft}App\ {\isacharparenleft}Y\ {\isasymsigma}{\isacharparenright}\ M{\isacharparenright}{\isachardoublequoteclose}\isanewline
-\isanewline
-\isacommand{lemma}\isamarkupfalse%
-\ trm{\isacharunderscore}beta{\isacharunderscore}Y{\isacharunderscore}simp{\isadigit{1}}{\isacharcolon}\ {\isachardoublequoteopen}M\ {\isasymRightarrow}\ M{\isacharprime}\ {\isasymLongrightarrow}\ trm\ M\ {\isasymand}\ trm\ M{\isacharprime}{\isachardoublequoteclose}\isanewline
-%
-\isadelimproof
-%
-\endisadelimproof
-%
-\isatagproof
-\isacommand{apply}\isamarkupfalse%
-\ rule\isanewline
-\isacommand{apply}\isamarkupfalse%
-\ {\isacharparenleft}induct\ M{\isacharprime}\ rule{\isacharcolon}beta{\isacharunderscore}Y{\isachardot}induct{\isacharparenright}\isanewline
-\isacommand{apply}\isamarkupfalse%
-\ {\isacharparenleft}subst\ trm{\isachardot}simps{\isacharcomma}\ simp{\isacharparenright}{\isacharplus}\isanewline
-\isacommand{apply}\isamarkupfalse%
-\ auto{\isacharbrackleft}{\isadigit{1}}{\isacharbrackright}\isanewline
-\isacommand{apply}\isamarkupfalse%
-\ {\isacharparenleft}simp\ add{\isacharcolon}\ lam\ trm{\isachardot}app{\isacharparenright}\isanewline
-\isacommand{apply}\isamarkupfalse%
-\ {\isacharparenleft}simp\ add{\isacharcolon}\ trm{\isachardot}Y\ trm{\isachardot}app{\isacharparenright}\isanewline
-\isacommand{apply}\isamarkupfalse%
-\ {\isacharparenleft}induct\ M\ M{\isacharprime}\ rule{\isacharcolon}beta{\isacharunderscore}Y{\isachardot}induct{\isacharparenright}\isanewline
-\isacommand{apply}\isamarkupfalse%
-\ {\isacharparenleft}subst\ trm{\isachardot}simps{\isacharcomma}\ simp{\isacharparenright}{\isacharplus}\isanewline
-\isacommand{apply}\isamarkupfalse%
-\ auto{\isacharbrackleft}{\isadigit{1}}{\isacharbrackright}\isanewline
-\isacommand{apply}\isamarkupfalse%
-\ {\isacharparenleft}rule\ trm{\isacharunderscore}opn{\isacharparenright}\isanewline
-\isacommand{apply}\isamarkupfalse%
-\ {\isacharparenleft}simp\ add{\isacharcolon}\ lam{\isacharparenright}\isanewline
-\isacommand{apply}\isamarkupfalse%
-\ {\isacharparenleft}simp\ add{\isacharcolon}\ trm{\isachardot}Y\ trm{\isachardot}app{\isacharparenright}\isanewline
-\isacommand{done}\isamarkupfalse%
-%
-\endisatagproof
-{\isafoldproof}%
-%
-\isadelimproof
-%
-\endisadelimproof
-%
-\isamarkupsubsection{Parallel $\beta Y$-reduction%
-}
-\isamarkuptrue%
-\isacommand{inductive}\isamarkupfalse%
-\ \isanewline
-\ \ pbeta\ {\isacharcolon}{\isacharcolon}\ {\isachardoublequoteopen}ptrm\ {\isasymRightarrow}\ ptrm\ {\isasymRightarrow}\ bool{\isachardoublequoteclose}\ {\isacharparenleft}{\isachardoublequoteopen}{\isacharunderscore}\ {\isasymggreater}\ {\isacharunderscore}{\isachardoublequoteclose}\ {\isacharbrackleft}{\isadigit{8}}{\isadigit{0}}{\isacharcomma}{\isadigit{8}}{\isadigit{0}}{\isacharbrackright}\ {\isadigit{8}}{\isadigit{0}}{\isacharparenright}\isanewline
-\isakeyword{where}\isanewline
-\ \ refl{\isacharbrackleft}intro{\isacharbrackright}{\isacharcolon}\ {\isachardoublequoteopen}{\isacharparenleft}FVar\ x{\isacharparenright}\ {\isasymggreater}\ {\isacharparenleft}FVar\ x{\isacharparenright}{\isachardoublequoteclose}\isanewline
-{\isacharbar}\ reflY{\isacharbrackleft}intro{\isacharbrackright}{\isacharcolon}\ {\isachardoublequoteopen}Y\ {\isasymsigma}\ {\isasymggreater}\ Y\ {\isasymsigma}{\isachardoublequoteclose}\isanewline
-{\isacharbar}\ app{\isacharbrackleft}intro{\isacharbrackright}{\isacharcolon}\ {\isachardoublequoteopen}{\isasymlbrakk}\ M\ {\isasymggreater}\ M{\isacharprime}\ {\isacharsemicolon}\ N\ {\isasymggreater}\ N{\isacharprime}\ {\isasymrbrakk}\ {\isasymLongrightarrow}\ App\ M\ N\ {\isasymggreater}\ App\ M{\isacharprime}\ N{\isacharprime}{\isachardoublequoteclose}\isanewline
-{\isacharbar}\ abs{\isacharbrackleft}intro{\isacharbrackright}{\isacharcolon}\ {\isachardoublequoteopen}{\isasymlbrakk}\ finite\ L\ {\isacharsemicolon}\ {\isacharparenleft}{\isasymAnd}x{\isachardot}\ x\ {\isasymnotin}\ L\ {\isasymLongrightarrow}\ M{\isacharcircum}{\isacharparenleft}FVar\ x{\isacharparenright}\ {\isasymggreater}\ M{\isacharprime}{\isacharcircum}{\isacharparenleft}FVar\ x{\isacharparenright}{\isacharparenright}\ {\isasymrbrakk}\ {\isasymLongrightarrow}\ Lam\ M\ {\isasymggreater}\ Lam\ M{\isacharprime}{\isachardoublequoteclose}\isanewline
-{\isacharbar}\ beta{\isacharbrackleft}intro{\isacharbrackright}{\isacharcolon}\ {\isachardoublequoteopen}{\isasymlbrakk}\ finite\ L\ {\isacharsemicolon}\ {\isacharparenleft}{\isasymAnd}x{\isachardot}\ x\ {\isasymnotin}\ L\ {\isasymLongrightarrow}\ M{\isacharcircum}{\isacharparenleft}FVar\ x{\isacharparenright}\ {\isasymggreater}\ M{\isacharprime}{\isacharcircum}{\isacharparenleft}FVar\ x{\isacharparenright}{\isacharparenright}\ {\isacharsemicolon}\ N\ {\isasymggreater}\ N{\isacharprime}\ {\isasymrbrakk}\ {\isasymLongrightarrow}\ App\ {\isacharparenleft}Lam\ M{\isacharparenright}\ N\ {\isasymggreater}\ M{\isacharprime}{\isacharcircum}N{\isacharprime}{\isachardoublequoteclose}\isanewline
-{\isacharbar}\ Y{\isacharbrackleft}intro{\isacharbrackright}{\isacharcolon}\ {\isachardoublequoteopen}{\isasymlbrakk}\ M\ {\isasymggreater}\ M{\isacharprime}\ {\isasymrbrakk}\ {\isasymLongrightarrow}\ App\ {\isacharparenleft}Y\ {\isasymsigma}{\isacharparenright}\ M\ {\isasymggreater}\ App\ M{\isacharprime}\ {\isacharparenleft}App\ {\isacharparenleft}Y\ {\isasymsigma}{\isacharparenright}\ M{\isacharprime}{\isacharparenright}{\isachardoublequoteclose}\isanewline
-\isanewline
-\isacommand{lemma}\isamarkupfalse%
-\ trm{\isacharunderscore}pbeta{\isacharunderscore}simp{\isadigit{1}}{\isacharcolon}\ {\isachardoublequoteopen}M\ {\isasymggreater}\ M{\isacharprime}\ {\isasymLongrightarrow}\ trm\ M\ {\isasymand}\ trm\ M{\isacharprime}{\isachardoublequoteclose}\isanewline
-%
-\isadelimproof
-%
-\endisadelimproof
-%
-\isatagproof
-\isacommand{apply}\isamarkupfalse%
-\ rule\isanewline
-\isacommand{apply}\isamarkupfalse%
-\ {\isacharparenleft}induct\ M\ M{\isacharprime}\ rule{\isacharcolon}pbeta{\isachardot}induct{\isacharparenright}\isanewline
-\isacommand{apply}\isamarkupfalse%
-\ {\isacharparenleft}subst\ trm{\isachardot}simps{\isacharcomma}\ simp{\isacharparenright}{\isacharplus}\isanewline
-\isacommand{apply}\isamarkupfalse%
-\ auto{\isacharbrackleft}{\isadigit{1}}{\isacharbrackright}\isanewline
-\isacommand{apply}\isamarkupfalse%
-\ {\isacharparenleft}simp\ add{\isacharcolon}\ lam\ trm{\isachardot}app{\isacharparenright}\isanewline
-\isacommand{apply}\isamarkupfalse%
-\ {\isacharparenleft}simp\ add{\isacharcolon}\ trm{\isachardot}Y\ trm{\isachardot}app{\isacharparenright}\isanewline
-\isacommand{apply}\isamarkupfalse%
-\ {\isacharparenleft}induct\ M\ M{\isacharprime}\ rule{\isacharcolon}pbeta{\isachardot}induct{\isacharparenright}\isanewline
-\isacommand{apply}\isamarkupfalse%
-\ {\isacharparenleft}subst\ trm{\isachardot}simps{\isacharcomma}\ simp{\isacharparenright}{\isacharplus}\isanewline
-\isacommand{apply}\isamarkupfalse%
-\ auto{\isacharbrackleft}{\isadigit{1}}{\isacharbrackright}\isanewline
-\isacommand{apply}\isamarkupfalse%
-\ {\isacharparenleft}rule\ trm{\isacharunderscore}opn{\isacharparenright}\isanewline
-\isacommand{apply}\isamarkupfalse%
-\ {\isacharparenleft}simp\ add{\isacharcolon}\ lam{\isacharparenright}\isanewline
-\isacommand{apply}\isamarkupfalse%
-\ {\isacharparenleft}simp\ add{\isacharcolon}\ trm{\isachardot}Y\ trm{\isachardot}app{\isacharparenright}\isanewline
-\isacommand{done}\isamarkupfalse%
-%
-\endisatagproof
-{\isafoldproof}%
-%
-\isadelimproof
-%
-\endisadelimproof
-%
-\isamarkupsubsection{Maximal parallel $\beta Y$-reduction%
-}
-\isamarkuptrue%
-\isacommand{fun}\isamarkupfalse%
-\ not{\isacharunderscore}abst\ {\isacharcolon}{\isacharcolon}\ {\isachardoublequoteopen}ptrm\ {\isasymRightarrow}\ bool{\isachardoublequoteclose}\isanewline
-\isakeyword{where}\isanewline
-\ \ {\isachardoublequoteopen}not{\isacharunderscore}abst\ {\isacharparenleft}FVar\ x{\isacharparenright}\ {\isacharequal}\ True{\isachardoublequoteclose}\isanewline
-{\isacharbar}\ {\isachardoublequoteopen}not{\isacharunderscore}abst\ {\isacharparenleft}BVar\ x{\isacharparenright}\ {\isacharequal}\ True{\isachardoublequoteclose}\isanewline
-{\isacharbar}\ {\isachardoublequoteopen}not{\isacharunderscore}abst\ {\isacharparenleft}App\ t{\isadigit{1}}\ t{\isadigit{2}}{\isacharparenright}\ {\isacharequal}\ True{\isachardoublequoteclose}\isanewline
-{\isacharbar}\ {\isachardoublequoteopen}not{\isacharunderscore}abst\ {\isacharparenleft}Lam\ t{\isacharparenright}\ {\isacharequal}\ False{\isachardoublequoteclose}\isanewline
-{\isacharbar}\ {\isachardoublequoteopen}not{\isacharunderscore}abst\ {\isacharparenleft}Y\ t{\isacharparenright}\ {\isacharequal}\ True{\isachardoublequoteclose}\isanewline
-\isanewline
-\isacommand{fun}\isamarkupfalse%
-\ not{\isacharunderscore}Y\ {\isacharcolon}{\isacharcolon}\ {\isachardoublequoteopen}ptrm\ {\isasymRightarrow}\ bool{\isachardoublequoteclose}\isanewline
-\isakeyword{where}\isanewline
-\ \ {\isachardoublequoteopen}not{\isacharunderscore}Y\ {\isacharparenleft}FVar\ x{\isacharparenright}\ {\isacharequal}\ True{\isachardoublequoteclose}\isanewline
-{\isacharbar}\ {\isachardoublequoteopen}not{\isacharunderscore}Y\ {\isacharparenleft}BVar\ x{\isacharparenright}\ {\isacharequal}\ True{\isachardoublequoteclose}\isanewline
-{\isacharbar}\ {\isachardoublequoteopen}not{\isacharunderscore}Y\ {\isacharparenleft}App\ t{\isadigit{1}}\ t{\isadigit{2}}{\isacharparenright}\ {\isacharequal}\ True{\isachardoublequoteclose}\isanewline
-{\isacharbar}\ {\isachardoublequoteopen}not{\isacharunderscore}Y\ {\isacharparenleft}Lam\ t{\isacharparenright}\ {\isacharequal}\ True{\isachardoublequoteclose}\isanewline
-{\isacharbar}\ {\isachardoublequoteopen}not{\isacharunderscore}Y\ {\isacharparenleft}Y\ t{\isacharparenright}\ {\isacharequal}\ False{\isachardoublequoteclose}\isanewline
-\isanewline
-\isacommand{inductive}\isamarkupfalse%
-\ \isanewline
-\ \ pbeta{\isacharunderscore}max\ {\isacharcolon}{\isacharcolon}\ {\isachardoublequoteopen}ptrm\ {\isasymRightarrow}\ ptrm\ {\isasymRightarrow}\ bool{\isachardoublequoteclose}\ {\isacharparenleft}{\isachardoublequoteopen}{\isacharunderscore}\ {\isachargreater}{\isachargreater}{\isachargreater}\ {\isacharunderscore}{\isachardoublequoteclose}\ {\isacharbrackleft}{\isadigit{8}}{\isadigit{0}}{\isacharcomma}{\isadigit{8}}{\isadigit{0}}{\isacharbrackright}\ {\isadigit{8}}{\isadigit{0}}{\isacharparenright}\isanewline
-\isakeyword{where}\isanewline
-\ \ refl{\isacharbrackleft}intro{\isacharbrackright}{\isacharcolon}\ {\isachardoublequoteopen}{\isacharparenleft}FVar\ x{\isacharparenright}\ {\isachargreater}{\isachargreater}{\isachargreater}\ {\isacharparenleft}FVar\ x{\isacharparenright}{\isachardoublequoteclose}\isanewline
-{\isacharbar}\ reflY{\isacharbrackleft}intro{\isacharbrackright}{\isacharcolon}\ {\isachardoublequoteopen}Y\ {\isasymsigma}\ {\isachargreater}{\isachargreater}{\isachargreater}\ Y\ {\isasymsigma}{\isachardoublequoteclose}\isanewline
-{\isacharbar}\ app{\isacharbrackleft}intro{\isacharbrackright}{\isacharcolon}\ {\isachardoublequoteopen}{\isasymlbrakk}\ not{\isacharunderscore}abst\ M\ {\isacharsemicolon}\ not{\isacharunderscore}Y\ M\ {\isacharsemicolon}\ \ M\ {\isachargreater}{\isachargreater}{\isachargreater}\ M{\isacharprime}\ {\isacharsemicolon}\ N\ {\isachargreater}{\isachargreater}{\isachargreater}\ N{\isacharprime}\ {\isasymrbrakk}\ {\isasymLongrightarrow}\ App\ M\ N\ {\isachargreater}{\isachargreater}{\isachargreater}\ App\ M{\isacharprime}\ N{\isacharprime}{\isachardoublequoteclose}\isanewline
-{\isacharbar}\ abs{\isacharbrackleft}intro{\isacharbrackright}{\isacharcolon}\ {\isachardoublequoteopen}{\isasymlbrakk}\ finite\ L\ {\isacharsemicolon}\ {\isacharparenleft}{\isasymAnd}x{\isachardot}\ x\ {\isasymnotin}\ L\ {\isasymLongrightarrow}\ M{\isacharcircum}{\isacharparenleft}FVar\ x{\isacharparenright}\ {\isachargreater}{\isachargreater}{\isachargreater}\ M{\isacharprime}{\isacharcircum}{\isacharparenleft}FVar\ x{\isacharparenright}{\isacharparenright}\ {\isasymrbrakk}\ {\isasymLongrightarrow}\ Lam\ M\ {\isachargreater}{\isachargreater}{\isachargreater}\ \ Lam\ M{\isacharprime}{\isachardoublequoteclose}\isanewline
-{\isacharbar}\ beta{\isacharbrackleft}intro{\isacharbrackright}{\isacharcolon}\ {\isachardoublequoteopen}{\isasymlbrakk}\ finite\ L\ {\isacharsemicolon}\ {\isacharparenleft}{\isasymAnd}x{\isachardot}\ x\ {\isasymnotin}\ L\ {\isasymLongrightarrow}\ M{\isacharcircum}{\isacharparenleft}FVar\ x{\isacharparenright}\ {\isachargreater}{\isachargreater}{\isachargreater}\ M{\isacharprime}{\isacharcircum}{\isacharparenleft}FVar\ x{\isacharparenright}{\isacharparenright}\ {\isacharsemicolon}\ N\ {\isachargreater}{\isachargreater}{\isachargreater}\ N{\isacharprime}\ {\isasymrbrakk}\ {\isasymLongrightarrow}\ App\ {\isacharparenleft}Lam\ M{\isacharparenright}\ N\ {\isachargreater}{\isachargreater}{\isachargreater}\ M{\isacharprime}{\isacharcircum}N{\isacharprime}{\isachardoublequoteclose}\isanewline
-{\isacharbar}\ Y{\isacharbrackleft}intro{\isacharbrackright}{\isacharcolon}\ {\isachardoublequoteopen}{\isasymlbrakk}\ M\ {\isachargreater}{\isachargreater}{\isachargreater}\ M{\isacharprime}\ {\isasymrbrakk}\ {\isasymLongrightarrow}\ App\ {\isacharparenleft}Y\ {\isasymsigma}{\isacharparenright}\ M\ {\isachargreater}{\isachargreater}{\isachargreater}\ App\ M{\isacharprime}\ {\isacharparenleft}App\ {\isacharparenleft}Y\ {\isasymsigma}{\isacharparenright}\ M{\isacharprime}{\isacharparenright}{\isachardoublequoteclose}\isanewline
-\isanewline
-\isacommand{lemma}\isamarkupfalse%
-\ trm{\isacharunderscore}pbeta{\isacharunderscore}max{\isacharunderscore}simp{\isadigit{1}}{\isacharcolon}\ {\isachardoublequoteopen}M\ {\isachargreater}{\isachargreater}{\isachargreater}\ M{\isacharprime}\ {\isasymLongrightarrow}\ trm\ M\ {\isasymand}\ trm\ M{\isacharprime}{\isachardoublequoteclose}\isanewline
-%
-\isadelimproof
-%
-\endisadelimproof
-%
-\isatagproof
-\isacommand{apply}\isamarkupfalse%
-\ rule\isanewline
-\isacommand{apply}\isamarkupfalse%
-\ {\isacharparenleft}induct\ M\ M{\isacharprime}\ rule{\isacharcolon}pbeta{\isacharunderscore}max{\isachardot}induct{\isacharparenright}\isanewline
-\isacommand{apply}\isamarkupfalse%
-\ {\isacharparenleft}subst\ trm{\isachardot}simps{\isacharcomma}\ simp{\isacharparenright}{\isacharplus}\isanewline
-\isacommand{apply}\isamarkupfalse%
-\ auto{\isacharbrackleft}{\isadigit{1}}{\isacharbrackright}\isanewline
-\isacommand{apply}\isamarkupfalse%
-\ {\isacharparenleft}simp\ add{\isacharcolon}\ lam\ trm{\isachardot}app{\isacharparenright}\isanewline
-\isacommand{apply}\isamarkupfalse%
-\ {\isacharparenleft}simp\ add{\isacharcolon}\ trm{\isachardot}Y\ trm{\isachardot}app{\isacharparenright}\isanewline
-\isacommand{apply}\isamarkupfalse%
-\ {\isacharparenleft}induct\ M\ M{\isacharprime}\ rule{\isacharcolon}pbeta{\isacharunderscore}max{\isachardot}induct{\isacharparenright}\isanewline
-\isacommand{apply}\isamarkupfalse%
-\ {\isacharparenleft}subst\ trm{\isachardot}simps{\isacharcomma}\ simp{\isacharparenright}{\isacharplus}\isanewline
-\isacommand{apply}\isamarkupfalse%
-\ auto{\isacharbrackleft}{\isadigit{1}}{\isacharbrackright}\isanewline
-\isacommand{apply}\isamarkupfalse%
-\ {\isacharparenleft}rule\ trm{\isacharunderscore}opn{\isacharparenright}\isanewline
-\isacommand{apply}\isamarkupfalse%
-\ {\isacharparenleft}simp\ add{\isacharcolon}\ lam{\isacharparenright}\isanewline
-\isacommand{apply}\isamarkupfalse%
-\ {\isacharparenleft}simp\ add{\isacharcolon}\ trm{\isachardot}Y\ trm{\isachardot}app{\isacharparenright}\isanewline
-\isacommand{done}\isamarkupfalse%
-%
-\endisatagproof
-{\isafoldproof}%
-%
-\isadelimproof
-\isanewline
-%
-\endisadelimproof
-\isanewline
-\isacommand{lemma}\isamarkupfalse%
-\ pbeta{\isacharunderscore}beta{\isacharprime}{\isacharcolon}\ {\isachardoublequoteopen}finite\ L\ {\isasymLongrightarrow}\ {\isacharparenleft}{\isasymAnd}x{\isachardot}\ x\ {\isasymnotin}\ L\ {\isasymLongrightarrow}\ M{\isacharcircum}{\isacharparenleft}FVar\ x{\isacharparenright}\ {\isasymggreater}\ M{\isacharprime}{\isacharcircum}{\isacharparenleft}FVar\ x{\isacharparenright}{\isacharparenright}\ {\isasymLongrightarrow}\ N\ {\isasymggreater}\ N{\isacharprime}\ {\isasymLongrightarrow}\ App\ {\isacharparenleft}Lam\ M{\isacharparenright}\ N\ {\isasymggreater}\ {\isacharbraceleft}{\isadigit{0}}\ {\isasymrightarrow}\ N{\isacharprime}{\isacharbraceright}\ M{\isacharprime}{\isachardoublequoteclose}\ \isanewline
-%
-\isadelimproof
-%
-\endisadelimproof
-%
-\isatagproof
-\isacommand{using}\isamarkupfalse%
-\ pbeta{\isachardot}beta\ opn{\isacharprime}{\isacharunderscore}def\ \isacommand{by}\isamarkupfalse%
-\ simp%
-\endisatagproof
-{\isafoldproof}%
-%
-\isadelimproof
-\isanewline
-%
-\endisadelimproof
-\isanewline
-\isacommand{lemma}\isamarkupfalse%
-\ not{\isacharunderscore}Y{\isacharunderscore}ex{\isacharcolon}\ {\isachardoublequoteopen}{\isasymnot}{\isacharparenleft}not{\isacharunderscore}Y\ M{\isacharparenright}\ {\isasymLongrightarrow}\ {\isasymexists}{\isasymsigma}{\isachardot}\ M\ {\isacharequal}\ Y\ {\isasymsigma}{\isachardoublequoteclose}\isanewline
-%
-\isadelimproof
-%
-\endisadelimproof
-%
-\isatagproof
-\isacommand{apply}\isamarkupfalse%
-\ {\isacharparenleft}cases\ M\ rule{\isacharcolon}not{\isacharunderscore}Y{\isachardot}cases{\isacharparenright}\isanewline
-\isacommand{by}\isamarkupfalse%
-\ auto%
-\endisatagproof
-{\isafoldproof}%
-%
-\isadelimproof
-%
-\endisadelimproof
-%
 \isamarkupsubsection{Definition of the close operation%
 }
 \isamarkuptrue%
@@ -815,50 +595,6 @@ Y{\isacharcolon}\ {\isachardoublequoteopen}trm\ {\isacharparenleft}Y\ {\isasymsi
 \isacommand{definition}\isamarkupfalse%
 \ cls{\isacharprime}{\isacharcolon}{\isacharcolon}\ {\isachardoublequoteopen}atom\ {\isasymRightarrow}\ ptrm\ {\isasymRightarrow}\ ptrm{\isachardoublequoteclose}\ {\isacharparenleft}{\isachardoublequoteopen}{\isacharbackslash}{\isacharunderscore}{\isacharcircum}{\isacharunderscore}{\isachardoublequoteclose}{\isacharparenright}\ \isakeyword{where}\isanewline
 {\isachardoublequoteopen}cls{\isacharprime}\ x\ t\ {\isasymequiv}\ {\isacharbraceleft}{\isadigit{0}}\ {\isacharless}{\isacharminus}\ x{\isacharbraceright}\ t{\isachardoublequoteclose}\isanewline
-\isanewline
-\isacommand{lemma}\isamarkupfalse%
-\ not{\isacharunderscore}abst{\isacharunderscore}simp{\isacharcolon}\ {\isachardoublequoteopen}not{\isacharunderscore}abst\ M\ {\isasymLongrightarrow}\ not{\isacharunderscore}abst\ {\isacharbraceleft}k\ {\isasymrightarrow}\ FVar\ y{\isacharbraceright}\ {\isacharbraceleft}k\ {\isacharless}{\isacharminus}\ x{\isacharbraceright}\ M{\isachardoublequoteclose}\isanewline
-%
-\isadelimproof
-%
-\endisadelimproof
-%
-\isatagproof
-\isacommand{apply}\isamarkupfalse%
-\ {\isacharparenleft}cases\ M{\isacharparenright}\isanewline
-\isacommand{unfolding}\isamarkupfalse%
-\ opn{\isacharprime}{\isacharunderscore}def\ opn{\isachardot}simps\isanewline
-\isacommand{by}\isamarkupfalse%
-\ auto%
-\endisatagproof
-{\isafoldproof}%
-%
-\isadelimproof
-\isanewline
-%
-\endisadelimproof
-\isanewline
-\isacommand{lemma}\isamarkupfalse%
-\ not{\isacharunderscore}Y{\isacharunderscore}simp{\isacharcolon}\ {\isachardoublequoteopen}not{\isacharunderscore}Y\ M\ {\isasymLongrightarrow}\ not{\isacharunderscore}Y\ {\isacharbraceleft}k\ {\isasymrightarrow}\ FVar\ y{\isacharbraceright}\ {\isacharbraceleft}k\ {\isacharless}{\isacharminus}\ x{\isacharbraceright}\ M{\isachardoublequoteclose}\isanewline
-%
-\isadelimproof
-%
-\endisadelimproof
-%
-\isatagproof
-\isacommand{apply}\isamarkupfalse%
-\ {\isacharparenleft}cases\ M{\isacharparenright}\isanewline
-\isacommand{unfolding}\isamarkupfalse%
-\ opn{\isacharprime}{\isacharunderscore}def\ opn{\isachardot}simps\isanewline
-\isacommand{by}\isamarkupfalse%
-\ auto%
-\endisatagproof
-{\isafoldproof}%
-%
-\isadelimproof
-\isanewline
-%
-\endisadelimproof
 \isanewline
 \isacommand{lemma}\isamarkupfalse%
 \ FV{\isacharunderscore}simp{\isacharcolon}\ {\isachardoublequoteopen}{\isasymlbrakk}\ x\ {\isasymnotin}\ FV\ M\ {\isacharsemicolon}\ x\ {\isasymnoteq}\ y\ {\isasymrbrakk}\ {\isasymLongrightarrow}\ x\ {\isasymnotin}\ FV\ {\isacharbraceleft}k\ {\isasymrightarrow}\ FVar\ y{\isacharbraceright}\ M{\isachardoublequoteclose}\isanewline
@@ -1168,6 +904,270 @@ Y{\isacharcolon}\ {\isachardoublequoteopen}trm\ {\isacharparenleft}Y\ {\isasymsi
 \isacommand{using}\isamarkupfalse%
 \ cls{\isacharunderscore}opn{\isacharunderscore}eq{\isacharunderscore}subst\ \isacommand{by}\isamarkupfalse%
 \ simp%
+\endisatagproof
+{\isafoldproof}%
+%
+\isadelimproof
+%
+\endisadelimproof
+%
+\isamarkupsubsection{$\beta Y$-reduction%
+}
+\isamarkuptrue%
+\isacommand{inductive}\isamarkupfalse%
+\ beta{\isacharunderscore}Y\ {\isacharcolon}{\isacharcolon}\ {\isachardoublequoteopen}ptrm\ {\isasymRightarrow}\ ptrm\ {\isasymRightarrow}\ bool{\isachardoublequoteclose}\ {\isacharparenleft}\isakeyword{infix}\ {\isachardoublequoteopen}{\isasymRightarrow}{\isachardoublequoteclose}\ {\isadigit{3}}{\isadigit{0}}{\isadigit{0}}{\isacharparenright}\isanewline
+\isakeyword{where}\isanewline
+\ \ red{\isacharunderscore}L{\isacharbrackleft}intro{\isacharbrackright}{\isacharcolon}\ {\isachardoublequoteopen}{\isasymlbrakk}\ trm\ N\ {\isacharsemicolon}\ M\ {\isasymRightarrow}\ M{\isacharprime}\ {\isasymrbrakk}\ {\isasymLongrightarrow}\ App\ M\ N\ {\isasymRightarrow}\ App\ M{\isacharprime}\ N{\isachardoublequoteclose}\isanewline
+{\isacharbar}\ red{\isacharunderscore}R{\isacharbrackleft}intro{\isacharbrackright}{\isacharcolon}\ {\isachardoublequoteopen}{\isasymlbrakk}\ trm\ M\ {\isacharsemicolon}\ N\ {\isasymRightarrow}\ N{\isacharprime}\ {\isasymrbrakk}\ {\isasymLongrightarrow}\ App\ M\ N\ {\isasymRightarrow}\ App\ M\ N{\isacharprime}{\isachardoublequoteclose}\isanewline
+{\isacharbar}\ abs{\isacharbrackleft}intro{\isacharbrackright}{\isacharcolon}\ {\isachardoublequoteopen}{\isasymlbrakk}\ finite\ L\ {\isacharsemicolon}\ {\isacharparenleft}{\isasymAnd}x{\isachardot}\ x\ {\isasymnotin}\ L\ {\isasymLongrightarrow}\ M{\isacharcircum}{\isacharparenleft}FVar\ x{\isacharparenright}\ {\isasymRightarrow}\ M{\isacharprime}{\isacharcircum}{\isacharparenleft}FVar\ x{\isacharparenright}{\isacharparenright}\ {\isasymrbrakk}\ {\isasymLongrightarrow}\ Lam\ M\ {\isasymRightarrow}\ Lam\ M{\isacharprime}{\isachardoublequoteclose}\isanewline
+{\isacharbar}\ beta{\isacharbrackleft}intro{\isacharbrackright}{\isacharcolon}\ {\isachardoublequoteopen}{\isasymlbrakk}\ trm\ {\isacharparenleft}Lam\ M{\isacharparenright}\ {\isacharsemicolon}\ trm\ N\ {\isasymrbrakk}\ {\isasymLongrightarrow}\ App\ {\isacharparenleft}Lam\ M{\isacharparenright}\ N\ {\isasymRightarrow}\ M{\isacharcircum}N{\isachardoublequoteclose}\isanewline
+{\isacharbar}\ Y{\isacharbrackleft}intro{\isacharbrackright}{\isacharcolon}\ {\isachardoublequoteopen}trm\ M\ {\isasymLongrightarrow}\ App\ {\isacharparenleft}Y\ {\isasymsigma}{\isacharparenright}\ M\ {\isasymRightarrow}\ App\ M\ {\isacharparenleft}App\ {\isacharparenleft}Y\ {\isasymsigma}{\isacharparenright}\ M{\isacharparenright}{\isachardoublequoteclose}\isanewline
+\isanewline
+\isacommand{lemma}\isamarkupfalse%
+\ trm{\isacharunderscore}beta{\isacharunderscore}Y{\isacharunderscore}simp{\isadigit{1}}{\isacharcolon}\ {\isachardoublequoteopen}M\ {\isasymRightarrow}\ M{\isacharprime}\ {\isasymLongrightarrow}\ trm\ M\ {\isasymand}\ trm\ M{\isacharprime}{\isachardoublequoteclose}\isanewline
+%
+\isadelimproof
+%
+\endisadelimproof
+%
+\isatagproof
+\isacommand{apply}\isamarkupfalse%
+\ rule\isanewline
+\isacommand{apply}\isamarkupfalse%
+\ {\isacharparenleft}induct\ M{\isacharprime}\ rule{\isacharcolon}beta{\isacharunderscore}Y{\isachardot}induct{\isacharparenright}\isanewline
+\isacommand{apply}\isamarkupfalse%
+\ {\isacharparenleft}subst\ trm{\isachardot}simps{\isacharcomma}\ simp{\isacharparenright}{\isacharplus}\isanewline
+\isacommand{apply}\isamarkupfalse%
+\ auto{\isacharbrackleft}{\isadigit{1}}{\isacharbrackright}\isanewline
+\isacommand{apply}\isamarkupfalse%
+\ {\isacharparenleft}simp\ add{\isacharcolon}\ lam\ trm{\isachardot}app{\isacharparenright}\isanewline
+\isacommand{apply}\isamarkupfalse%
+\ {\isacharparenleft}simp\ add{\isacharcolon}\ trm{\isachardot}Y\ trm{\isachardot}app{\isacharparenright}\isanewline
+\isacommand{apply}\isamarkupfalse%
+\ {\isacharparenleft}induct\ M\ M{\isacharprime}\ rule{\isacharcolon}beta{\isacharunderscore}Y{\isachardot}induct{\isacharparenright}\isanewline
+\isacommand{apply}\isamarkupfalse%
+\ {\isacharparenleft}subst\ trm{\isachardot}simps{\isacharcomma}\ simp{\isacharparenright}{\isacharplus}\isanewline
+\isacommand{apply}\isamarkupfalse%
+\ auto{\isacharbrackleft}{\isadigit{1}}{\isacharbrackright}\isanewline
+\isacommand{apply}\isamarkupfalse%
+\ {\isacharparenleft}rule\ trm{\isacharunderscore}opn{\isacharparenright}\isanewline
+\isacommand{apply}\isamarkupfalse%
+\ {\isacharparenleft}simp\ add{\isacharcolon}\ lam{\isacharparenright}\isanewline
+\isacommand{apply}\isamarkupfalse%
+\ {\isacharparenleft}simp\ add{\isacharcolon}\ trm{\isachardot}Y\ trm{\isachardot}app{\isacharparenright}\isanewline
+\isacommand{done}\isamarkupfalse%
+%
+\endisatagproof
+{\isafoldproof}%
+%
+\isadelimproof
+%
+\endisadelimproof
+%
+\isamarkupsubsection{Parallel $\beta Y$-reduction%
+}
+\isamarkuptrue%
+\isacommand{inductive}\isamarkupfalse%
+\ \isanewline
+\ \ pbeta\ {\isacharcolon}{\isacharcolon}\ {\isachardoublequoteopen}ptrm\ {\isasymRightarrow}\ ptrm\ {\isasymRightarrow}\ bool{\isachardoublequoteclose}\ {\isacharparenleft}{\isachardoublequoteopen}{\isacharunderscore}\ {\isasymggreater}\ {\isacharunderscore}{\isachardoublequoteclose}\ {\isacharbrackleft}{\isadigit{8}}{\isadigit{0}}{\isacharcomma}{\isadigit{8}}{\isadigit{0}}{\isacharbrackright}\ {\isadigit{8}}{\isadigit{0}}{\isacharparenright}\isanewline
+\isakeyword{where}\isanewline
+\ \ refl{\isacharbrackleft}intro{\isacharbrackright}{\isacharcolon}\ {\isachardoublequoteopen}{\isacharparenleft}FVar\ x{\isacharparenright}\ {\isasymggreater}\ {\isacharparenleft}FVar\ x{\isacharparenright}{\isachardoublequoteclose}\isanewline
+{\isacharbar}\ reflY{\isacharbrackleft}intro{\isacharbrackright}{\isacharcolon}\ {\isachardoublequoteopen}Y\ {\isasymsigma}\ {\isasymggreater}\ Y\ {\isasymsigma}{\isachardoublequoteclose}\isanewline
+{\isacharbar}\ app{\isacharbrackleft}intro{\isacharbrackright}{\isacharcolon}\ {\isachardoublequoteopen}{\isasymlbrakk}\ M\ {\isasymggreater}\ M{\isacharprime}\ {\isacharsemicolon}\ N\ {\isasymggreater}\ N{\isacharprime}\ {\isasymrbrakk}\ {\isasymLongrightarrow}\ App\ M\ N\ {\isasymggreater}\ App\ M{\isacharprime}\ N{\isacharprime}{\isachardoublequoteclose}\isanewline
+{\isacharbar}\ abs{\isacharbrackleft}intro{\isacharbrackright}{\isacharcolon}\ {\isachardoublequoteopen}{\isasymlbrakk}\ finite\ L\ {\isacharsemicolon}\ {\isacharparenleft}{\isasymAnd}x{\isachardot}\ x\ {\isasymnotin}\ L\ {\isasymLongrightarrow}\ M{\isacharcircum}{\isacharparenleft}FVar\ x{\isacharparenright}\ {\isasymggreater}\ M{\isacharprime}{\isacharcircum}{\isacharparenleft}FVar\ x{\isacharparenright}{\isacharparenright}\ {\isasymrbrakk}\ {\isasymLongrightarrow}\ Lam\ M\ {\isasymggreater}\ Lam\ M{\isacharprime}{\isachardoublequoteclose}\isanewline
+{\isacharbar}\ beta{\isacharbrackleft}intro{\isacharbrackright}{\isacharcolon}\ {\isachardoublequoteopen}{\isasymlbrakk}\ finite\ L\ {\isacharsemicolon}\ {\isacharparenleft}{\isasymAnd}x{\isachardot}\ x\ {\isasymnotin}\ L\ {\isasymLongrightarrow}\ M{\isacharcircum}{\isacharparenleft}FVar\ x{\isacharparenright}\ {\isasymggreater}\ M{\isacharprime}{\isacharcircum}{\isacharparenleft}FVar\ x{\isacharparenright}{\isacharparenright}\ {\isacharsemicolon}\ N\ {\isasymggreater}\ N{\isacharprime}\ {\isasymrbrakk}\ {\isasymLongrightarrow}\ App\ {\isacharparenleft}Lam\ M{\isacharparenright}\ N\ {\isasymggreater}\ M{\isacharprime}{\isacharcircum}N{\isacharprime}{\isachardoublequoteclose}\isanewline
+{\isacharbar}\ Y{\isacharbrackleft}intro{\isacharbrackright}{\isacharcolon}\ {\isachardoublequoteopen}{\isasymlbrakk}\ M\ {\isasymggreater}\ M{\isacharprime}\ {\isasymrbrakk}\ {\isasymLongrightarrow}\ App\ {\isacharparenleft}Y\ {\isasymsigma}{\isacharparenright}\ M\ {\isasymggreater}\ App\ M{\isacharprime}\ {\isacharparenleft}App\ {\isacharparenleft}Y\ {\isasymsigma}{\isacharparenright}\ M{\isacharprime}{\isacharparenright}{\isachardoublequoteclose}\isanewline
+\isanewline
+\isacommand{lemma}\isamarkupfalse%
+\ trm{\isacharunderscore}pbeta{\isacharunderscore}simp{\isadigit{1}}{\isacharcolon}\ {\isachardoublequoteopen}M\ {\isasymggreater}\ M{\isacharprime}\ {\isasymLongrightarrow}\ trm\ M\ {\isasymand}\ trm\ M{\isacharprime}{\isachardoublequoteclose}\isanewline
+%
+\isadelimproof
+%
+\endisadelimproof
+%
+\isatagproof
+\isacommand{apply}\isamarkupfalse%
+\ rule\isanewline
+\isacommand{apply}\isamarkupfalse%
+\ {\isacharparenleft}induct\ M\ M{\isacharprime}\ rule{\isacharcolon}pbeta{\isachardot}induct{\isacharparenright}\isanewline
+\isacommand{apply}\isamarkupfalse%
+\ {\isacharparenleft}subst\ trm{\isachardot}simps{\isacharcomma}\ simp{\isacharparenright}{\isacharplus}\isanewline
+\isacommand{apply}\isamarkupfalse%
+\ auto{\isacharbrackleft}{\isadigit{1}}{\isacharbrackright}\isanewline
+\isacommand{apply}\isamarkupfalse%
+\ {\isacharparenleft}simp\ add{\isacharcolon}\ lam\ trm{\isachardot}app{\isacharparenright}\isanewline
+\isacommand{apply}\isamarkupfalse%
+\ {\isacharparenleft}simp\ add{\isacharcolon}\ trm{\isachardot}Y\ trm{\isachardot}app{\isacharparenright}\isanewline
+\isacommand{apply}\isamarkupfalse%
+\ {\isacharparenleft}induct\ M\ M{\isacharprime}\ rule{\isacharcolon}pbeta{\isachardot}induct{\isacharparenright}\isanewline
+\isacommand{apply}\isamarkupfalse%
+\ {\isacharparenleft}subst\ trm{\isachardot}simps{\isacharcomma}\ simp{\isacharparenright}{\isacharplus}\isanewline
+\isacommand{apply}\isamarkupfalse%
+\ auto{\isacharbrackleft}{\isadigit{1}}{\isacharbrackright}\isanewline
+\isacommand{apply}\isamarkupfalse%
+\ {\isacharparenleft}rule\ trm{\isacharunderscore}opn{\isacharparenright}\isanewline
+\isacommand{apply}\isamarkupfalse%
+\ {\isacharparenleft}simp\ add{\isacharcolon}\ lam{\isacharparenright}\isanewline
+\isacommand{apply}\isamarkupfalse%
+\ {\isacharparenleft}simp\ add{\isacharcolon}\ trm{\isachardot}Y\ trm{\isachardot}app{\isacharparenright}\isanewline
+\isacommand{done}\isamarkupfalse%
+%
+\endisatagproof
+{\isafoldproof}%
+%
+\isadelimproof
+%
+\endisadelimproof
+%
+\isamarkupsubsection{Maximal parallel $\beta Y$-reduction%
+}
+\isamarkuptrue%
+\isacommand{fun}\isamarkupfalse%
+\ not{\isacharunderscore}abst\ {\isacharcolon}{\isacharcolon}\ {\isachardoublequoteopen}ptrm\ {\isasymRightarrow}\ bool{\isachardoublequoteclose}\isanewline
+\isakeyword{where}\isanewline
+\ \ {\isachardoublequoteopen}not{\isacharunderscore}abst\ {\isacharparenleft}FVar\ x{\isacharparenright}\ {\isacharequal}\ True{\isachardoublequoteclose}\isanewline
+{\isacharbar}\ {\isachardoublequoteopen}not{\isacharunderscore}abst\ {\isacharparenleft}BVar\ x{\isacharparenright}\ {\isacharequal}\ True{\isachardoublequoteclose}\isanewline
+{\isacharbar}\ {\isachardoublequoteopen}not{\isacharunderscore}abst\ {\isacharparenleft}App\ t{\isadigit{1}}\ t{\isadigit{2}}{\isacharparenright}\ {\isacharequal}\ True{\isachardoublequoteclose}\isanewline
+{\isacharbar}\ {\isachardoublequoteopen}not{\isacharunderscore}abst\ {\isacharparenleft}Lam\ t{\isacharparenright}\ {\isacharequal}\ False{\isachardoublequoteclose}\isanewline
+{\isacharbar}\ {\isachardoublequoteopen}not{\isacharunderscore}abst\ {\isacharparenleft}Y\ t{\isacharparenright}\ {\isacharequal}\ True{\isachardoublequoteclose}\isanewline
+\isanewline
+\isacommand{fun}\isamarkupfalse%
+\ not{\isacharunderscore}Y\ {\isacharcolon}{\isacharcolon}\ {\isachardoublequoteopen}ptrm\ {\isasymRightarrow}\ bool{\isachardoublequoteclose}\isanewline
+\isakeyword{where}\isanewline
+\ \ {\isachardoublequoteopen}not{\isacharunderscore}Y\ {\isacharparenleft}FVar\ x{\isacharparenright}\ {\isacharequal}\ True{\isachardoublequoteclose}\isanewline
+{\isacharbar}\ {\isachardoublequoteopen}not{\isacharunderscore}Y\ {\isacharparenleft}BVar\ x{\isacharparenright}\ {\isacharequal}\ True{\isachardoublequoteclose}\isanewline
+{\isacharbar}\ {\isachardoublequoteopen}not{\isacharunderscore}Y\ {\isacharparenleft}App\ t{\isadigit{1}}\ t{\isadigit{2}}{\isacharparenright}\ {\isacharequal}\ True{\isachardoublequoteclose}\isanewline
+{\isacharbar}\ {\isachardoublequoteopen}not{\isacharunderscore}Y\ {\isacharparenleft}Lam\ t{\isacharparenright}\ {\isacharequal}\ True{\isachardoublequoteclose}\isanewline
+{\isacharbar}\ {\isachardoublequoteopen}not{\isacharunderscore}Y\ {\isacharparenleft}Y\ t{\isacharparenright}\ {\isacharequal}\ False{\isachardoublequoteclose}\isanewline
+\isanewline
+\isacommand{inductive}\isamarkupfalse%
+\ \isanewline
+\ \ pbeta{\isacharunderscore}max\ {\isacharcolon}{\isacharcolon}\ {\isachardoublequoteopen}ptrm\ {\isasymRightarrow}\ ptrm\ {\isasymRightarrow}\ bool{\isachardoublequoteclose}\ {\isacharparenleft}{\isachardoublequoteopen}{\isacharunderscore}\ {\isachargreater}{\isachargreater}{\isachargreater}\ {\isacharunderscore}{\isachardoublequoteclose}\ {\isacharbrackleft}{\isadigit{8}}{\isadigit{0}}{\isacharcomma}{\isadigit{8}}{\isadigit{0}}{\isacharbrackright}\ {\isadigit{8}}{\isadigit{0}}{\isacharparenright}\isanewline
+\isakeyword{where}\isanewline
+\ \ refl{\isacharbrackleft}intro{\isacharbrackright}{\isacharcolon}\ {\isachardoublequoteopen}{\isacharparenleft}FVar\ x{\isacharparenright}\ {\isachargreater}{\isachargreater}{\isachargreater}\ {\isacharparenleft}FVar\ x{\isacharparenright}{\isachardoublequoteclose}\isanewline
+{\isacharbar}\ reflY{\isacharbrackleft}intro{\isacharbrackright}{\isacharcolon}\ {\isachardoublequoteopen}Y\ {\isasymsigma}\ {\isachargreater}{\isachargreater}{\isachargreater}\ Y\ {\isasymsigma}{\isachardoublequoteclose}\isanewline
+{\isacharbar}\ app{\isacharbrackleft}intro{\isacharbrackright}{\isacharcolon}\ {\isachardoublequoteopen}{\isasymlbrakk}\ not{\isacharunderscore}abst\ M\ {\isacharsemicolon}\ not{\isacharunderscore}Y\ M\ {\isacharsemicolon}\ \ M\ {\isachargreater}{\isachargreater}{\isachargreater}\ M{\isacharprime}\ {\isacharsemicolon}\ N\ {\isachargreater}{\isachargreater}{\isachargreater}\ N{\isacharprime}\ {\isasymrbrakk}\ {\isasymLongrightarrow}\ App\ M\ N\ {\isachargreater}{\isachargreater}{\isachargreater}\ App\ M{\isacharprime}\ N{\isacharprime}{\isachardoublequoteclose}\isanewline
+{\isacharbar}\ abs{\isacharbrackleft}intro{\isacharbrackright}{\isacharcolon}\ {\isachardoublequoteopen}{\isasymlbrakk}\ finite\ L\ {\isacharsemicolon}\ {\isacharparenleft}{\isasymAnd}x{\isachardot}\ x\ {\isasymnotin}\ L\ {\isasymLongrightarrow}\ M{\isacharcircum}{\isacharparenleft}FVar\ x{\isacharparenright}\ {\isachargreater}{\isachargreater}{\isachargreater}\ M{\isacharprime}{\isacharcircum}{\isacharparenleft}FVar\ x{\isacharparenright}{\isacharparenright}\ {\isasymrbrakk}\ {\isasymLongrightarrow}\ Lam\ M\ {\isachargreater}{\isachargreater}{\isachargreater}\ \ Lam\ M{\isacharprime}{\isachardoublequoteclose}\isanewline
+{\isacharbar}\ beta{\isacharbrackleft}intro{\isacharbrackright}{\isacharcolon}\ {\isachardoublequoteopen}{\isasymlbrakk}\ finite\ L\ {\isacharsemicolon}\ {\isacharparenleft}{\isasymAnd}x{\isachardot}\ x\ {\isasymnotin}\ L\ {\isasymLongrightarrow}\ M{\isacharcircum}{\isacharparenleft}FVar\ x{\isacharparenright}\ {\isachargreater}{\isachargreater}{\isachargreater}\ M{\isacharprime}{\isacharcircum}{\isacharparenleft}FVar\ x{\isacharparenright}{\isacharparenright}\ {\isacharsemicolon}\ N\ {\isachargreater}{\isachargreater}{\isachargreater}\ N{\isacharprime}\ {\isasymrbrakk}\ {\isasymLongrightarrow}\ App\ {\isacharparenleft}Lam\ M{\isacharparenright}\ N\ {\isachargreater}{\isachargreater}{\isachargreater}\ M{\isacharprime}{\isacharcircum}N{\isacharprime}{\isachardoublequoteclose}\isanewline
+{\isacharbar}\ Y{\isacharbrackleft}intro{\isacharbrackright}{\isacharcolon}\ {\isachardoublequoteopen}{\isasymlbrakk}\ M\ {\isachargreater}{\isachargreater}{\isachargreater}\ M{\isacharprime}\ {\isasymrbrakk}\ {\isasymLongrightarrow}\ App\ {\isacharparenleft}Y\ {\isasymsigma}{\isacharparenright}\ M\ {\isachargreater}{\isachargreater}{\isachargreater}\ App\ M{\isacharprime}\ {\isacharparenleft}App\ {\isacharparenleft}Y\ {\isasymsigma}{\isacharparenright}\ M{\isacharprime}{\isacharparenright}{\isachardoublequoteclose}\isanewline
+\isanewline
+\isacommand{lemma}\isamarkupfalse%
+\ trm{\isacharunderscore}pbeta{\isacharunderscore}max{\isacharunderscore}simp{\isadigit{1}}{\isacharcolon}\ {\isachardoublequoteopen}M\ {\isachargreater}{\isachargreater}{\isachargreater}\ M{\isacharprime}\ {\isasymLongrightarrow}\ trm\ M\ {\isasymand}\ trm\ M{\isacharprime}{\isachardoublequoteclose}\isanewline
+%
+\isadelimproof
+%
+\endisadelimproof
+%
+\isatagproof
+\isacommand{apply}\isamarkupfalse%
+\ rule\isanewline
+\isacommand{apply}\isamarkupfalse%
+\ {\isacharparenleft}induct\ M\ M{\isacharprime}\ rule{\isacharcolon}pbeta{\isacharunderscore}max{\isachardot}induct{\isacharparenright}\isanewline
+\isacommand{apply}\isamarkupfalse%
+\ {\isacharparenleft}subst\ trm{\isachardot}simps{\isacharcomma}\ simp{\isacharparenright}{\isacharplus}\isanewline
+\isacommand{apply}\isamarkupfalse%
+\ auto{\isacharbrackleft}{\isadigit{1}}{\isacharbrackright}\isanewline
+\isacommand{apply}\isamarkupfalse%
+\ {\isacharparenleft}simp\ add{\isacharcolon}\ lam\ trm{\isachardot}app{\isacharparenright}\isanewline
+\isacommand{apply}\isamarkupfalse%
+\ {\isacharparenleft}simp\ add{\isacharcolon}\ trm{\isachardot}Y\ trm{\isachardot}app{\isacharparenright}\isanewline
+\isacommand{apply}\isamarkupfalse%
+\ {\isacharparenleft}induct\ M\ M{\isacharprime}\ rule{\isacharcolon}pbeta{\isacharunderscore}max{\isachardot}induct{\isacharparenright}\isanewline
+\isacommand{apply}\isamarkupfalse%
+\ {\isacharparenleft}subst\ trm{\isachardot}simps{\isacharcomma}\ simp{\isacharparenright}{\isacharplus}\isanewline
+\isacommand{apply}\isamarkupfalse%
+\ auto{\isacharbrackleft}{\isadigit{1}}{\isacharbrackright}\isanewline
+\isacommand{apply}\isamarkupfalse%
+\ {\isacharparenleft}rule\ trm{\isacharunderscore}opn{\isacharparenright}\isanewline
+\isacommand{apply}\isamarkupfalse%
+\ {\isacharparenleft}simp\ add{\isacharcolon}\ lam{\isacharparenright}\isanewline
+\isacommand{apply}\isamarkupfalse%
+\ {\isacharparenleft}simp\ add{\isacharcolon}\ trm{\isachardot}Y\ trm{\isachardot}app{\isacharparenright}\isanewline
+\isacommand{done}\isamarkupfalse%
+%
+\endisatagproof
+{\isafoldproof}%
+%
+\isadelimproof
+\isanewline
+%
+\endisadelimproof
+\isanewline
+\isacommand{lemma}\isamarkupfalse%
+\ pbeta{\isacharunderscore}beta{\isacharprime}{\isacharcolon}\ {\isachardoublequoteopen}finite\ L\ {\isasymLongrightarrow}\ {\isacharparenleft}{\isasymAnd}x{\isachardot}\ x\ {\isasymnotin}\ L\ {\isasymLongrightarrow}\ M{\isacharcircum}{\isacharparenleft}FVar\ x{\isacharparenright}\ {\isasymggreater}\ M{\isacharprime}{\isacharcircum}{\isacharparenleft}FVar\ x{\isacharparenright}{\isacharparenright}\ {\isasymLongrightarrow}\ N\ {\isasymggreater}\ N{\isacharprime}\ {\isasymLongrightarrow}\ App\ {\isacharparenleft}Lam\ M{\isacharparenright}\ N\ {\isasymggreater}\ {\isacharbraceleft}{\isadigit{0}}\ {\isasymrightarrow}\ N{\isacharprime}{\isacharbraceright}\ M{\isacharprime}{\isachardoublequoteclose}\ \isanewline
+%
+\isadelimproof
+%
+\endisadelimproof
+%
+\isatagproof
+\isacommand{using}\isamarkupfalse%
+\ pbeta{\isachardot}beta\ opn{\isacharprime}{\isacharunderscore}def\ \isacommand{by}\isamarkupfalse%
+\ simp%
+\endisatagproof
+{\isafoldproof}%
+%
+\isadelimproof
+\isanewline
+%
+\endisadelimproof
+\isanewline
+\isacommand{lemma}\isamarkupfalse%
+\ not{\isacharunderscore}Y{\isacharunderscore}ex{\isacharcolon}\ {\isachardoublequoteopen}{\isasymnot}{\isacharparenleft}not{\isacharunderscore}Y\ M{\isacharparenright}\ {\isasymLongrightarrow}\ {\isasymexists}{\isasymsigma}{\isachardot}\ M\ {\isacharequal}\ Y\ {\isasymsigma}{\isachardoublequoteclose}\isanewline
+%
+\isadelimproof
+%
+\endisadelimproof
+%
+\isatagproof
+\isacommand{apply}\isamarkupfalse%
+\ {\isacharparenleft}cases\ M\ rule{\isacharcolon}not{\isacharunderscore}Y{\isachardot}cases{\isacharparenright}\isanewline
+\isacommand{by}\isamarkupfalse%
+\ auto%
+\endisatagproof
+{\isafoldproof}%
+%
+\isadelimproof
+\isanewline
+%
+\endisadelimproof
+\isanewline
+\isacommand{lemma}\isamarkupfalse%
+\ not{\isacharunderscore}abst{\isacharunderscore}simp{\isacharcolon}\ {\isachardoublequoteopen}not{\isacharunderscore}abst\ M\ {\isasymLongrightarrow}\ not{\isacharunderscore}abst\ {\isacharbraceleft}k\ {\isasymrightarrow}\ FVar\ y{\isacharbraceright}\ {\isacharbraceleft}k\ {\isacharless}{\isacharminus}\ x{\isacharbraceright}\ M{\isachardoublequoteclose}\isanewline
+%
+\isadelimproof
+%
+\endisadelimproof
+%
+\isatagproof
+\isacommand{apply}\isamarkupfalse%
+\ {\isacharparenleft}cases\ M{\isacharparenright}\isanewline
+\isacommand{unfolding}\isamarkupfalse%
+\ opn{\isacharprime}{\isacharunderscore}def\ opn{\isachardot}simps\isanewline
+\isacommand{by}\isamarkupfalse%
+\ auto%
+\endisatagproof
+{\isafoldproof}%
+%
+\isadelimproof
+\isanewline
+%
+\endisadelimproof
+\isanewline
+\isacommand{lemma}\isamarkupfalse%
+\ not{\isacharunderscore}Y{\isacharunderscore}simp{\isacharcolon}\ {\isachardoublequoteopen}not{\isacharunderscore}Y\ M\ {\isasymLongrightarrow}\ not{\isacharunderscore}Y\ {\isacharbraceleft}k\ {\isasymrightarrow}\ FVar\ y{\isacharbraceright}\ {\isacharbraceleft}k\ {\isacharless}{\isacharminus}\ x{\isacharbraceright}\ M{\isachardoublequoteclose}\isanewline
+%
+\isadelimproof
+%
+\endisadelimproof
+%
+\isatagproof
+\isacommand{apply}\isamarkupfalse%
+\ {\isacharparenleft}cases\ M{\isacharparenright}\isanewline
+\isacommand{unfolding}\isamarkupfalse%
+\ opn{\isacharprime}{\isacharunderscore}def\ opn{\isachardot}simps\isanewline
+\isacommand{by}\isamarkupfalse%
+\ auto%
 \endisatagproof
 {\isafoldproof}%
 %
@@ -1884,7 +1884,7 @@ Y{\isacharcolon}\ {\isachardoublequoteopen}trm\ {\isacharparenleft}Y\ {\isasymsi
 %
 \endisadelimproof
 %
-\isamarkupsubsection{Reflexive-transitive closure of a relation $R$%
+\isamarkupsubsection{Reflexive-transitive closure of $\beta Y$%
 }
 \isamarkuptrue%
 \isacommand{inductive}\isamarkupfalse%
@@ -1892,10 +1892,8 @@ Y{\isacharcolon}\ {\isachardoublequoteopen}trm\ {\isacharparenleft}Y\ {\isasymsi
 \isakeyword{where}\isanewline
 \ \ base{\isacharbrackleft}intro{\isacharbrackright}{\isacharcolon}\ {\isachardoublequoteopen}R\ a\ b\ {\isasymLongrightarrow}\ R{\isacharasterisk}\ a\ b{\isachardoublequoteclose}\isanewline
 {\isacharbar}\ refl{\isacharbrackleft}intro{\isacharbrackright}{\isacharcolon}\ {\isachardoublequoteopen}R{\isacharasterisk}\ a\ a{\isachardoublequoteclose}\isanewline
-{\isacharbar}\ trans{\isacharbrackleft}intro{\isacharbrackright}{\isacharcolon}\ {\isachardoublequoteopen}{\isasymlbrakk}\ R{\isacharasterisk}\ a\ b\ {\isacharsemicolon}\ R{\isacharasterisk}\ b\ c\ {\isasymrbrakk}\ {\isasymLongrightarrow}\ R{\isacharasterisk}\ a\ c{\isachardoublequoteclose}%
-\isamarkupsubsection{Proof of $\dip(\red^*)$%
-}
-\isamarkuptrue%
+{\isacharbar}\ trans{\isacharbrackleft}intro{\isacharbrackright}{\isacharcolon}\ {\isachardoublequoteopen}{\isasymlbrakk}\ R{\isacharasterisk}\ a\ b\ {\isacharsemicolon}\ R{\isacharasterisk}\ b\ c\ {\isasymrbrakk}\ {\isasymLongrightarrow}\ R{\isacharasterisk}\ a\ c{\isachardoublequoteclose}\isanewline
+\isanewline
 \isacommand{definition}\isamarkupfalse%
 \ DP\ {\isacharcolon}{\isacharcolon}\ {\isachardoublequoteopen}{\isacharparenleft}ptrm\ {\isasymRightarrow}\ ptrm\ {\isasymRightarrow}\ bool{\isacharparenright}\ {\isasymRightarrow}\ {\isacharparenleft}ptrm\ {\isasymRightarrow}\ ptrm\ {\isasymRightarrow}\ bool{\isacharparenright}\ {\isasymRightarrow}\ bool{\isachardoublequoteclose}\ \isakeyword{where}\isanewline
 {\isachardoublequoteopen}DP\ R\ T\ {\isacharequal}\ {\isacharparenleft}{\isasymforall}a\ b\ c{\isachardot}\ R\ a\ b\ {\isasymand}\ T\ a\ c\ {\isasymlongrightarrow}\ {\isacharparenleft}{\isasymexists}d{\isachardot}\ T\ b\ d\ {\isasymand}\ R\ c\ d{\isacharparenright}{\isacharparenright}{\isachardoublequoteclose}\isanewline

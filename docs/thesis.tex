@@ -783,7 +783,7 @@ Curry}, where a simply typed \(\lambda\)-term is a triple
   %------------------------------------
   \hskip 1.5em
   \AxiomC{$\Gamma \vdash u : A \to B$}
-  \AxiomC{$\Gamma \Vdash v : A$}
+  \AxiomC{$\Gamma \vdash v : A$}
   \LeftLabel{$(app)$}
   \BinaryInfC{$\Gamma \vdash uv : B$}
   \DisplayProof
@@ -1139,8 +1139,7 @@ simultaneously reducing the two sub-terms \((\lambda xy.x)z\) and
 When we try to construct a similar tree for \(\beta\)-reduction, we can
 clearly see that the only two rules we can use are \((red_L)\) or
 \((red_R)\). We can thus only perform the right-side or the left side
-reduction of the two sub-terms, but not both (for the rules of normal
-\(\beta\)-reduction see \cref{Definition:betaRedNom}).
+reduction of the two sub-terms, but not both.
 
 \end{Example}
 
@@ -1801,7 +1800,7 @@ good compromise between implementation overheads and transparency.
 
 We chose the length of the implemented theory files as a simple measure
 of implementation overheads. As expected, the Locally nameless version
-of the calculus (1145 lines) was about 50\% longer than the Nominal
+of the calculus (1143 lines) was about 50\% longer than the Nominal
 encoding (723 lines). However, this measure is not always ideal (due to
 the reasons outlined in \cref{mechOverheads}), and we therefore also
 present the comparison between the two versions in terms of the
@@ -1886,6 +1885,51 @@ assertion that using the locally nameless representation of binders
 carries larger overhead, but keeps the difficulty of proving these
 additional lemmas low.
 
+The rest of this chapter provides an overview of some of the technical
+points of the \(\lamy\) calculus mechanization which highlight the
+differences between the two mechanizations. However, we conclude that on
+the whole, neither mechanization proved to be significantly better than
+the other.\\
+This is especially true when it comes to proofs in both mechanizations.
+As the code printout in the Appendix clearly shows, both mechanizations
+have the same structure and largely the same syntax and formulation of
+lemmas.\\
+Additionally, when taking a finer grained look at the length of code by
+section, rather than as a whole, the lengths of the main lemmas in both
+mechanizations are much closer, as the overheads of the locally nameless
+encoding occur mainly in the definitions of terms and
+substitution/open/close operations:
+
+\begin{longtable}[]{@{}lcc@{}}
+\toprule
+\(\ \) & Nominal & Locally nameless\tabularnewline
+\midrule
+\endhead
+Definition of \(\lamy\) terms & 15 & 11\tabularnewline
+Definition of well formed terms & - & 15\tabularnewline
+Definition of the open operation & - & 18\tabularnewline
+Definition of substitution & 56 & 124\tabularnewline
+Definition of the close operation & - & 86\tabularnewline
+\(\beta Y\)-reduction & 17 & 25\tabularnewline
+Parallel \(\beta Y\)-reduction & 17 & 27\tabularnewline
+Maximal parallel \(\beta Y\)-reduction & 49 & 60\tabularnewline
+\cref{Lemma:maxEx} & 24 & 107\tabularnewline
+\cref{Lemma:maxClose} & 156 & 145\tabularnewline
+Proof of \(\dip(\gg)\) & 18 & 18\tabularnewline
+Reflexive-transitive closure of \(\beta Y\) & 116 & 231\tabularnewline
+Simple-typing relation \(\vdash\) & 238 & 258\tabularnewline
+Church Rosser Theorem & 12 & 12\tabularnewline
+\bottomrule
+\end{longtable}
+
+Whilst the LN mechanization proved to have significantly higher
+``obvious'' mechanization overheads in terms of code length, the
+implementation using the nominal library proved to be more difficult to
+use at certain points, due to the more complex nominal sets theory that
+implicitly underpinned the mechanization. The LN mechanization proved to
+be much more simple in practice, even without any library support and
+the automation, which comes with using Nominal Isabelle.\\
+
 \section{Definitions}\label{definitions-1}
 
 We give a brief overview of the basic definitions of well-typed terms
@@ -1938,7 +1982,7 @@ generates definitions of free variables/freshness and other
 simplification rules. (Note: These can be inspected in Isabelle, using
 the \textbf{\texttt{print\_theorems}} command.)
 
-Other definition, such as \(\beta\)-reduction and the definition of
+Other definitions, such as \(\beta\)-reduction and the notion of
 substitution are also unchanged with regards to the usual definition
 (except for the addition of the \(Y\) case, which is trivial):
 
@@ -2843,27 +2887,6 @@ consistency between the two theories and easier direct comparison of
 lemmas, but on the other hand, it meant that certain lemmas could have
 been made shorter and more ``tailored'' to the LN mechanization.
 
-\section{Verdict}\label{verdict}
-
-Having given an overview of the main technical points of the \(\lamy\)
-calculus mechanization, we concluded that on the whole, neither
-mechanization proved to be significantly better than the other.\\
-Whilst the LN mechanization proved to have significantly higher
-``obvious'' mechanization overheads\footnote{The nominal version was
-  approximately 770 lines of code vs.~1180 for the LN version, making it
-  about 50\% longer.} in therms of code length, the implementation using
-the nominal library proved to be more difficult to use at certain
-points, due to the more complex nominal sets theory that implicitly
-underpinned the mechanization. The LN mechanization proved to be much
-more simple in practice, even without any library support and the
-automation which comes with using Nominal Isabelle.\\
-Continuing with the next round of comparison between the two theorem
-provers, Isabelle and Agda, this point was the main reason to chose LN
-over nominal sets, as implementing the LN version of the calculus
-requires a lot less ``background'' theory, which was especially
-important in Agda, where nominal set support is a lot less mature than
-in Isabelle.
-
 \chapter{Isabelle vs.~Agda}\label{comp-agda}
 
 \label{chap:compAgda}
@@ -3546,7 +3569,16 @@ arrived at the ``winning'' combination of a locally nameless
 mechanization using Agda. Carrying on in this setting, we present the
 formalization of intersection types for the \(\lamy\) calculus along
 with the proof of subject invariance for intersection types.\\
-Whilst the proof is not novel, there is, to our knowledge, no known
+Whilst the theory formalized so far ``only'' includes the basic
+definitions of intersection type assignment and the proof of subject
+invariance, these proofs turned out to be significantly more difficult
+than their simply typed counterparts (e.g.~in case of sub-tying and
+subject reduction lemmas). Indeed the whole formalization of simple
+types, along with the proof of the Church Rosser theorem, is roughly
+only 1250 lines of code in Agda, in comparison to roughly 1,600 lines,
+for the intersection typing together with proofs of subject
+invariance.\\
+Even though the proof is not novel, there is, to our knowledge, no known
 fully formal version of it for the \(\lamy\) calculus. The chapter
 mainly focuses on the engineering choices that were made in order to
 simplify the proofs as much as possible, as well as the necessary
@@ -4079,8 +4111,9 @@ Y :    ∀ {Γ A τi τ} -> (τi∷A : τi ∷'l A) -> (τ∈τi : τ ∈ τi) -
 
 Even though Agda's main strength is its the powerful pattern matching,
 it was quickly realized that pattern matching on the type
-\texttt{(∩ (Data.List.map (λ τk -> (∩ τi ~> τk)) τi) ~> τ)} is difficult
-due to the map function, which appears inside the definition.\\
+\texttt{(∩ (Data.List.map (λ τk -> (∩ τi \textasciitilde > τk)) τi) \textasciitilde > τ)}
+is difficult due to the map function, which appears inside the
+definition.\\
 Several modifications were made to the rule, until we arrived at it's
 current form. To create a compromise between the unrestricted
 intersection-types of \(\lambda_\cap^{BCD}\), which made expressing the
@@ -4103,17 +4136,61 @@ $\begin{aligned}
 
 \begin{Remark}
 
-\textbf{Maybe too much detail??} After redefining the intersection
-types, the definition of the \((arr)\) rule for the type subset relation
-is now:
+Using strict intersection types and having two intersection typing
+relations \(\Vdash\) and \(\Vdash_\ell\) makes proving lemmas about the
+system much easier. The clearest example of this is the nice property of
+\emph{inversion}, one gets ``for free'' with strict types. Take, for
+example, the term \(\Gamma \Vdash uv : \tau\) (where for the puproses of
+this example, \(uv\) is a term of the simply-typed \(\lambda\)-calculus
+and not a \(\lamy\) term). Since for the \(\Vdash\) relation, \(uv\) can
+only be given a strict intersection type, we can easily prove the
+following inversion lemma:
+
+\begin{Lemma}[Inversion Lemma for $(app)$]
+
+\label{Lemma:invApp} In the following lemma, \(\tau_i\) is an
+intersection, i.e.~a list of strict intersection types
+\(\mathcal{T}_s\):
 
 \begin{center}
-\AxiomC{$\tau_i \subseteq^A_\ell \tau_j$}
-  \AxiomC{$\tau_m \subseteq^B_\ell \tau_n$}
-  \LeftLabel{$(arr)$}
-  \BinaryInfC{$\tau_j \leadsto \tau_m \subseteq^{A \to B} \tau_i \leadsto \tau_n$}
-  \DisplayProof
+$\Gamma \Vdash uv : \tau \iff \exists \tau_i.\ \Gamma \Vdash u : \tau_i \leadsto \tau \land \Gamma \Vdash_\ell v : \tau_i$
 \end{center}
+
+\end{Lemma}
+
+Such a lemma is in fact not even needed in Agda, since the shape of the
+term \(uv\) and the type \(\tau\) uniquely determine that the derivation
+tree must have had an application of the \((app)\) rule at its base. In
+an Agda proof, such as:
+
+\begin{minted}[]{agda}
+sample-lemma Γ⊩uv∶τ = ?
+\end{minted}
+
+One can perform a case analysis on the variable \texttt{Γ⊩uv∶τ} (the
+type of which is \texttt{Γ ⊩ uv ∶ τ}) and obtain:
+
+\begin{minted}[]{agda}
+sample-lemma (app Γ⊩u∶τi~>τ Γ⊩bv∶τi) = ?
+\end{minted}
+
+In the \(\lambda_\cap^{BCD}\) system (or similar), such an inversion
+lemma would be a lot more complicated and might look something like:
+
+\begin{center}
+$\begin{aligned}
+\Gamma \Vdash uv : \tau \iff &\exists k \geq 1.\ \exists \tau_1,\hdots,\tau_k,\psi_1,\hdots,\psi_k.\\
+&\tau \subseteq \psi_1 \cap \hdots \cap \psi_k \land\\
+&\forall i \in \{1,\hdots,k\}.\ \Gamma \Vdash u : \tau_i \leadsto \psi_i \land \Gamma \Vdash v : \tau_i
+\end{aligned}$
+\end{center}
+
+The semi-strict typing loses some of the advantages of the strict types,
+as we will later modify the typing relation, losing the ``free''
+\emph{inversion} properties that we currently have, i.e.~for a given
+term \(uv\), \cref{Lemma:invApp} won't be trivial any more. However, the
+complexity of the inversion lemmas for semi-strict typing is still lower
+than that of the unrestricted intersection-typing systems.
 
 \end{Remark}
 
@@ -4174,13 +4251,128 @@ following convention \(\bigcap \tau \equiv [\tau]\):
 
 \end{Definition}
 
-\section{Proofs?}\label{proofs-1}
+\section{Proof of subject expansion}\label{proof-of-subject-expansion}
 
-To further motivate the final version of the \((Y)\) rule, we look at ?
-\ldots{}.
+An interesting property of the intersection types is the fact that they
+admit both subject expansion and subject reduction, namely \(\Vdash\) is
+closed under \(\beta\)-equality. In this section, we will focus on the
+subject expansion lemma:
 
-precondition is as it is because we need \(\tocap\) and subtyping
-rule\ldots{}.
+\begin{Theorem}[Subject expansion for $\Vdash/\Vdash_\ell$]
+
+\begin{enumerate}
+\def\labelenumi{\roman{enumi})}
+\tightlist
+\item
+  \(\Gamma \Vdash m : \tau \implies m \red m' \implies \Gamma \Vdash m' : \tau\)
+\item
+  \(\Gamma \Vdash_\ell m : \tau_i \implies m \red m' \implies \Gamma \Vdash_\ell m' : \tau_i\)
+\end{enumerate}
+
+\end{Theorem}
+
+The proof of this theorem follows by induction on the
+\(\beta\)-reduction \(m \red m'\). We will focus on the \((Y)\)
+reduction rule and show that given a well typed term
+\(\Gamma \Vdash m(Y_\sigma m) : \tau\), s.t.
+\(Y_\sigma m \red m(Y_\sigma m)\), we can also type \(Y_\sigma m\) with
+the same intersection type \(\tau\).\\
+We will start with a very high-level overview of the proof. Having
+assumed, \(\Gamma \Vdash m(Y_\sigma m) : \tau\), we must necessarily
+have the following derivation tree for the intersection typing relation
+\(\Vdash\):
+
+\begin{center}
+  \vskip 1em
+  \AxiomC{$\vdots$}
+  \UnaryInfC{$\Gamma \Vdash_s m : \tau_i \leadsto \tau_j$}
+  \AxiomC{$\vdots$}
+  \UnaryInfC{$\Gamma \Vdash_\ell Y_A m : \tau_i$}
+  \LeftLabel{$(app)$}
+  \RightLabel{$([\tau] \subseteq^A \tau_j)$}
+  \BinaryInfC{$\Gamma \Vdash m(Y_{A} m) : \tau$}
+  \DisplayProof
+  \vskip 1em
+\end{center}
+
+We have two cases, where \(\tau_i\) is an empty intersection
+\(\tau_i \equiv \omega\) or a non-empty list of strict intersection
+types \(\tau_i \equiv [\tau_1,\hdots,\tau_n]\).
+
+\subsection{\texorpdfstring{\(\tau_i \equiv \omega\)}{\textbackslash{}tau\_i \textbackslash{}equiv \textbackslash{}omega}}\label{tau_i-equiv-omega}
+
+From the tree above, we have
+\((1): \Gamma \Vdash_s m : \omega \leadsto \tau_j\). Then, we can
+construct the following proof tree:
+
+\begin{center}
+  \AxiomC{}
+  \UnaryInfC{$[[\tau] \leadsto [\tau]] \subseteq^{A \to A} [\omega \leadsto [\tau]] \land [\tau] \subseteq^A [\tau]$}
+  \LeftLabel{$(Y)$}
+  \UnaryInfC{$\Gamma \Vdash Y : [\omega \leadsto [\tau]] \leadsto [\tau]$}
+
+  \AxiomC{$\Gamma \Vdash m : \omega \leadsto [\tau]$}
+  \AxiomC{}
+  \LeftLabel{$(nil)$}
+  \UnaryInfC{$\Gamma \Vdash_\ell m : \omega$}
+  \LeftLabel{$(cons)$}
+  \BinaryInfC{$\Gamma \Vdash_\ell m : [\omega \leadsto [\tau]]$)}
+  \LeftLabel{$(app)$}
+  \BinaryInfC{$\Gamma \Vdash Y_{A} m : \tau$}
+  \DisplayProof
+  \vskip 1em
+\end{center}
+
+The only open branch in the above tree is to show that
+\(\Gamma \Vdash m : \omega \leadsto [\tau]\). In order to do so, we need
+to use the sub-typing lemma for intersection types:
+
+\begin{Lemma}[Sub-typing for $\Vdash/\Vdash_\ell$]
+
+In the definition below, the binary relation \(\subseteq_\Gamma\) is
+defined for any well-formed contexts \(\Gamma\) and \(\Gamma'\), where
+for each triple \((x : \tau_i ::_\ell A) \in \Gamma\), there is a
+corresponding triple \((x : \tau_j ::_\ell A) \in \Gamma'\) s.t.
+\(\tau_i \subseteq^A \tau_j\ \):
+
+\begin{center}
+  \vskip 1em
+  \AxiomC{$\Gamma \Vdash_s m_{\{A\}} : \tau$}
+  \LeftLabel{$(\subseteq)$}
+  \RightLabel{$(\Gamma \subseteq_\Gamma \Gamma', \tau' \subseteq^A \tau)$}
+  \UnaryInfC{$\Gamma' \Vdash_s m_{\{A\}} : \tau'$}
+  \DisplayProof
+  \hskip 1.5em
+  \AxiomC{$\Gamma \Vdash_\ell m_{\{A\}} : \tau_i$}
+  \LeftLabel{$(\subseteq_\ell)$}
+  \RightLabel{$(\Gamma \subseteq_\Gamma \Gamma', \tau_j \subseteq^A_\ell \tau_i)$}
+  \UnaryInfC{$\Gamma' \Vdash_\ell m_{\{A\}} : \tau_j$}
+  \DisplayProof
+  \vskip 1em
+\end{center}
+
+\begin{proof}
+
+Ommited.
+
+\end{proof}
+
+\end{Lemma}
+
+Thus, we have:
+
+\begin{center}
+  \AxiomC{}
+  \LeftLabel{$(1)$}
+  \UnaryInfC{$\Gamma \Vdash m : \omega \leadsto \tau_j$}
+  \LeftLabel{$(\subseteq)$}
+  \RightLabel{$(\Gamma \subseteq_\Gamma \Gamma, [\tau] \subseteq^A \tau_j)$}
+  \UnaryInfC{$\Gamma \Vdash m : \omega \leadsto [\tau]$}
+  \DisplayProof
+  \vskip 1em
+\end{center}
+
+\subsection{\texorpdfstring{\(\tau_i \equiv [\tau_1,\hdots,\tau_n]\)}{\textbackslash{}tau\_i \textbackslash{}equiv {[}\textbackslash{}tau\_1,\textbackslash{}hdots,\textbackslash{}tau\_n{]}}}\label{tau_i-equiv-tau_1hdotstau_n}
 
 \footnotesize
 

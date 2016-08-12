@@ -7,7 +7,7 @@ Whilst we found that the nominal version of the definitions and proofs turned ou
 
 ##Overview
 
-We chose the length of the implemented theory files as a simple measure of implementation overheads. As expected, the Locally nameless version of the calculus (1145 lines) was about 50% longer than the Nominal encoding (723 lines). However, this measure is not always ideal (due to the reasons outlined in \cref{mechOverheads}), and we therefore also present the comparison between the two versions in terms of the individual definitions and lemmas that correspond to each other in the two mechanizations and the informal definitions/lemmas:
+We chose the length of the implemented theory files as a simple measure of implementation overheads. As expected, the Locally nameless version of the calculus (1143 lines) was about 50% longer than the Nominal encoding (723 lines). However, this measure is not always ideal (due to the reasons outlined in \cref{mechOverheads}), and we therefore also present the comparison between the two versions in terms of the individual definitions and lemmas that correspond to each other in the two mechanizations and the informal definitions/lemmas:
 
 \newcommand{\lem}[1]{\bf{lemma}\ \it{#1}}
 \newcommand{\fun}[1]{\bf{fun}\ \it{#1}}
@@ -26,7 +26,33 @@ We chose the length of the implemented theory files as a simple measure of imple
 | \cref{Theorem:subRedSimp} (Subject reduction for $\red^*$) | \lem{beta\_Y\_typ} \newline \lem{subst\_typ} \newline \lem{wt\_terms\_impl\_wf\_ctxt} \newline \lem{wt\_terms\_cases\_2} | \lem{beta\_Y\_typ} \newline \lem{opn\_typ} \newline \lem{wt\_terms\_impl\_wf\_ctxt} |
 
 The table above lists the major lemmas discussed throughout this thesis, along with the names of these lemmas in the concrete implementations (these can be found in the Appendix), as well as the additional lemmas the proofs of these depend on. For example, the lemma _pbeta_max_ex_ depends on _fv_opn_cls_id2_ and _pbeta_max_cls_ (which may themselves depend on other smaller lemmas).
-Overall, the mechanization using nominal sets includes 33 lemmas, whereas the locally nameless has 71 individual lemmas. The fact that whilst the LN mechanization includes more than twice as many lemmas as the nominal formalization, its only roughly 50% longer, meaning that many of these lemmas are short simple proofs, which supports our assertion that using the locally nameless representation of binders carries larger overhead, but keeps the difficulty of proving these additional lemmas low.
+Overall, the mechanization using nominal sets includes 33 lemmas, whereas the locally nameless has 71 individual lemmas. The fact that whilst the LN mechanization includes more than twice as many lemmas as the nominal formalization, its only roughly 50% longer, meaning that many of these lemmas are short simple proofs, which supports our assertion that using the locally nameless representation of binders carries larger overhead, but keeps the difficulty of proving these additional lemmas low.   
+
+The rest of this chapter provides an overview of some of the technical points of the $\lamy$ calculus mechanization which highlight the differences between the two mechanizations. However, we conclude that on the whole, neither mechanization proved to be significantly better than the other.   
+This is especially true when it comes to proofs in both mechanizations. As the code printout in the Appendix clearly shows, both mechanizations have the same structure and largely the same syntax and formulation of lemmas.   
+Additionally, when taking a finer grained look at the length of code by section, rather than as a whole, the lengths of the main lemmas in both mechanizations are much closer, as the overheads of the locally nameless encoding occur mainly in the definitions of terms and substitution/open/close operations:
+
+| $\ $ | Nominal | Locally nameless |
+|-------------------------------------------|:---------:|:---------:|
+| Definition of $\lamy$ terms               | 15  | 11  |
+| Definition of well formed terms           | -   | 15  |
+| Definition of the open operation          | -   | 18  |
+| Definition of substitution                | 56  | 124 |
+| Definition of the close operation         | -   | 86  |
+| $\beta Y$-reduction                       | 17  | 25  |
+| Parallel $\beta Y$-reduction              | 17  | 27  |
+| Maximal parallel $\beta Y$-reduction      | 49  | 60  |
+| \cref{Lemma:maxEx}                        | 24  | 107 |
+| \cref{Lemma:maxClose}                     | 156 | 145 |
+| Proof of $\dip(\gg)$                      | 18  | 18  |
+| Reflexive-transitive closure of $\beta Y$ | 116 | 231 |
+| Simple-typing relation $\vdash$           | 238 | 258 |
+| Church Rosser Theorem                     | 12  | 12  |
+
+
+Whilst the LN mechanization proved to have significantly higher "obvious" mechanization overheads in terms of code length, the implementation using the nominal library proved to be more difficult to use at certain points, due to the more complex nominal sets theory that implicitly underpinned the mechanization. The LN mechanization proved to be much more simple in practice, even without any library support and the automation, which comes with using Nominal Isabelle.   
+<!--Continuing with the next round of comparison between the two theorem provers, Isabelle and Agda, this point was the main reason to chose LN over nominal sets, as implementing the LN version of the calculus requires a lot less "background" theory, which was especially important in Agda, where nominal set support is a lot less mature than in Isabelle.-->
+
 
 ##Definitions
 
@@ -58,55 +84,7 @@ lemma "Lam [x]. Var x = Lam [y]. Var y" by simp
 
 The special **`nominal\_datatype`** declaration also generates definitions of free variables/freshness and other simplification rules. (Note: These can be inspected in Isabelle, using the **`print\_theorems`** command.)
 
-<!--We start, by examining the definition of untyped $\beta$-reduction, defined for the $\lamy$ calculus (referred to as $\beta Y$-reduction due to the addition of the $(Y)$ reduction rule):
-
-<div class="Definition" head="$\beta Y$-reduction">
-\label{Definition:betaRedNom}
-\begin{center}
-    \vskip 1.5em
-    \AxiomC{$M \red M'$}
-    \LeftLabel{$(red_L)$}
-    \UnaryInfC{$MN \red M'N$}
-    \DisplayProof
-    \hskip 1.5em
-    \AxiomC{$N \red N'$}
-    \LeftLabel{$(red_R)$}
-    \UnaryInfC{$MN \red M'N$}
-    \DisplayProof
-    \vskip 1.5em
-    \AxiomC{$M \red M'$}
-    \LeftLabel{$(abs)$}
-    \UnaryInfC{$\lambda x. M \red \lambda x. M'$}
-    \DisplayProof
-    \hskip 1.5em
-    \AxiomC{}
-    \LeftLabel{$(\beta)$}
-    \RightLabel{$(x\ \sharp\ N)$}
-    \UnaryInfC{$(\lambda x. M)N \red M[N/x]$}
-    \DisplayProof
-    \hskip 1.5em
-    \AxiomC{}
-    \LeftLabel{$(Y)$}
-    \UnaryInfC{$Y_\sigma M \red M (Y_\sigma M)$}
-    \DisplayProof
-	\vskip 1.5em
-\end{center}
-</div>
-
-This definition, with the exception of the added $(Y)$ rule is the standard definition of the untyped $\beta$-reduction found in literature (**link?**). The $\sharp$ symbol is used to denote the _freshness_ relation in nominal set theory. The side-condition $x\ \sharp\ N$ in the $(\beta)$ rule can be read as "$x$ is fresh in $N$", namely, the atom $x$ does not appear in $N$. For a $\lambda$-term $M$, we have $x\ \sharp\ M$ iff $x \not\in \fv(M)$, where we take the usual definition of \fv:
-
-<div class="Definition" >The inductively defined $\fv$ is the set of _free variables_ of a $\lambda$-term $M$.
-\begin{center}
-$\begin{aligned}
-\fv(x) &= \{ x \}\\
-\fv(MN) &= \fv(M) \cup \fv(N)\\
-\fv(\lambda x. M) &= \fv(M) \setminus \{ x \}\\
-\fv(Y_\sigma) &= \emptyset
-\end{aligned}$
-\end{center}
-</div>-->
-
-Other definition, such as $\beta$-reduction and the definition of substitution are also unchanged with regards to the usual definition (except for the addition of the $Y$ case, which is trivial):
+Other definitions, such as $\beta$-reduction and the notion of substitution are also unchanged with regards to the usual definition (except for the addition of the $Y$ case, which is trivial):
 
 <div class="Definition" head="Capture-avoiding substitution">
 \begin{center}
@@ -344,31 +322,9 @@ While this definition is equivalent to \cref{Definition:betaRedNom}, the inducti
 
 For an example, where this formulation using _cofinite quantification_ was necessary, see \cref{Lemma:opnClsSubst}).
 
-<!--####Implementation details
-
-Unlike using the nominal package, the implementation of all the definitions and functions listed for the LN representation is very straightforward. To demonstrate this, we present the definition of the $\beta$-reduction in the LN mechanization:
-
-~~~{.isabelle}
-inductive beta_Y :: "ptrm ⇒ ptrm ⇒ bool" (infix "⇒β" 300)
-where
-  red_L[intro]: "⟦ trm N ; M ⇒β M' ⟧ ⟹ App M N ⇒β App M' N"
-| red_R[intro]: "⟦ trm M ; N ⇒β N' ⟧ ⟹ App M N ⇒β App M N'"
-| abs[intro]: "⟦ finite L ; (⋀x. x ∉ L ⟹ M^(FVar x) ⇒β M'^(FVar x)) ⟧ ⟹ 
-    Lam M ⇒β Lam M'"
-| beta[intro]: "⟦ trm (Lam M) ; trm N ⟧ ⟹ App (Lam M) N ⇒β M^N"
-| Y[intro]: "trm M ⟹ App (Y σ) M ⇒β App M (App (Y σ) M)"
-~~~-->
-
 ##Proofs
 
 Having described the implementations of the two binder representations along with the definitions of capture-avoiding substitution using nominal sets and the corresponding _subsitution_ and _open_ operations in the LN mechanization, we come the the main part of the comparison, namely the proof of the Church Rosser theorem. This section examines specific instances of some of the major lemmas which form parts of this bigger result. The general outline of the proof has been described in \cref{cr-def}.
-
-<!--
-As mentioned previously, when talking about the terms of the $\lamy$ calculus, we generally refer to simply typed terms, such as $\Gamma \vdash \lambda x. Y_\sigma : \tau \to (\sigma \to \sigma) \to \sigma$. However, the definitions of reduction seen so far and the consecutive proofs using these definitions don't use simply typed $\lamy$ terms, operating instead on untyped terms. The simplest reason why this is the case is one of convenience and simplicity.    
-As is the case in most proofs of the Church Rosser Theorem, the result is usually proved for untyped terms of the $\lambda$-calculus and then extended to simply typed terms by simply restricting the terms we want to reason about. The CR theorem holds in the restricted setting of simply typed terms due to subject reduction, which says that if a term $M$ can be given a simple type $\sigma$ and $\beta$-reduces to another term $M'$, the new term can still be typed with the same type $\sigma$.   
-Another reason, besides convention is convenience, specifically succinctness of code, or the lack thereof, when including simple types in the definition of $\beta$-reduction and all the subsequent lemmas and theorems. Indeed, the choice of excluding typing information wherever possible has been an engineering choice to a large degree, as it is generally not good practice to keep and pass around variables/objects which are not needed (in classical programming). The same should also apply to theorem proving, especially since notation can easily become bloated and difficult to present in a "natural" way (i.e. using the notation a mathematician would write).   
-Whilst it is true that the implementation of some of the proofs of Church Rosser might have been shorter, if the typing information was included directly in the definition of $\beta$-reduction, the downside to this would have been an increased complexity of proofs, resulting in potentially less understandable and maintainable code. **This then also ties into automation? + ex'le??**
--->
 
 ###\cref{Lemma:maxEx}
 
@@ -730,17 +686,3 @@ $\ $
 
 The reason why \cref{Lemma:parOpn} wasn't proved directly is partially due to the order of implementation of the two mechanizations of the $\lamy$ calculus. Since the nominal version, along with all the proofs was carried out first, the LN version of the calculus ended up being more of a port of the nominal theory into a locally nameless setting.    
 The LN mechanization, being a port of the nominal theory, has both advantages and disadvantages. On the one hand, it ensures a greater consistency between the two theories and easier direct comparison of lemmas, but on the other hand, it meant that certain lemmas could have been made shorter and more "tailored" to the LN mechanization.
-
-<!--##Subject reduction
-
-**This chapter is already quite long, so this section might end up being quite brief, as the main differences between the mechanizations have already been illustrated...I think...Or?**-->
-
-##Verdict
-
-Having given an overview of the main technical points of the $\lamy$ calculus mechanization, we concluded that on the whole, neither mechanization proved to be significantly better than the other.   
-Whilst the LN mechanization proved to have significantly higher "obvious" mechanization overheads[^1] in therms of code length, the implementation using the nominal library proved to be more difficult to use at certain points, due to the more complex nominal sets theory that implicitly underpinned the mechanization. The LN mechanization proved to be much more simple in practice, even without any library support and the automation which comes with using Nominal Isabelle.   
-Continuing with the next round of comparison between the two theorem provers, Isabelle and Agda, this point was the main reason to chose LN over nominal sets, as implementing the LN version of the calculus requires a lot less "background" theory, which was especially important in Agda, where nominal set support is a lot less mature than in Isabelle.
-
-
-[^1]: The nominal version was approximately 770 lines of code vs. 1180 for the LN version, making it about 50% longer.
-

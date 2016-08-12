@@ -190,7 +190,7 @@ The simple types presented throughout this work (except for \cref{chap:itypes}) 
   %------------------------------------
   \hskip 1.5em
   \AxiomC{$\Gamma \vdash u : A \to B$}
-  \AxiomC{$\Gamma \Vdash v : A$}
+  \AxiomC{$\Gamma \vdash v : A$}
   \LeftLabel{$(app)$}
   \BinaryInfC{$\Gamma \vdash uv : B$}
   \DisplayProof
@@ -419,7 +419,7 @@ Another example where the two reductions differ is the simultaneous reduction of
   \vskip 1.5em
 \end{center}
 
-When we try to construct a similar tree for $\beta$-reduction, we can clearly see that the only two rules we can use are $(red_L)$ or $(red_R)$. We can thus only perform the right-side or the left side reduction of the two sub-terms, but not both (for the rules of normal $\beta$-reduction see \cref{Definition:betaRedNom}).
+When we try to construct a similar tree for $\beta$-reduction, we can clearly see that the only two rules we can use are $(red_L)$ or $(red_R)$. We can thus only perform the right-side or the left side reduction of the two sub-terms, but not both<!--(for the rules of normal $\beta$-reduction see \cref{Definition:betaRedNom})-->.
 </div>
 
 Having described the intuition behind the _parallel_ $\beta$-reduction, we proceed to define the _maximum parallel reduction_ $\ggg$, which contracts all redexes in a given term with a single step:
