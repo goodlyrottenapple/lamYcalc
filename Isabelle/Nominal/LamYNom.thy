@@ -179,44 +179,6 @@ case (2 P Q P' Q')
   apply (nominal_induct P P' avoiding: Q Q' rule:pbeta_max.strong_induct)
   by auto
 qed
-(*ML {* 
-fun thms_used_by_thm thm = 
-  let 
-  fun used_by_proof_body (PBody {thms, ...}) = thms |> map #2 |> map go |> List.concat 
-  and go ("", _, pbodyf) = pbodyf |> Future.join |> used_by_proof_body 
-    | go (s, _, _) = [s] 
-  in thm |> Thm.proof_body_of |> Proofterm.strip_thm |> used_by_proof_body 
-  end; 
- *}
-
-ML {*
-fun get_thm_names_from_ss ctxt =
-let
-  val simpset = Raw_Simplifier.simpset_of ctxt
-  val {simps,...} = Raw_Simplifier.dest_ss simpset
-in
-  map #1 simps
-end
-*}
-
-
-
-ML {* 
-filter (String.isPrefix "LamYNom.") (get_thm_names_from_ss @{context})
- *}
-
-ML {*
-let 
-  val {simps,...} = @{context} |> Raw_Simplifier.simpset_of |> Raw_Simplifier.dest_ss 
-in
-  filter (fn x => #1 x |> (String.isPrefix "LamYNom.")) simps
-  (*map #2 |>
-  map thms_used_by_thm*)
-end*}
-
-ML {*thms_used_by_thm @{thm pbeta_max_ex}*}
-ML {*Raw_Simplifier.dest_ss*}
-*)
 
 subsection {* \cref{Lemma:maxClose} *}
 
@@ -392,7 +354,7 @@ proof -
   thus ?thesis by auto
 qed
 
-subsection {* Reflexive-transitive closure of a relation $R$ *}
+subsection {* Reflexive-transitive closure of $\beta Y$ *}
 
 inductive close :: "(trm \<Rightarrow> trm \<Rightarrow> bool) \<Rightarrow> trm \<Rightarrow> trm \<Rightarrow> bool" ("_* _  _" [80,80] 80) for R::"trm \<Rightarrow> trm \<Rightarrow> bool"
 where

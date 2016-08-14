@@ -14,13 +14,6 @@ datatype type = O | Arr type type ("_ \<rightarrow> _")
 
 datatype ptrm = FVar atom | BVar nat | App ptrm ptrm | Lam ptrm | Y type
 
-fun FV :: "ptrm \<Rightarrow> atom set"  where
-"FV (FVar x) = {x}" |
-"FV (BVar i) = {}" |
-"FV (App t1 t2) = (FV t1) \<union> (FV t2)" |
-"FV (Lam t) = FV t" |
-"FV (Y \<sigma>) = {}"
-
 subsection {* Definition of the open operation *}
 
 fun opn :: "nat \<Rightarrow> ptrm \<Rightarrow> ptrm \<Rightarrow> ptrm" ("{_ \<rightarrow> _} _")  where
@@ -54,10 +47,17 @@ using trm.cases by auto
 lemma x_Ex: "\<And>L:: atom set. finite L \<Longrightarrow> \<exists>x. x \<notin> L" 
 by (simp add: ex_new_if_finite atom_inf)
 
+subsection {* Definition of substitution *}
+
+fun FV :: "ptrm \<Rightarrow> atom set"  where
+"FV (FVar x) = {x}" |
+"FV (BVar i) = {}" |
+"FV (App t1 t2) = (FV t1) \<union> (FV t2)" |
+"FV (Lam t) = FV t" |
+"FV (Y \<sigma>) = {}"
+
 lemma FV_finite: "finite (FV u)"
 by (induct u, auto)
-
-subsection {* Definition of substitution *}
 
 primrec subst :: "ptrm \<Rightarrow> atom \<Rightarrow> ptrm \<Rightarrow> ptrm" ("_ [_ ::= _]" [90, 90, 90] 90) where
 "(FVar x)[z ::= u] = (if x = z then u else FVar x)" |
@@ -171,6 +171,92 @@ case (1 L)
   using 1 3 by auto
 qed
 
+subsection {* Definition of the close operation *}
+
+fun cls :: "nat \<Rightarrow> atom \<Rightarrow> ptrm \<Rightarrow> ptrm" ("{_ <- _} _")  where
+"{k <- x} (FVar y) = (if x = y then BVar k else FVar y)" |
+"{k <- x} (BVar i) = BVar i" |
+"{k <- x} (App t1 t2) = App ({k <- x} t1)({k <- x} t2)" |
+"{k <- x} (Lam t) = Lam ({(k+1) <- x} t)" |
+"{k <- x} (Y \<sigma>) = Y \<sigma>"
+
+definition cls':: "atom \<Rightarrow> ptrm \<Rightarrow> ptrm" ("\\_^_") where
+"cls' x t \<equiv> {0 <- x} t"
+
+lemma FV_simp: "\<lbrakk> x \<notin> FV M ; x \<noteq> y \<rbrakk> \<Longrightarrow> x \<notin> FV {k \<rightarrow> FVar y} M"
+apply (induct M arbitrary:k)
+by auto
+
+lemma FV_simp2: "x \<notin> FV M \<union> FV N \<Longrightarrow> x \<notin> FV {k \<rightarrow> N}M"
+apply (induct M arbitrary:k)
+by auto
+
+lemma FV_simp3: "x \<notin> FV {k \<rightarrow> N}M \<Longrightarrow> x \<notin> FV M"
+apply (induct M arbitrary:k)
+by auto
+
+lemma FV_simp4: "x \<notin> FV M \<Longrightarrow> x \<notin> FV {k <- y} M"
+apply (induct M arbitrary:k)
+by auto
+
+lemma FV_simp5: "x \<notin> FV M \<union> FV N \<Longrightarrow> x \<notin> FV (M[y ::= N])"
+apply (induct M)
+by auto
+
+lemma fv_opn_cls_id: "x \<notin> FV t \<Longrightarrow> {k <- x}{k \<rightarrow> FVar x}t = t"
+apply (induct t arbitrary:k)
+by auto
+
+lemma fv_opn_cls_id2: "x \<notin> FV t \<Longrightarrow> t = {k <- x}{k \<rightarrow> FVar x}t" 
+using fv_opn_cls_id by simp
+
+lemma opn_cls_swap: "k \<noteq> m \<Longrightarrow> x \<noteq> y \<Longrightarrow> {k <- x}{m \<rightarrow> FVar y}M = {m \<rightarrow> FVar y}{k <- x}M"
+apply (induct M arbitrary:k m)
+by auto
+
+lemma opn_cls_swap2: "k \<noteq> m \<Longrightarrow> x \<noteq> y \<Longrightarrow> {m \<rightarrow> FVar y}{k <- x}M = {k <- x}{m \<rightarrow> FVar y}M"
+using opn_cls_swap by simp
+
+lemma opn_opn_swap: "k \<noteq> m \<Longrightarrow> x \<noteq> y \<Longrightarrow> {k \<rightarrow> FVar x}{m \<rightarrow> FVar y}M = {m \<rightarrow> FVar y}{k \<rightarrow> FVar x}M"
+apply (induct M arbitrary:k m)
+by auto
+
+lemma cls_opn_eq_subst: "trm M \<Longrightarrow> ({k \<rightarrow> FVar y} {k <- x} M) = (M[x ::= FVar y])"
+proof (induct M arbitrary: k rule:trm.induct)
+case var thus ?case by auto
+next
+case app thus ?case by auto
+next
+case Y thus ?case by auto
+next
+case (lam L t k) 
+  then obtain x' where 2: "x' \<notin> L \<union> {x,y} \<union> FV t" by (meson FV_finite finite.emptyI finite.insertI finite_UnI x_Ex)
+  with lam have "{Suc k \<rightarrow> FVar y} {Suc k <- x} {0 \<rightarrow> FVar x'} t = ({0 \<rightarrow> FVar x'} t) [x ::= FVar y]" unfolding opn'_def using "lam"(3) FV_simp UnI1 UnI2 insertCI opn'_def by auto
+  then have "{0 \<rightarrow> FVar x'} {Suc k \<rightarrow> FVar y} {Suc k <- x} t = {0 \<rightarrow> FVar x'}(t [x ::= FVar y])"
+  apply (subst opn_opn_swap)
+  apply simp
+  using 2 apply simp
+  apply (subst opn_cls_swap2)
+  apply simp
+  using 2 apply auto[1]
+  using subst_open_var 2 by (simp add: UnI2 insertI1 subst_open trm.var)
+  then have 3: "{0 <- x'}{0 \<rightarrow> FVar x'}{Suc k \<rightarrow> FVar y} {Suc k <- x} t = {0 <- x'}{0 \<rightarrow> FVar x'}(t [x ::= FVar y])" by simp
+
+  show ?case unfolding cls.simps opn.simps subst.simps
+  apply rule
+  apply (subst fv_opn_cls_id2[where x=x' and k = 0 and t="{k + 1 \<rightarrow> FVar y} {k + 1 <- x} t"])
+  apply (rule FV_simp)
+  apply (rule FV_simp4)
+  using 2 apply simp
+  using 2 apply simp
+  apply (subst fv_opn_cls_id2[where x=x' and k = 0 and t="t [x ::= FVar y]"])
+  apply (rule FV_simp5)
+  using 2 3 by auto
+qed
+
+lemma cls_opn_eq_subst2: "trm M \<Longrightarrow> (M[x ::= FVar y]) =({k \<rightarrow> FVar y} {k <- x} M)"
+using cls_opn_eq_subst by simp
+
 subsection {*$\beta Y$-reduction*}
 
 inductive beta_Y :: "ptrm \<Rightarrow> ptrm \<Rightarrow> bool" (infix "\<Rightarrow>" 300)
@@ -273,18 +359,6 @@ lemma not_Y_ex: "\<not>(not_Y M) \<Longrightarrow> \<exists>\<sigma>. M = Y \<si
 apply (cases M rule:not_Y.cases)
 by auto
 
-subsection {* Definition of the close operation *}
-
-fun cls :: "nat \<Rightarrow> atom \<Rightarrow> ptrm \<Rightarrow> ptrm" ("{_ <- _} _")  where
-"{k <- x} (FVar y) = (if x = y then BVar k else FVar y)" |
-"{k <- x} (BVar i) = BVar i" |
-"{k <- x} (App t1 t2) = App ({k <- x} t1)({k <- x} t2)" |
-"{k <- x} (Lam t) = Lam ({(k+1) <- x} t)" |
-"{k <- x} (Y \<sigma>) = Y \<sigma>"
-
-definition cls':: "atom \<Rightarrow> ptrm \<Rightarrow> ptrm" ("\\_^_") where
-"cls' x t \<equiv> {0 <- x} t"
-
 lemma not_abst_simp: "not_abst M \<Longrightarrow> not_abst {k \<rightarrow> FVar y} {k <- x} M"
 apply (cases M)
 unfolding opn'_def opn.simps
@@ -294,80 +368,6 @@ lemma not_Y_simp: "not_Y M \<Longrightarrow> not_Y {k \<rightarrow> FVar y} {k <
 apply (cases M)
 unfolding opn'_def opn.simps
 by auto
-
-lemma FV_simp: "\<lbrakk> x \<notin> FV M ; x \<noteq> y \<rbrakk> \<Longrightarrow> x \<notin> FV {k \<rightarrow> FVar y} M"
-apply (induct M arbitrary:k)
-by auto
-
-lemma FV_simp2: "x \<notin> FV M \<union> FV N \<Longrightarrow> x \<notin> FV {k \<rightarrow> N}M"
-apply (induct M arbitrary:k)
-by auto
-
-lemma FV_simp3: "x \<notin> FV {k \<rightarrow> N}M \<Longrightarrow> x \<notin> FV M"
-apply (induct M arbitrary:k)
-by auto
-
-lemma FV_simp4: "x \<notin> FV M \<Longrightarrow> x \<notin> FV {k <- y} M"
-apply (induct M arbitrary:k)
-by auto
-
-lemma FV_simp5: "x \<notin> FV M \<union> FV N \<Longrightarrow> x \<notin> FV (M[y ::= N])"
-apply (induct M)
-by auto
-
-lemma fv_opn_cls_id: "x \<notin> FV t \<Longrightarrow> {k <- x}{k \<rightarrow> FVar x}t = t"
-apply (induct t arbitrary:k)
-by auto
-
-lemma fv_opn_cls_id2: "x \<notin> FV t \<Longrightarrow> t = {k <- x}{k \<rightarrow> FVar x}t" 
-using fv_opn_cls_id by simp
-
-lemma opn_cls_swap: "k \<noteq> m \<Longrightarrow> x \<noteq> y \<Longrightarrow> {k <- x}{m \<rightarrow> FVar y}M = {m \<rightarrow> FVar y}{k <- x}M"
-apply (induct M arbitrary:k m)
-by auto
-
-lemma opn_cls_swap2: "k \<noteq> m \<Longrightarrow> x \<noteq> y \<Longrightarrow> {m \<rightarrow> FVar y}{k <- x}M = {k <- x}{m \<rightarrow> FVar y}M"
-using opn_cls_swap by simp
-
-lemma opn_opn_swap: "k \<noteq> m \<Longrightarrow> x \<noteq> y \<Longrightarrow> {k \<rightarrow> FVar x}{m \<rightarrow> FVar y}M = {m \<rightarrow> FVar y}{k \<rightarrow> FVar x}M"
-apply (induct M arbitrary:k m)
-by auto
-
-lemma cls_opn_eq_subst: "trm M \<Longrightarrow> ({k \<rightarrow> FVar y} {k <- x} M) = (M[x ::= FVar y])"
-proof (induct M arbitrary: k rule:trm.induct)
-case var thus ?case by auto
-next
-case app thus ?case by auto
-next
-case Y thus ?case by auto
-next
-case (lam L t k) 
-  then obtain x' where 2: "x' \<notin> L \<union> {x,y} \<union> FV t" by (meson FV_finite finite.emptyI finite.insertI finite_UnI x_Ex)
-  with lam have "{Suc k \<rightarrow> FVar y} {Suc k <- x} {0 \<rightarrow> FVar x'} t = ({0 \<rightarrow> FVar x'} t) [x ::= FVar y]" unfolding opn'_def using "lam"(3) FV_simp UnI1 UnI2 insertCI opn'_def by auto
-  then have "{0 \<rightarrow> FVar x'} {Suc k \<rightarrow> FVar y} {Suc k <- x} t = {0 \<rightarrow> FVar x'}(t [x ::= FVar y])"
-  apply (subst opn_opn_swap)
-  apply simp
-  using 2 apply simp
-  apply (subst opn_cls_swap2)
-  apply simp
-  using 2 apply auto[1]
-  using subst_open_var 2 by (simp add: UnI2 insertI1 subst_open trm.var)
-  then have 3: "{0 <- x'}{0 \<rightarrow> FVar x'}{Suc k \<rightarrow> FVar y} {Suc k <- x} t = {0 <- x'}{0 \<rightarrow> FVar x'}(t [x ::= FVar y])" by simp
-
-  show ?case unfolding cls.simps opn.simps subst.simps
-  apply rule
-  apply (subst fv_opn_cls_id2[where x=x' and k = 0 and t="{k + 1 \<rightarrow> FVar y} {k + 1 <- x} t"])
-  apply (rule FV_simp)
-  apply (rule FV_simp4)
-  using 2 apply simp
-  using 2 apply simp
-  apply (subst fv_opn_cls_id2[where x=x' and k = 0 and t="t [x ::= FVar y]"])
-  apply (rule FV_simp5)
-  using 2 3 by auto
-qed
-
-lemma cls_opn_eq_subst2: "trm M \<Longrightarrow> (M[x ::= FVar y]) =({k \<rightarrow> FVar y} {k <- x} M)"
-using cls_opn_eq_subst by simp
 
 subsection {* \cref{Lemma:maxEx} *}
 
@@ -639,15 +639,13 @@ proof -
   thus ?thesis by auto
 qed
 
-subsection {* Reflexive-transitive closure of a relation $R$ *}
+subsection {* Reflexive-transitive closure of $\beta Y$ *}
 
 inductive close :: "(ptrm \<Rightarrow> ptrm \<Rightarrow> bool) \<Rightarrow> ptrm \<Rightarrow> ptrm \<Rightarrow> bool" ("_* _  _" [80,80] 80) for R::"ptrm \<Rightarrow> ptrm \<Rightarrow> bool"
 where
   base[intro]: "R a b \<Longrightarrow> R* a b"
 | refl[intro]: "R* a a"
 | trans[intro]: "\<lbrakk> R* a b ; R* b c \<rbrakk> \<Longrightarrow> R* a c"
-
-subsection {* Proof of $\dip(\red^*)$ *}
 
 definition DP :: "(ptrm \<Rightarrow> ptrm \<Rightarrow> bool) \<Rightarrow> (ptrm \<Rightarrow> ptrm \<Rightarrow> bool) \<Rightarrow> bool" where
 "DP R T = (\<forall>a b c. R a b \<and> T a c \<longrightarrow> (\<exists>d. T b d \<and> R c d))"
