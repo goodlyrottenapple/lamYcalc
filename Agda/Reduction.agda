@@ -13,7 +13,7 @@ open import Core-Lemmas
 
 _↝_ : Set -> Set -> Set₁
 A ↝ B = A -> B -> Set
-
+------------------------------------------------------------------------------------
 
 data _->β_ : PTerm ↝ PTerm where
   redL : ∀ {n m m'} -> Term n → m ->β m' -> app m n ->β app m' n
@@ -22,9 +22,7 @@ data _->β_ : PTerm ↝ PTerm where
     lam m ->β lam m'
   beta : ∀ {m n} -> Term (lam m) -> Term n -> app (lam m) n ->β (m ^ n)
   Y : ∀ {m σ} -> Term m -> app (Y σ) m ->β app m (app (Y σ) m)
-
--- test : ∀ {x} -> lam (app (lam (bv 0)) (fv x)) ->β lam (fv x)
--- test = abs [] (λ _ -> beta (lam [] (λ x∉L -> var)) var)
+------------------------------------------------------------------------------------
 
 data _->||_ : PTerm ↝ PTerm where
   refl : ∀ {x} -> fv x ->|| fv x
@@ -32,16 +30,16 @@ data _->||_ : PTerm ↝ PTerm where
   app : ∀ {m m' n n'} -> m ->|| m' -> n ->|| n' -> app m n ->|| app m' n'
   abs : ∀ L {m m'} -> ( ∀ {x} -> x ∉ L -> (m ^' x) ->|| (m' ^' x) ) ->
     lam m ->|| lam m'
-  beta : ∀ L {m m' n n'} -> (cf : ∀ {x} -> x ∉ L -> (m ^' x) ->|| (m' ^' x) ) -> n ->|| n' ->
-    (app (lam m) n) ->|| (m' ^ n')
+  beta : ∀ L {m m' n n'} -> (cf : ∀ {x} -> x ∉ L -> (m ^' x) ->|| (m' ^' x) ) ->
+    n ->|| n' -> (app (lam m) n) ->|| (m' ^ n')
   Y : ∀ {m m' σ} -> m ->|| m' -> app (Y σ) m ->|| app m' (app (Y σ) m')
-
+------------------------------------------------------------------------------------
 
 data NotAbsY : PTerm -> Set where
   fv : ∀ {x} -> NotAbsY (fv x)
   bv : ∀ {n} -> NotAbsY (bv n)
   app : ∀ {t1 t2} -> NotAbsY (app t1 t2)
-
+------------------------------------------------------------------------------------
 
 data _>>>_ : PTerm ↝ PTerm where
   refl : ∀ {x} -> fv x >>> fv x
@@ -49,10 +47,10 @@ data _>>>_ : PTerm ↝ PTerm where
   app : ∀ {m m' n n'} -> NotAbsY m -> m >>> m' -> n >>> n' -> app m n >>> app m' n'
   abs : ∀ L {m m'} -> ( ∀ {x} -> x ∉ L -> (m ^' x) >>> (m' ^' x) ) ->
     lam m >>> lam m'
-  beta : ∀ L {m m' n n'} -> (cf : ∀ {x} -> x ∉ L -> (m ^' x) >>> (m' ^' x) ) -> n >>> n' ->
-    app (lam m) n >>> (m' ^ n')
+  beta : ∀ L {m m' n n'} -> (cf : ∀ {x} -> x ∉ L -> (m ^' x) >>> (m' ^' x) ) ->
+    n >>> n' -> app (lam m) n >>> (m' ^ n')
   Y : ∀ {m m' σ} -> m >>> m' -> app (Y σ) m >>> app m' (app (Y σ) m')
-
+------------------------------------------------------------------------------------
 
 subst-Term : ∀ {x e u} -> Term e -> Term u -> Term (e [ x ::= u ])
 subst-Term {x} {_} {u} (var {y}) Term-u with x ≟ y
@@ -67,7 +65,7 @@ subst-Term {x} {_} {u} (lam L {e} cf) Term-u = lam (x ∷ L) body
 subst-Term (app Term-e Term-e₁) Term-u =
   app (subst-Term Term-e Term-u) (subst-Term Term-e₁ Term-u)
 subst-Term Y Term-u = Y
-
+------------------------------------------------------------------------------------
 
 ^-Term : ∀ {m n} -> Term (lam m) -> Term n -> Term (m ^ n)
 ^-Term {m} {n} (lam L cf) Term-n = body
@@ -80,7 +78,7 @@ subst-Term Y Term-u = Y
   body : Term (m ^ n)
   body rewrite subst-intro y n m (∉-cons-r L (FV m) y∉) Term-n =
     subst-Term {y} {m ^' y} {n} (cf (∉-cons-l L (FV m) y∉)) Term-n
-
+------------------------------------------------------------------------------------
 
 ->β-Term-l : ∀ {m m'} -> m ->β m' -> Term m
 ->β-Term-l (redL x m->βm') = app (->β-Term-l m->βm') x
@@ -88,6 +86,7 @@ subst-Term Y Term-u = Y
 ->β-Term-l (abs L x) = lam L (λ {x₁} x∉L → ->β-Term-l (x x∉L))
 ->β-Term-l (beta x x₁) = app x x₁
 ->β-Term-l (Y x) = app Y x
+------------------------------------------------------------------------------------
 
 ->β-Term-r : ∀ {m m'} -> m ->β m' -> Term m'
 ->β-Term-r (redL x m->βm') = app (->β-Term-r m->βm') x
@@ -95,15 +94,17 @@ subst-Term Y Term-u = Y
 ->β-Term-r (abs L x) = lam L (λ {x₁} x∉L → ->β-Term-r (x x∉L))
 ->β-Term-r (beta {m} {n} x x₁) = ^-Term {m} {n} x x₁
 ->β-Term-r (Y x) = app x (app Y x)
+------------------------------------------------------------------------------------
 
 ->||-Term-l : ∀ {m m'} -> m ->|| m' -> Term m
 ->||-Term-l refl = var
 ->||-Term-l reflY = Y
 ->||-Term-l (app m->||m' m->||m'') = app (->||-Term-l m->||m') (->||-Term-l m->||m'')
 ->||-Term-l (abs L x) = lam L (λ {x₁} x∉L → ->||-Term-l (x x∉L))
-->||-Term-l (beta L cf m->||m') = app (lam L (λ x∉L → ->||-Term-l (cf x∉L))) (->||-Term-l m->||m')
+->||-Term-l (beta L cf m->||m') =
+  app (lam L (λ x∉L → ->||-Term-l (cf x∉L))) (->||-Term-l m->||m')
 ->||-Term-l (Y m->||m') = app Y (->||-Term-l m->||m')
-
+------------------------------------------------------------------------------------
 
 ->||-Term-r : ∀ {m m'} -> m ->|| m' -> Term m'
 ->||-Term-r refl = var
@@ -113,7 +114,7 @@ subst-Term Y Term-u = Y
 ->||-Term-r (beta L {m} {m'} {n} {n'} cf m->||m') =
   ^-Term {m'} {n'} (lam L (λ {x₁} x∉L → ->||-Term-r (cf x∉L))) (->||-Term-r m->||m')
 ->||-Term-r (Y m->||m') = app (->||-Term-r m->||m') (app Y (->||-Term-r m->||m'))
-
+------------------------------------------------------------------------------------
 
 >>>-Term-l : ∀ {m m'} -> m >>> m' -> Term m
 >>>-Term-l refl = var
@@ -124,7 +125,7 @@ subst-Term Y Term-u = Y
   app (lam L (λ {x₁} x∉L → >>>-Term-l (x x∉L)))
       (>>>-Term-l m>>>m')
 >>>-Term-l (Y {m} {m'} m>>>m') = app Y (>>>-Term-l m>>>m')
-
+------------------------------------------------------------------------------------
 
 >>>-Term-r : ∀ {m m'} -> m >>> m' -> Term m'
 >>>-Term-r refl = var
@@ -134,7 +135,7 @@ subst-Term Y Term-u = Y
 >>>-Term-r (beta L {m} {m'} {n} {n'} cf m>>>m') =
   ^-Term {m'} {n'} (lam L (λ {x₁} x∉L → >>>-Term-r (cf x∉L))) (>>>-Term-r m>>>m')
 >>>-Term-r (Y m>>>m') = app (>>>-Term-r m>>>m') (app Y (>>>-Term-r m>>>m'))
-
+------------------------------------------------------------------------------------
 
 lem2-5-1 : ∀ s s' t t' (x : ℕ) -> s ->|| s' -> t ->|| t' ->
   (s [ x ::= t ]) ->|| (s' [ x ::= t' ])
@@ -144,14 +145,16 @@ lem2-5-1 .(fv x) .(fv x) t t' x refl t->||t' | yes refl rewrite
 lem2-5-1 _ _ t t' y (refl {x}) t->||t'             | no x≠y rewrite
   fv-subst-neq x y t x≠y | fv-subst-neq x y t' x≠y = refl
 lem2-5-1 _ _ t t' x reflY t->||t' = reflY
-lem2-5-1 _ _ t t' x (app {m} {m'} {n} {n'} ss' ss'') t->||t' = app (lem2-5-1 m m' t t' x ss' t->||t') (lem2-5-1 n n' t t' x ss'' t->||t')
+lem2-5-1 _ _ t t' x (app {m} {m'} {n} {n'} ss' ss'') t->||t' =
+  app (lem2-5-1 m m' t t' x ss' t->||t') (lem2-5-1 n n' t t' x ss'' t->||t')
 lem2-5-1 _ _ t t' x (abs L {m} {m'} cf) t->||t' = abs (x ∷ L) body
   where
   x∉FVy : (y : ℕ) -> (y ∉ x ∷ L) -> x ∉ FV (fv y)
   x∉FVy y y∉x∷L x∈FVy with fv-x≡y x y x∈FVy
   x∉FVy .x y∉x∷L x∈FVy | refl = y∉x∷L (here refl)
 
-  body : {y : ℕ} -> (y ∉ x ∷ L) -> ((m [ x ::= t ]) ^' y) ->|| ((m' [ x ::= t' ]) ^' y)
+  body : {y : ℕ} -> (y ∉ x ∷ L) ->
+    ((m [ x ::= t ]) ^' y) ->|| ((m' [ x ::= t' ]) ^' y)
   body {y} y∉x∷L rewrite
     subst-fresh2 x (fv y) t (x∉FVy y y∉x∷L) |
     subst-open2 x t 0 (fv y) m (->||-Term-l t->||t') |
@@ -175,10 +178,10 @@ lem2-5-1 _ _ t t' x (beta L {m} {m'} {n} {n'} cf n->||n') t->||t' rewrite
   body₂ = lem2-5-1 n n' t t' x n->||n' t->||t'
 
 lem2-5-1 _ _ t t' x (Y {m} {m'} ss') t->||t' = Y (lem2-5-1 m m' t t' x ss' t->||t')
+------------------------------------------------------------------------------------
 
-
-lem2-5-1-^ : ∀ s s' t t' L -> (∀ {x} -> x ∉ L -> (s ^' x) ->|| (s' ^' x)) -> t ->|| t' ->
-  (s ^ t) ->|| (s' ^ t')
+lem2-5-1-^ : ∀ s s' t t' L -> (∀ {x} -> x ∉ L -> (s ^' x) ->|| (s' ^' x)) ->
+  t ->|| t' -> (s ^ t) ->|| (s' ^ t')
 lem2-5-1-^ s s' t t' L cf t->||t' = body
   where
   x = ∃fresh (L ++ FV s ++ FV s')
@@ -188,10 +191,14 @@ lem2-5-1-^ s s' t t' L cf t->||t' = body
 
   body : (s ^ t) ->|| (s' ^ t')
   body rewrite
-    subst-intro x t s (∉-cons-l (FV s) (FV s') (∉-cons-r L (FV s ++ FV s') x∉)) (->||-Term-l t->||t') |
-    subst-intro x t' s' (∉-cons-r (FV s) (FV s') (∉-cons-r L (FV s ++ FV s') x∉)) (->||-Term-r t->||t') =
-      lem2-5-1 (s ^' x) (s' ^' x) t t' x (cf (∉-cons-l L (FV s ++ FV s') x∉)) t->||t'
-
+    subst-intro x t s
+      (∉-cons-l (FV s) (FV s') (∉-cons-r L (FV s ++ FV s') x∉))
+      (->||-Term-l t->||t') |
+    subst-intro x t' s' (∉-cons-r (FV s) (FV s')
+      (∉-cons-r L (FV s ++ FV s') x∉))
+      (->||-Term-r t->||t') =
+    lem2-5-1 (s ^' x) (s' ^' x) t t' x (cf (∉-cons-l L (FV s ++ FV s') x∉)) t->||t'
+------------------------------------------------------------------------------------
 
 NotAbsY-subst : ∀ {x y m} -> NotAbsY m -> NotAbsY (m [ x ::= fv y ])
 NotAbsY-subst {x} (fv {y}) with x ≟ y
@@ -200,18 +207,22 @@ NotAbsY-subst {x} {y} fv | yes refl rewrite
 NotAbsY-subst fv | no _ = fv
 NotAbsY-subst bv = bv
 NotAbsY-subst app = app
+------------------------------------------------------------------------------------
 
-
-lem2-5-1->β : ∀ s s' (x y : ℕ) -> s ->β s' -> (s [ x ::= fv y ]) ->β (s' [ x ::= fv y ])
-lem2-5-1->β _ _ x y (redL trm-n s->βs') = redL (subst-Term trm-n var) (lem2-5-1->β _ _ x y s->βs')
-lem2-5-1->β _ _ x y (redR trm-m s->βs') = redR (subst-Term trm-m var) (lem2-5-1->β _ _ x y s->βs')
+lem2-5-1->β : ∀ s s' (x y : ℕ) -> s ->β s' ->
+  (s [ x ::= fv y ]) ->β (s' [ x ::= fv y ])
+lem2-5-1->β _ _ x y (redL trm-n s->βs') =
+  redL (subst-Term trm-n var) (lem2-5-1->β _ _ x y s->βs')
+lem2-5-1->β _ _ x y (redR trm-m s->βs') =
+  redR (subst-Term trm-m var) (lem2-5-1->β _ _ x y s->βs')
 lem2-5-1->β _ _ x y (abs L {m} {m'} cf) = abs (x ∷ L) body
   where
   x∉FVz : (z : ℕ) -> (z ∉ x ∷ L) -> x ∉ FV (fv z)
   x∉FVz z z∉x∷L x∈FVz with fv-x≡y x z x∈FVz
   x∉FVz .x z∉x∷L x∈FVz | refl = z∉x∷L (here refl)
 
-  body : {z : ℕ} -> (z ∉ x ∷ L) -> ((m [ x ::= fv y ]) ^' z) ->β ((m' [ x ::= fv y ]) ^' z)
+  body : {z : ℕ} -> (z ∉ x ∷ L) ->
+    ((m [ x ::= fv y ]) ^' z) ->β ((m' [ x ::= fv y ]) ^' z)
   body {z} z∉x∷L rewrite
     subst-fresh2 x (fv z) (fv y) (x∉FVz z z∉x∷L) |
     subst-open2 x (fv y) 0 (fv z) m var |
@@ -225,9 +236,10 @@ lem2-5-1->β _ _ x y (beta {n = n} (lam L {m} cf) trm-n) rewrite
   subst-open x (fv y) 0 n m var =
     beta (subst-Term {x} {lam m} {fv y} (lam L cf) var) (subst-Term trm-n var)
 lem2-5-1->β _ _ x y (Y trm-m) = Y (subst-Term trm-m var)
+------------------------------------------------------------------------------------
 
-
-lem2-5-1>>> : ∀ s s' (x y : ℕ) -> s >>> s' -> (s [ x ::= fv y ]) >>> (s' [ x ::= fv y ])
+lem2-5-1>>> : ∀ s s' (x y : ℕ) -> s >>> s' ->
+  (s [ x ::= fv y ]) >>> (s' [ x ::= fv y ])
 lem2-5-1>>> _ _ x y (refl {z}) with x ≟ z
 lem2-5-1>>> .(fv x) .(fv x) x y refl | yes refl rewrite
   fv-subst-eq x x (fv y) refl = refl
@@ -241,7 +253,8 @@ lem2-5-1>>> _ _ x y (abs L {m} {m'} cf) = abs (x ∷ L) body
   x∉FVz z z∉x∷L x∈FVz with fv-x≡y x z x∈FVz
   x∉FVz .x z∉x∷L x∈FVz | refl = z∉x∷L (here refl)
 
-  body : {z : ℕ} -> (z ∉ x ∷ L) -> ((m [ x ::= fv y ]) ^' z) >>> ((m' [ x ::= fv y ]) ^' z)
+  body : {z : ℕ} -> (z ∉ x ∷ L) ->
+    ((m [ x ::= fv y ]) ^' z) >>> ((m' [ x ::= fv y ]) ^' z)
   body {z} z∉x∷L rewrite
     subst-fresh2 x (fv z) (fv y) (x∉FVz z z∉x∷L) |
     subst-open2 x (fv y) 0 (fv z) m var |
@@ -255,7 +268,8 @@ lem2-5-1>>> _ _ x y (beta L {m} {m'} {n} {n'} cf n>>>n') rewrite
   subst-open x (fv y) 0 n' m' var =
     beta (x ∷ L) {_} {m' [ x ::= fv y ]} body body₂
   where
-  body : {z : ℕ} -> z ∉ x ∷ L -> ((m [ x ::= fv y ]) ^' z) >>> ((m' [ x ::= fv y ]) ^' z)
+  body : {z : ℕ} -> z ∉ x ∷ L ->
+    ((m [ x ::= fv y ]) ^' z) >>> ((m' [ x ::= fv y ]) ^' z)
   body {z} z∉x∷L rewrite
     subst-open-var z x (fv y) m (fv-x≠y z x z∉x∷L) var |
     subst-open-var z x (fv y) m' (fv-x≠y z x z∉x∷L) var =
@@ -265,12 +279,14 @@ lem2-5-1>>> _ _ x y (beta L {m} {m'} {n} {n'} cf n>>>n') rewrite
   body₂ = lem2-5-1>>> n n' x y n>>>n'
 
 lem2-5-1>>> _ _ x y (Y {m} {m'} ss') = Y (lem2-5-1>>> m m' x y ss')
+------------------------------------------------------------------------------------
 
-
-*^-^->>> : ∀ {x y t d k} -> t >>> d -> y ∉ x ∷ (FV t ++ FV d) -> ([ k >> fv y ] ([ k << x ] t)) >>> ([ k >> fv y ] ([ k << x ] d))
+*^-^->>> : ∀ {x y t d k} -> t >>> d -> y ∉ x ∷ (FV t ++ FV d) ->
+  ([ k >> fv y ] ([ k << x ] t)) >>> ([ k >> fv y ] ([ k << x ] d))
 *^-^->>> {x} {y} {t} {d} {k} t>>>d y∉ rewrite
-  *^-^≡subst t x y {k} (>>>-Term-l t>>>d) | *^-^≡subst d x y {k} (>>>-Term-r t>>>d) = lem2-5-1>>> t d x y t>>>d
-
+  *^-^≡subst t x y {k} (>>>-Term-l t>>>d) |
+  *^-^≡subst d x y {k} (>>>-Term-r t>>>d) = lem2-5-1>>> t d x y t>>>d
+------------------------------------------------------------------------------------
 
 ∃>>> : ∀ {a} -> Term a -> ∃(λ d -> a >>> d)
 ∃>>> (var {x}) = fv x , refl
@@ -287,7 +303,8 @@ lem2-5-1>>> _ _ x y (Y {m} {m'} ss') = Y (lem2-5-1>>> m m' x y ss')
   d : PTerm
   d = proj₁ d-spec
 
-  subst1 : ∀ x y t k -> x ∉ FV t -> (t ^' y) ≡ (([ k << x ] ([ k >> fv x ] t)) ^' y)
+  subst1 : ∀ x y t k -> x ∉ FV t ->
+    (t ^' y) ≡ (([ k << x ] ([ k >> fv x ] t)) ^' y)
   subst1 x y t k x∉FVt rewrite fv-^-*^-refl x t {k} x∉FVt = refl
 
   cf' : ∀ {y} -> y ∉ x ∷ (FV d ++ FV t) -> (t ^' y) >>> ((* x ^ d) ^' y)
@@ -302,18 +319,22 @@ lem2-5-1>>> _ _ x y (Y {m} {m'} ss') = Y (lem2-5-1>>> m m' x y ss')
   body = lam (* x ^ d) , (abs (x ∷ (FV d ++ FV t)) cf')
 
 ∃>>> (app {t1} {t2} trm-t1 trm-t2) with trm-t1 | ∃>>> trm-t1 | ∃>>> trm-t2
-∃>>> (app trm-t1 trm-t2) | (var {x}) | d1 , t1>>>d1 | d2 , t2>>>d2 = app (fv x) d2 , app fv refl t2>>>d2
-∃>>> (app {_} {t2} trm-t1 trm-t2) | lam L cf | _ , abs L₁ {t1} {d1} cf₁ | d2 , t2>>>d2 =
+∃>>> (app trm-t1 trm-t2) | (var {x}) | d1 , t1>>>d1 | d2 , t2>>>d2 =
+  app (fv x) d2 , app fv refl t2>>>d2
+∃>>> (app {_} {t2} trm-t1 trm-t2) |
+  lam L cf | _ , abs L₁ {t1} {d1} cf₁ | d2 , t2>>>d2 =
   d1 ^ d2 , beta L₁ {t1} {d1} {t2} {d2} cf₁ t2>>>d2
-∃>>> (app {_} {t2} trm-t1 trm-t2) | app {p1} {p2} trm-p1 trm-p2 | d1 , t1>>>d1 | d2 , t2>>>d2 =
+∃>>> (app {_} {t2} trm-t1 trm-t2) |
+  app {p1} {p2} trm-p1 trm-p2 | d1 , t1>>>d1 | d2 , t2>>>d2 =
   app d1 d2 , app app t1>>>d1 t2>>>d2
-∃>>> (app trm-t1 trm-t2) | (Y {t}) | d1 , t1>>>d1 | d2 , t2>>>d2 = app d2 (app (Y t) d2) , Y t2>>>d2
+∃>>> (app trm-t1 trm-t2) | (Y {t}) | d1 , t1>>>d1 | d2 , t2>>>d2 =
+  app d2 (app (Y t) d2) , Y t2>>>d2
 ∃>>> (Y {t}) = Y t , reflY
-
+------------------------------------------------------------------------------------
 
 Y->||Y-≡ : ∀ {t t' : Type} -> (Y t) ->|| (Y t') -> (PTerm.Y t) ≡ (Y t')
 Y->||Y-≡ reflY = refl
-
+------------------------------------------------------------------------------------
 
 >>>closes->|| : ∀ {a b d} -> a >>> d -> a ->|| b -> b ->|| d
 >>>closes->|| refl refl = refl
@@ -325,42 +346,50 @@ Y->||Y-≡ reflY = refl
 >>>closes->|| (abs L {a} {d} cf) (abs L₁ {.a} {b} cf₁) = abs (L ++ L₁) ih
   where
   ih : ∀ {x : ℕ} → x ∉ L ++ L₁ → (b ^' x) ->|| (d ^' x)
-  ih {x} x∉L++L₁ = >>>closes->|| (cf (∉-cons-l _ _ x∉L++L₁)) (cf₁ (∉-cons-r L _ x∉L++L₁))
+  ih {x} x∉L++L₁ =
+    >>>closes->|| (cf (∉-cons-l _ _ x∉L++L₁)) (cf₁ (∉-cons-r L _ x∉L++L₁))
 
 >>>closes->|| (beta _ _ _) (app {m' = bv _} () _)
 >>>closes->|| (beta _ _ _) (app {m' = fv _} () _)
->>>closes->|| (beta L {_} {ald} {ar} {ard} cf ar>>>ard) (app {m' = lam alb} {n' = arb} (abs L₁ cf₁) ar->||arb) =
+>>>closes->|| (beta L {_} {ald} {ar} {ard} cf ar>>>ard)
+  (app {m' = lam alb} {n' = arb} (abs L₁ cf₁) ar->||arb) =
   beta (L ++ L₁) {m' = ald} ih arb->||ard
   where
   arb->||ard : arb ->|| ard
   arb->||ard = >>>closes->|| ar>>>ard ar->||arb
 
   ih : ∀ {x} -> x ∉ L ++ L₁ -> (alb ^' x) ->|| (ald ^' x)
-  ih {x} x∉L++L₁ = >>>closes->|| (cf (∉-cons-l _ _ x∉L++L₁)) (cf₁ (∉-cons-r L _ x∉L++L₁))
+  ih {x} x∉L++L₁ =
+    >>>closes->|| (cf (∉-cons-l _ _ x∉L++L₁)) (cf₁ (∉-cons-r L _ x∉L++L₁))
 
 >>>closes->|| (beta _ _ _) (app {m' = app _ _} () _)
 >>>closes->|| (beta _ _ _) (app {m' = Y _} () _)
->>>closes->|| (beta L {al} {ald} {ar} {ard} cf ar>>>ard) (beta L₁ {m' = alb} {n' = arb} cf₁ ar->||arb) =
+>>>closes->|| (beta L {al} {ald} {ar} {ard} cf ar>>>ard)
+  (beta L₁ {m' = alb} {n' = arb} cf₁ ar->||arb) =
   lem2-5-1-^ alb ald arb ard (L ++ L₁) ih arb->||ard
   where
   arb->||ard : arb ->|| ard
   arb->||ard = >>>closes->|| ar>>>ard ar->||arb
 
   ih : ∀ {x} -> x ∉ L ++ L₁ -> (alb ^' x) ->|| (ald ^' x)
-  ih {x} x∉L++L₁ = >>>closes->|| (cf (∉-cons-l _ _ x∉L++L₁)) (cf₁ (∉-cons-r L _ x∉L++L₁))
+  ih {x} x∉L++L₁ =
+    >>>closes->|| (cf (∉-cons-l _ _ x∉L++L₁)) (cf₁ (∉-cons-r L _ x∉L++L₁))
 
 >>>closes->|| (Y _) (app {m' = bv _} () _)
 >>>closes->|| (Y _) (app {m' = fv _} () _)
 >>>closes->|| (Y _) (app {m' = lam _} () _)
 >>>closes->|| (Y _) (app {m' = app _ _} () _)
->>>closes->|| (Y {m} {m'} {t} m>>>m') (app {m' = Y t'} {n' = n''} Yt->||Yt' m->||n'') rewrite
-  Y->||Y-≡ Yt->||Yt' = Y (>>>closes->|| m>>>m' m->||n'')
+>>>closes->|| (Y {m} {m'} {t} m>>>m')
+  (app {m' = Y t'} {n' = n''} Yt->||Yt' m->||n'') rewrite Y->||Y-≡ Yt->||Yt' =
+  Y (>>>closes->|| m>>>m' m->||n'')
 >>>closes->|| (Y {m} {m'} {t} m>>>m') (Y {m' = m''} m->||m'') =
   app (>>>closes->|| m>>>m' m->||m'') (app reflY (>>>closes->|| m>>>m' m->||m''))
-
+------------------------------------------------------------------------------------
 
 lem2-5-2 : ∀ {a b c} -> a ->|| b -> a ->|| c -> ∃(λ d -> b ->|| d × c ->|| d)
-lem2-5-2 {a} a->||b a->||c = d , ((>>>closes->|| a>>>d a->||b) , (>>>closes->|| a>>>d a->||c))
+lem2-5-2 {a} a->||b a->||c =
+  d , ((>>>closes->|| a>>>d a->||b) , (>>>closes->|| a>>>d a->||c))
+
   where
   a>>>d-spec : ∃(λ d -> a >>> d)
   a>>>d-spec = ∃>>> (->||-Term-l a->||c)
