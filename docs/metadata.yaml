@@ -60,6 +60,7 @@ monofontoptions: Scale=0.8
 
 header-includes: # Things you may want to include in the latex header
 - \usepackage{bussproofs}
+- \usepackage{stackengine}
 - \usepackage{amsthm}
 - \usepackage{minted}
 - \usepackage{tikz}

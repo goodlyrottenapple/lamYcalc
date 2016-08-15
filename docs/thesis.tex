@@ -233,6 +233,7 @@ xetex]{hyperref}
 
 % - Add to Header --------------------------------------------------------------
 \usepackage{bussproofs}
+\usepackage{stackengine}
 \usepackage{amsthm}
 \usepackage{minted}
 \usepackage{tikz}
@@ -1052,11 +1053,9 @@ reason for following the Takahashi
 of the major lemmas in more detail.\\
 Firstly, we give the definition of \emph{parallel \(\beta Y\)-reduction}
 \(\gg\) formulated for the terms of the \(\lamy\) calculus, which allows
-simultaneous reduction of multiple parts of a term:
+simultaneous reduction of multiple parts of a term: \(\ \)
 
 \begin{Definition}[$\gg$]
-
-\(\ \)
 
 \begin{center}
   \AxiomC{}
@@ -1149,8 +1148,6 @@ reduction} \(\ggg\), which contracts all redexes in a given term with a
 single step:
 
 \begin{Definition}[$\ggg$]
-
-\(\ \)
 
 \begin{center}
   \AxiomC{}
@@ -1639,10 +1636,10 @@ we translate the strict types \(\mathcal{T}_s\) to Agda in a
 straightforward way, since we only need to translate\(\mathcal{T}_s\)
 into the style of a GADT (generalized algebraic datatype) definition:
 
-\begin{minted}[]{agda}
-data Ts where
-  φ : Ts
-  _~>_ : (s : T) -> (t : Ts) -> Ts
+\begin{minted}[escapeinside=||]{agda}
+data T|$_\texttt{s}$| where
+  φ : T|$_\texttt{s}$|
+  _~>_ : (s : T) -> (t : T|$_\texttt{s}$|) -> T|$_\texttt{s}$|
 \end{minted}
 
 \(\ \)
@@ -1689,9 +1686,9 @@ sets, as they are similar in many regards, i.e.~the Agda implementation
 of lists includes the notion of subset inclusion for lists, so that one
 can write a proof of \([1,2] \subseteq [2,2,1]\) easily:
 
-\begin{minted}[]{agda}
+\begin{minted}[escapeinside=||]{agda}
 data T where
-  ∩ : List Ts -> T
+  ∩ : List T|$_\texttt{s}$| -> T
 \end{minted}
 
 Whilst this definition is now largely equivalent to the informal
@@ -1702,10 +1699,10 @@ improve thigs somewhat by getting rid of the pointless constructor
 \texttt{∩}, by merging the two definitions of \(\mathcal{T}\) and
 \(\mathcal{T}_s\) into a single definition, namely:
 
-\begin{minted}[]{agda}
-data Ts where
-  φ : Ts
-  _~>_ : (s : List Ts) -> (t : Ts) -> Ts
+\begin{minted}[escapeinside=||]{agda}
+data T|$_\texttt{s}$| where
+  φ : T|$_\texttt{s}$|
+  _~>_ : (s : List T|$_\texttt{s}$|) -> (t : T|$_\texttt{s}$|) -> T|$_\texttt{s}$|
 \end{minted}
 
 \(\ \)
@@ -1732,8 +1729,8 @@ Now, \(\tau \cap \psi \leadsto \tau\), corresponds to the Agda term
 \texttt{(τ ∷ ψ ∷ [])  \textasciitilde > τ}, which is still not ideal. We
 can, however, define some simple sugar notation:
 
-\begin{minted}[]{agda}
-_∩_ : Ts -> Ts -> List Ts
+\begin{minted}[escapeinside=||]{agda}
+_∩_ : T|$_\texttt{s}$| -> T|$_\texttt{s}$| -> List T|$_\texttt{s}$|
 A ∩ B = A ∷ B ∷ []
 \end{minted}
 
@@ -2891,6 +2888,9 @@ been made shorter and more ``tailored'' to the LN mechanization.
 
 \label{chap:compAgda}
 
+\textbf{agda with spacing: 1351 lines} \textbf{agda without spaces: 1234
+lines}
+
 The formalization of the terms and reduction rules of the \(\lambda\)-Y
 calculus presented here is a locally nameless presentation due to B.
 Aydemir et al. (\protect\hyperlink{ref-aydemir08}{2008}). The basic
@@ -3485,7 +3485,8 @@ The goal \texttt{Term .n} follows in exactly the same fashion. Applying
 >>>-Term-l : ∀ {t t'} -> t >>> t' -> Term t
 >>>-Term-l refl = var
 >>>-Term-l reflY = Y
->>>-Term-l (app x m>>>m' n>>>n') = app (>>>-Term-l m>>>m') (>>>-Term-l n>>>n')
+>>>-Term-l (app x m>>>m' n>>>n') = 
+  app (>>>-Term-l m>>>m') (>>>-Term-l n>>>n')
 >>>-Term-l (abs L x) = lam {!   0!} {!   1!}
 >>>-Term-l (beta L cf t>>>t') = {!   2!}
 >>>-Term-l (Y t>>>t') = {!   3!}
@@ -3510,7 +3511,8 @@ in this context) changes goal \texttt{?1} to
 >>>-Term-l : ∀ {t t'} -> t >>> t' -> Term t
 >>>-Term-l refl = var
 >>>-Term-l reflY = Y
->>>-Term-l (app x m>>>m' n>>>n') = app (>>>-Term-l m>>>m') (>>>-Term-l n>>>n')
+>>>-Term-l (app x m>>>m' n>>>n') = 
+  app (>>>-Term-l m>>>m') (>>>-Term-l n>>>n')
 >>>-Term-l (abs L x) = lam L {!   0!}
 >>>-Term-l (beta L cf t>>>t') = {!   1!}
 >>>-Term-l (Y t>>>t') = {!   2!}
@@ -3547,7 +3549,8 @@ cases, the completed proof is given below:
 >>>-Term-l : ∀ {t t'} -> t >>> t' -> Term t
 >>>-Term-l refl = var
 >>>-Term-l reflY = Y
->>>-Term-l (app x m>>>m' n>>>n') = app (>>>-Term-l m>>>m') (>>>-Term-l n>>>n')
+>>>-Term-l (app x m>>>m' n>>>n') = 
+  app (>>>-Term-l m>>>m') (>>>-Term-l n>>>n')
 >>>-Term-l (abs L x) = lam L (λ x∉L → >>>-Term-l (x x∉L))
 >>>-Term-l (beta L cf t>>>t') = app 
   (lam L (λ {x} x∉L → >>>-Term-l (cf x∉L))) 
@@ -3575,9 +3578,8 @@ invariance, these proofs turned out to be significantly more difficult
 than their simply typed counterparts (e.g.~in case of sub-tying and
 subject reduction lemmas). Indeed the whole formalization of simple
 types, along with the proof of the Church Rosser theorem, is roughly
-only 1250 lines of code in Agda, in comparison to roughly 1,600 lines,
-for the intersection typing together with proofs of subject
-invariance.\\
+only 1350 lines of code in Agda, in comparison to about 1890 lines, for
+the intersection typing together with proofs of subject invariance.\\
 Even though the proof is not novel, there is, to our knowledge, no known
 fully formal version of it for the \(\lamy\) calculus. The chapter
 mainly focuses on the engineering choices that were made in order to
@@ -3599,34 +3601,35 @@ The first implementation detail we had to consider was the
 implementation of the definition of intersection types themselves.
 Unlike simple types, the definition of intersection-types is split into
 two mutually recursive definitions of strict (\texttt{IType}
-\(/\mathcal{T}_s\)) and intersection (\texttt{ITypeI} \(/\mathcal{T}\))
-types:
+\(/\mathcal{T}_s\)) and intersection (\texttt{IType}\(_\ell\)
+\(/\mathcal{T}\)) types:
 
-\begin{minted}[xleftmargin=1em, linenos=true]{agda}
-data ITypeI : Set
+\begin{minted}[escapeinside=||, xleftmargin=1em, linenos=true]{agda}
+data IType|$_\ell$| : Set
 data IType : Set
 
 data IType where
   φ : IType
-  _~>_ : (s : ITypeI) -> (t : IType) -> IType
+  _~>_ : (s : IType|$_\ell$|) -> (t : IType) -> IType
 
-data ITypeI where
-  ∩ : List IType -> ITypeI
+data IType|$_\ell$| where
+  ∩ : List IType -> IType|$_\ell$|
 \end{minted}
 
-The reason why the intersection \texttt{ITypeI} is defined as a list of
-strict types \texttt{IType} in line 9, is due to the (usually) implicit
-requirement that the types in \(\mathcal{T}\) be finite. The decision to
-use lists as an implementation of fine sets was taken, because the Agda
-standard library includes a definition of lists with definitions of list
-membership \(\in\) and other associated lemmas, which proved to be
-useful for definitions of the \(\subseteq\) relation on types.
+The reason why the intersection \texttt{IType}\(_\ell\) is defined as a
+list of strict types \texttt{IType} in line 9, is due to the (usually)
+implicit requirement that the types in \(\mathcal{T}\) be finite. The
+decision to use lists as an implementation of fine sets was taken,
+because the Agda standard library includes a definition of lists with
+definitions of list membership \(\in\) and other associated lemmas,
+which proved to be useful for definitions of the \(\subseteq\) relation
+on types.
 
 From the above definition, it is obvious that the split definitions of
-\texttt{IType} and \texttt{ITypeI} are somewhat redundant, in that
-\texttt{ITypeI} only has one constructor \texttt{∩} and therefore, any
-instance of \texttt{IType} in the definition of \texttt{ITypeS} can
-simply be replaced by \texttt{List IType}:
+\texttt{IType} and \texttt{IType}\(_\ell\) are somewhat redundant, in
+that \texttt{IType}\(_\ell\) only has one constructor \texttt{∩} and
+therefore, any instance of \texttt{IType}\(_\ell\) in the definition of
+\texttt{IType} can simply be replaced by \texttt{List IType}:
 
 \begin{minted}[]{agda}
 data IType : Set where
@@ -3990,10 +3993,10 @@ By induction on \(\tau_i ::_\ell A\):
 For comparison, the same proof in Agda reads much the same as the
 ``paper'' one, given above:
 
-\begin{minted}[]{agda}
-++-∷'l : ∀ {A τi τj} -> τi ∷'l A -> τj ∷'l A -> (τi ++ τj) ∷'l A
-++-∷'l nil τj∷'A = τj∷'A
-++-∷'l (cons τ∷'A τs∷'A) τj∷'A = cons τ∷'A (++-∷'l τs∷'A τj∷'A)
+\begin{minted}[escapeinside=||]{agda}
+++-∷'|$_\ell$| : ∀ {A τ|$_\texttt{i}$| τ|$_\texttt{j}$|} -> τ|$_\texttt{i}$| ∷'|$_\ell$| A -> τ|$_\texttt{j}$| ∷'|$_\ell$| A -> (τ|$_\texttt{i}$| ++ τ|$_\texttt{j}$|) ∷'|$_\ell$| A
+++-∷'|$_\ell$| nil τ|$_\texttt{j}$|∷'A = τ|$_\texttt{j}$|∷'A
+++-∷'|$_\ell$| (cons τ∷'A τ|$_\texttt{s}$|∷'A) τ|$_\texttt{j}$|∷'A = cons τ∷'A (++-∷'|$_\ell$| τ|$_\texttt{s}$|∷'A τ|$_\texttt{j}$|∷'A)
 \end{minted}
 
 \end{Example}
@@ -4103,15 +4106,15 @@ was the somewhat cumbersome:
 The implementation of this rule clearly demonstrates the complexity,
 which made it difficult to reason with in proofs:
 
-\begin{minted}[]{agda}
-Y :    ∀ {Γ A τi τ} -> (τi∷A : τi ∷'l A) -> (τ∈τi : τ ∈ τi) ->
-    ------------------------------------------------------------
-    Γ ⊩ Y A ∶ (∩ (Data.List.map (λ τk -> (∩ τi ~> τk)) τi) ~> τ)
+\begin{minted}[escapeinside=||]{agda}
+Y :    ∀ {Γ A τ|$_\texttt{i}$| τ} -> (τ|$_\texttt{i}$|∷A : τ|$_\texttt{i}$| ∷'|$_\ell$| A) -> (τ∈τ|$_\texttt{i}$| : τ ∈ τ|$_\texttt{i}$|) ->
+    ----------------------------------------------------------
+    Γ ⊩ Y A ∶ (∩ (Data.List.map (λ τ|$_\texttt{k}$| -> (∩ τ|$_\texttt{i}$| ~> τ|$_\texttt{k}$|)) τ|$_\texttt{i}$|) ~> τ)
 \end{minted}
 
 Even though Agda's main strength is its the powerful pattern matching,
 it was quickly realized that pattern matching on the type
-\texttt{(∩ (Data.List.map (λ τk -> (∩ τi \textasciitilde > τk)) τi) \textasciitilde > τ)}
+\texttt{(∩ (Data.List.map (λ τ\textsubscript{k} -> (∩ τ\textsubscript{i} \textasciitilde > τ\textsubscript{k})) τ\textsubscript{i}) \textasciitilde > τ)}
 is difficult due to the map function, which appears inside the
 definition.\\
 Several modifications were made to the rule, until we arrived at it's
@@ -4168,10 +4171,10 @@ sample-lemma Γ⊩uv∶τ = ?
 \end{minted}
 
 One can perform a case analysis on the variable \texttt{Γ⊩uv∶τ} (the
-type of which is \texttt{Γ ⊩ uv ∶ τ}) and obtain:
+type of which is \texttt{Γ ⊩ app u v ∶ τ}) and obtain:
 
-\begin{minted}[]{agda}
-sample-lemma (app Γ⊩u∶τi~>τ Γ⊩bv∶τi) = ?
+\begin{minted}[escapeinside=||]{agda}
+sample-lemma (app Γ⊩u∶τ|$_\texttt{i}$|~>τ Γ⊩v∶τ|$_\texttt{i}$|) = ?
 \end{minted}
 
 In the \(\lambda_\cap^{BCD}\) system (or similar), such an inversion
@@ -4209,7 +4212,7 @@ following convention \(\bigcap \tau \equiv [\tau]\):
 \label{Definition:itypAssignment}
 
 \begin{center}
-  \AxiomC{$\exists (x : \tau_i ::_\ell A) \in \Gamma.\ \bigcap \tau \subseteq^A \tau_i$}
+  \AxiomC{$\exists (x : \tau_i ::_\ell A) \in \Gamma.\ \bigcap \tau \subseteq^A_\ell \tau_i$}
   \LeftLabel{$(var)$}
   \UnaryInfC{$\Gamma \Vdash x_{\{A\}} : \tau$}
   \DisplayProof
@@ -4218,7 +4221,7 @@ following convention \(\bigcap \tau \equiv [\tau]\):
   \AxiomC{$\Gamma \Vdash u_{\{A \to B\}} : \tau_i \leadsto \tau_j$}
   \AxiomC{$\Gamma \Vdash_\ell v_{\{A\}} : \tau_i$}
   \LeftLabel{$(app)$}
-  \RightLabel{$(\bigcap \tau \subseteq^B \tau_j)$}
+  \RightLabel{$(\bigcap \tau \subseteq^B_\ell \tau_j)$}
   \BinaryInfC{$\Gamma \Vdash uv : \tau$}
   \DisplayProof
   %------------------------------------
@@ -4229,7 +4232,7 @@ following convention \(\bigcap \tau \equiv [\tau]\):
   \DisplayProof
   %------------------------------------
   \hskip 1.5em
-  \AxiomC{$\exists \tau_x.\ \bigcap (\tau_x \leadsto \tau_x) \subseteq^{A \to A} \tau_i \land \tau_j \subseteq^A \tau_x$}
+  \AxiomC{$\exists \tau_x.\ \bigcap (\tau_x \leadsto \tau_x) \subseteq^{A \to A}_\ell \tau_i \land \tau_j \subseteq^A_\ell \tau_x$}
   \LeftLabel{$(Y)$}
   \UnaryInfC{$\Gamma \Vdash_s Y_{A} : \tau_i \leadsto \tau_j$}
   \DisplayProof
@@ -4282,6 +4285,7 @@ assumed, \(\Gamma \Vdash m(Y_\sigma m) : \tau\), we must necessarily
 have the following derivation tree for the intersection typing relation
 \(\Vdash\):
 
+\begin{figure}[h]
 \begin{center}
   \vskip 1em
   \AxiomC{$\vdots$}
@@ -4289,25 +4293,28 @@ have the following derivation tree for the intersection typing relation
   \AxiomC{$\vdots$}
   \UnaryInfC{$\Gamma \Vdash_\ell Y_A m : \tau_i$}
   \LeftLabel{$(app)$}
-  \RightLabel{$([\tau] \subseteq^A \tau_j)$}
+  \RightLabel{$([\tau] \subseteq^A_\ell \tau_j)$}
   \BinaryInfC{$\Gamma \Vdash m(Y_{A} m) : \tau$}
   \DisplayProof
   \vskip 1em
 \end{center}
+\caption{Analysis of the shape of the derivation tree for $\Gamma \Vdash m(Y_{A} m) : \tau$}
+\label{figure:shapemYm}
+\end{figure}
 
 We have two cases, where \(\tau_i\) is an empty intersection
 \(\tau_i \equiv \omega\) or a non-empty list of strict intersection
 types \(\tau_i \equiv [\tau_1,\hdots,\tau_n]\).
 
-\subsection{\texorpdfstring{\(\tau_i \equiv \omega\)}{\textbackslash{}tau\_i \textbackslash{}equiv \textbackslash{}omega}}\label{tau_i-equiv-omega}
+\subsection*{\texorpdfstring{\(\tau_i \equiv \omega\)}{\textbackslash{}tau\_i \textbackslash{}equiv \textbackslash{}omega}}\label{tau_i-equiv-omega}
+\addcontentsline{toc}{subsection}{\(\tau_i \equiv \omega\)}
 
-From the tree above, we have
+From \cref{figure:shapemYm} above, we have
 \((1): \Gamma \Vdash_s m : \omega \leadsto \tau_j\). Then, we can
 construct the following proof tree:
 
 \begin{center}
-  \AxiomC{}
-  \UnaryInfC{$[[\tau] \leadsto [\tau]] \subseteq^{A \to A} [\omega \leadsto [\tau]] \land [\tau] \subseteq^A [\tau]$}
+  \AxiomC{$[[\tau] \leadsto [\tau]] \subseteq^{A \to A}_\ell [\omega \leadsto [\tau]] \land [\tau] \subseteq^A_\ell [\tau]$}
   \LeftLabel{$(Y)$}
   \UnaryInfC{$\Gamma \Vdash Y : [\omega \leadsto [\tau]] \leadsto [\tau]$}
 
@@ -4316,14 +4323,14 @@ construct the following proof tree:
   \LeftLabel{$(nil)$}
   \UnaryInfC{$\Gamma \Vdash_\ell m : \omega$}
   \LeftLabel{$(cons)$}
-  \BinaryInfC{$\Gamma \Vdash_\ell m : [\omega \leadsto [\tau]]$)}
+  \BinaryInfC{$\Gamma \Vdash_\ell m : [\omega \leadsto [\tau]]$}
   \LeftLabel{$(app)$}
   \BinaryInfC{$\Gamma \Vdash Y_{A} m : \tau$}
   \DisplayProof
   \vskip 1em
 \end{center}
 
-The only open branch in the above tree is to show that
+The only (non-trivial) open branch in the above tree is to show that
 \(\Gamma \Vdash m : \omega \leadsto [\tau]\). In order to do so, we need
 to use the sub-typing lemma for intersection types:
 
@@ -4333,14 +4340,14 @@ In the definition below, the binary relation \(\subseteq_\Gamma\) is
 defined for any well-formed contexts \(\Gamma\) and \(\Gamma'\), where
 for each triple \((x : \tau_i ::_\ell A) \in \Gamma\), there is a
 corresponding triple \((x : \tau_j ::_\ell A) \in \Gamma'\) s.t.
-\(\tau_i \subseteq^A \tau_j\ \):
+\(\tau_i \subseteq^A_\ell \tau_j\ \):
 
 \begin{center}
   \vskip 1em
-  \AxiomC{$\Gamma \Vdash_s m_{\{A\}} : \tau$}
+  \AxiomC{$\Gamma \Vdash m_{\{A\}} : \tau$}
   \LeftLabel{$(\subseteq)$}
   \RightLabel{$(\Gamma \subseteq_\Gamma \Gamma', \tau' \subseteq^A \tau)$}
-  \UnaryInfC{$\Gamma' \Vdash_s m_{\{A\}} : \tau'$}
+  \UnaryInfC{$\Gamma' \Vdash m_{\{A\}} : \tau'$}
   \DisplayProof
   \hskip 1.5em
   \AxiomC{$\Gamma \Vdash_\ell m_{\{A\}} : \tau_i$}
@@ -4366,13 +4373,396 @@ Thus, we have:
   \LeftLabel{$(1)$}
   \UnaryInfC{$\Gamma \Vdash m : \omega \leadsto \tau_j$}
   \LeftLabel{$(\subseteq)$}
-  \RightLabel{$(\Gamma \subseteq_\Gamma \Gamma, [\tau] \subseteq^A \tau_j)$}
+  \RightLabel{$(\Gamma \subseteq_\Gamma \Gamma, \omega \leadsto [\tau] \subseteq^{A \to A} \omega \leadsto \tau_j)$}
   \UnaryInfC{$\Gamma \Vdash m : \omega \leadsto [\tau]$}
   \DisplayProof
   \vskip 1em
 \end{center}
 
-\subsection{\texorpdfstring{\(\tau_i \equiv [\tau_1,\hdots,\tau_n]\)}{\textbackslash{}tau\_i \textbackslash{}equiv {[}\textbackslash{}tau\_1,\textbackslash{}hdots,\textbackslash{}tau\_n{]}}}\label{tau_i-equiv-tau_1hdotstau_n}
+\subsection*{\texorpdfstring{\(\tau_i \equiv [\tau_1,\hdots,\tau_n]\)}{\textbackslash{}tau\_i \textbackslash{}equiv {[}\textbackslash{}tau\_1,\textbackslash{}hdots,\textbackslash{}tau\_n{]}}}\label{tau_i-equiv-tau_1hdotstau_n}
+\addcontentsline{toc}{subsection}{\(\tau_i \equiv [\tau_1,\hdots,\tau_n]\)}
+
+This case of the proof is a lot more involved and required several
+additional rules and lemmas. We will outline the main ideas of the proof
+in this section.\\
+\(\ \)
+
+\begin{Remark}
+
+The first thing to note is that since \(\tau_i\) is a non-empty list of
+semi-strict intersection types, it will have the shape:
+
+\begin{center}
+  \AxiomC{$\vdots$}
+  \UnaryInfC{$\Gamma \Vdash Y_A m : \tau_1$}
+
+  \AxiomC{$\vdots$}
+  \UnaryInfC{$\Gamma \Vdash Y_A m : \tau_2$}
+
+  \AxiomC{$\vdots$}
+  \UnaryInfC{$\Gamma \Vdash Y_A m : \tau_n$}
+
+  \AxiomC{}
+  \LeftLabel{$(nil)$}
+  \UnaryInfC{$\Gamma \Vdash_\ell Y_A m : \omega$}
+  \BinaryInfC{$\Gamma \Vdash_\ell Y_A m : [\tau_n]$}
+  \UnaryInfC{$\vdots$} 
+  \LeftLabel{$(cons)$}
+  \BinaryInfC{$\Gamma \Vdash_\ell Y_A m : [\tau_2,\hdots,\tau_n]$}
+  \LeftLabel{$(cons)$}
+  \BinaryInfC{$\Gamma \Vdash_\ell Y_A m : \tau_i$}
+  \DisplayProof
+  \vskip 1em
+\end{center}
+
+We will simplify this notation slightly and just write:
+
+\begin{center}
+  \AxiomC{$\vdots$}
+  \UnaryInfC{$\Gamma \Vdash Y_A m : \tau_1$}
+
+  \AxiomC{$\vdots$}
+  \UnaryInfC{$\Gamma \Vdash Y_A m : \tau_2$}
+
+  \AxiomC{$\hdots$}
+
+  \AxiomC{$\vdots$}
+  \UnaryInfC{$\Gamma \Vdash Y_A m : \tau_n$}
+
+  \QuaternaryInfC{$\Gamma \Vdash_\ell Y_A m : \tau_i$}
+  \DisplayProof
+  \vskip 1em
+\end{center}
+
+\end{Remark}
+
+In order to type \(Y_A m\) with \(\tau\), we first have to show that for
+every tree above, we can find a type \(\tau'_k\) s.t.
+\(\Gamma \Vdash m : \tau'_k \leadsto \tau'_k\) and
+\([\tau_k] \subseteq^A_\ell \tau'_k\):
+
+\begin{Lemma}
+
+\(\Gamma \Vdash Y_A m : \tau \implies \exists \tau'.\ \Gamma \Vdash_\ell m : [\tau' \leadsto \tau'] \land [\tau] \subseteq^A_\ell \tau'\)
+
+\begin{proof}
+
+\label{Lemma:Ymax} Unfolding the typing tree of
+\(\Gamma \Vdash Y_A m : \tau\), we have:
+
+\begin{center}
+  \AxiomC{$[\tau_x \leadsto \tau_x] \subseteq^{A \to A} \tau_i \land \tau_j \subseteq^A \tau_x$}
+  \UnaryInfC{$\Gamma \Vdash_s Y_A : \tau_i \leadsto \tau_j$}
+  \AxiomC{$\Gamma \Vdash_\ell m : \tau_i$}
+  \LeftLabel{$(app)$}
+  \RightLabel{$([\tau] \subseteq^A_\ell \tau_j)$}
+  \BinaryInfC{$\Gamma \Vdash Y_A m : \tau$}
+  \DisplayProof
+  \vskip 1em
+\end{center}
+
+Then it follows by transitivity, that
+\([\tau] \subseteq^A_\ell \tau_x\), and
+\(\Gamma \Vdash_\ell m : [\tau_x \leadsto \tau_x]\) by sub-typing:
+
+\begin{center}
+  \vskip 1em
+  \AxiomC{$\Gamma \Vdash_\ell m : \tau_i$}
+  \LeftLabel{$(\subseteq_\ell)$}
+  \RightLabel{$(\Gamma \subseteq_\Gamma \Gamma, [\tau_x \leadsto \tau_x] \subseteq^{A \to A}_\ell \tau_i)$}
+  \UnaryInfC{$\Gamma \Vdash_\ell m : [\tau_x \leadsto \tau_x]$}
+  \DisplayProof
+  \hskip 1em
+  \AxiomC{$[\tau] \subseteq^A_\ell \tau_j$}
+  \AxiomC{$\tau_j \subseteq^A_\ell \tau_x$}
+  \LeftLabel{$(trans)$}
+  \BinaryInfC{$[\tau] \subseteq^A_\ell \tau_x$}
+  \DisplayProof
+\end{center}
+
+\end{proof}
+
+\end{Lemma}
+
+Since for every type \(\tau_k \in \tau_i\) we now have
+\(\Gamma \Vdash_\ell m : [\tau'_k \leadsto \tau'_k]\) as well as
+\([\tau_k] \subseteq^A_\ell \tau'_k\), we want to ``mege'' all these
+types given to \(m\):
+
+\begin{center}
+  \vskip 1em
+  \AxiomC{$\Gamma \Vdash Y_A m : \tau_1$}
+  \LeftLabel{(\cref{Lemma:Ymax})}
+  \UnaryInfC{$\Gamma \Vdash_\ell m : [\tau'_1 \leadsto \tau'_1]$}
+
+  \AxiomC{$\hdots$}
+
+  \AxiomC{$\Gamma \Vdash Y_A m : \tau_n$}
+  \LeftLabel{(\cref{Lemma:Ymax})}
+  \UnaryInfC{$\Gamma \Vdash_\ell m : [\tau'_n \leadsto \tau'_n]$}
+
+  \LeftLabel{(???)}
+  \TrinaryInfC{$\Gamma \Vdash m : \tau'_1\concat\hdots\concat\tau'_n \leadsto \tau'_1\concat\hdots\concat\tau'_n$}
+  \DisplayProof
+  \vskip 1em
+\end{center}
+
+such that we have
+\(\tau'_i \equiv \tau'_1 \concat \hdots \concat \tau'_n\) where
+\(\tau_i \subseteq^A_\ell \tau'_i\).
+
+To illustrate how to prove the last step in the tree above (i.e.~how to
+derive the (???) rule), we will look at a simpler example, where
+\(\tau_i \equiv [\tau_1, \tau_2]\). Thus, we want to show:
+
+\begin{center}
+  \vskip 1em
+  \AxiomC{$\Gamma \Vdash Y_A m : \tau_1$}
+  \LeftLabel{(\cref{Lemma:Ymax})}
+  \UnaryInfC{$\Gamma \Vdash_\ell m : [\tau'_1 \leadsto \tau'_1]$}
+
+  \AxiomC{$\Gamma \Vdash Y_A m : \tau_2$}
+  \LeftLabel{(\cref{Lemma:Ymax})}
+  \UnaryInfC{$\Gamma \Vdash_\ell m : [\tau'_2 \leadsto \tau'_2]$}
+
+  \BinaryInfC{$\Gamma \Vdash m : \tau'_1\concat\tau'_2 \leadsto \tau'_1\concat\tau'_2$}
+  \DisplayProof
+  \vskip 1em
+\end{center}
+
+Using the sub-typing lemma we can show:
+
+\begin{center}
+  \vskip 1em
+  \AxiomC{$\Gamma \Vdash_\ell m : [\tau'_1 \leadsto \tau'_1]$}
+  \LeftLabel{$(\subseteq_\ell)$}
+  \RightLabel{$([\tau'_1\concat\tau'_2 \leadsto \tau'_1] \subseteq^{A \to A}_\ell [\tau'_1 \leadsto \tau'_1])$}
+  \UnaryInfC{$\Gamma \Vdash_\ell m : [\tau'_1\concat\tau'_2 \leadsto \tau'_1]$}
+  \DisplayProof
+  \vskip 1em
+\end{center}
+
+since we have:
+
+\begin{center}
+  \AxiomC{}
+  \LeftLabel{$(\subseteq^*)$\footnotemark}
+  \UnaryInfC{$\tau'_1 \subseteq^A \tau'_1\concat\tau'_2$}
+  \AxiomC{}
+  \LeftLabel{$(refl)$}
+  \UnaryInfC{$\tau'_1 \subseteq^A \tau'_1$}
+  \BinaryInfC{$\tau'_1\concat\tau'_2 \leadsto \tau'_1 \subseteq^{A \to A} \tau'_1 \leadsto \tau'_1$}
+  
+  \AxiomC{}
+  \LeftLabel{$(nil)$}
+  \UnaryInfC{$\omega \subseteq^{A \to A}_\ell [\tau'_1 \leadsto \tau'_1]$}
+  \LeftLabel{$(cons)$}
+  \BinaryInfC{$[\tau'_1\concat\tau'_2 \leadsto \tau'_1] \subseteq^{A \to A}_\ell [\tau'_1 \leadsto \tau'_1]$}
+  \DisplayProof
+  \vskip 1em
+\end{center}
+
+\footnotetext{This is a derived rule defined for the subset relation on lists, i.e. if the list $\tau_k$ is a subset of $\tau_n$, then it is also a subtype of $\tau_n$. Th derivation of this rule trivially follows from the $(refl)$, $(nil)$ and $(cons)$ rules.}
+
+Similarly, we can also prove
+\(\Gamma \Vdash_\ell m : [\tau'_1\concat\tau'_2 \leadsto \tau'_2]\), but
+at this point there is no way we can merge these two types, to produce
+\(\Gamma \Vdash_\ell m : [\tau'_1\concat\tau'_2 \leadsto \tau'_1\concat\tau'_2]\).\\
+In order to proceed, we had to introduce a new rule to the typing
+relation \(\Vdash\), to allow us to derive the type above:
+
+\begin{center}
+  \AxiomC{$\Gamma \Vdash m_{\{A \to B\}} : \tau_i \leadsto \tau_j$}
+  \AxiomC{$\Gamma \Vdash m_{\{A \to B\}} : \tau_i \leadsto \tau_k$}
+  \LeftLabel{$(\tocap)$}
+  \RightLabel{$(\tau_{jk} \subseteq^B \tau_j \concat \tau_k)$}
+  \BinaryInfC{$\Gamma \Vdash m_{\{A \to B\}} : \tau_i \leadsto \tau_{jk}$}
+  \DisplayProof
+  \vskip 1em
+\end{center}
+
+Introducing this rule created a host of complications, the chief of
+which was the fact that we lost our ``free'' inversion lemmas, as it is
+now no longer obvious from the shape of the term, which rule was used
+last in the type derivation tree.
+
+\begin{Example}
+
+Consider a term \(\lambda_A. m\) s.t.
+\(\Gamma \Vdash \lambda_A. m : \tau\). Since \(\tau\) must necessarily
+be of the shape \(\psi_i \leadsto \psi_j\), either of these two
+derivation trees could be valid:
+
+\begin{center}
+  \vskip 1em
+  \AxiomC{$\vdots$}
+  \UnaryInfC{$\forall x \not\in L.\ (x : \psi_i ::_\ell A),\Gamma \Vdash_\ell (m^x)_{\{B\}} : \psi_j$}
+  \LeftLabel{$(abs)$}
+  \UnaryInfC{$\Gamma \Vdash (\lambda_A. m)_{\{A \to B\}} : \psi_i \leadsto \psi_j$}
+  \DisplayProof
+  \vskip 1.5em
+  \AxiomC{$\vdots$}
+  \UnaryInfC{$\Gamma \Vdash_s (\lambda_A. m)_{\{A \to B\}} : \psi_i \leadsto \tau_j$}
+  \AxiomC{$\vdots$}
+  \UnaryInfC{$\Gamma \Vdash_s (\lambda_A. m)_{\{A \to B\}} : \psi_i \leadsto \tau_k$}
+  \LeftLabel{$(\tocap)$}
+  \RightLabel{$(\psi_j \subseteq^B \tau_j \concat \tau_k)$}
+  \BinaryInfC{$\Gamma \Vdash_s (\lambda_A. m)_{\{A \to B\}} : \psi_i \leadsto \psi_j$}
+  \DisplayProof
+  \vskip 1em
+\end{center}
+
+However, it's easy to see that since these derivation trees must be
+finite, if we apply \((\tocap)\) multiple times, eventually, all of the
+branches will have to have an application of the \((abs)\) rule.
+
+\end{Example}
+
+Besides having to derive inversion lemmas for the \((abs)\) and \((Y)\)
+rules, another derived rule, namely the sub-typing rule, breaks. In
+order to fix this rule, we also had to add an axiom scheme corresponding
+to the \((\tocap)\) rule, to the definition of the type subset relation:
+
+\begin{center}
+  \vskip 1em
+  \AxiomC{$[\tau_i \leadsto (\tau_j \concat \tau_k)] \concat \tau_m ::_\ell A \to B$}
+  \LeftLabel{$(\tocap_\ell)$}
+  \UnaryInfC{$[\tau_i \leadsto (\tau_j \concat \tau_k)] \concat \tau_m \subseteq^{A \to B}_\ell [\tau_i \leadsto \tau_j ,\ \tau_i \leadsto \tau_k] \concat \tau_m$}
+  \DisplayProof
+  \vskip 1em
+\end{center}
+
+\(\ \)
+
+\begin{Remark}
+
+Initially, we tried to simply add \((\tocap_\ell)\) to the type subset
+relation and add the sub-typing rule to \(\Vdash\), instead of having
+the rule \((\tocap)\). However, this made the inversion lemmas, as well
+as some other lemmas too difficult to prove. Finding the right balance
+in the formalization of the \((\tocap)/(\tocap_\ell)\) and the
+sub-typing rules proved to be perhaps the most challenging part of the
+formalization of intersection types.
+
+\end{Remark}
+
+We can now finish or proof for the case where
+\(\tau_i \equiv [\tau_1, \tau_2]\):
+
+\begin{center}
+  \AxiomC{$\Gamma \Vdash Y_A m : \tau_1$}
+  \LeftLabel{(\cref{Lemma:Ymax})}
+  \UnaryInfC{$\Gamma \Vdash_\ell m : [\tau'_1 \leadsto \tau'_1]$}
+  \LeftLabel{$(\subseteq_\ell)$}
+  \UnaryInfC{$\Gamma \Vdash_\ell m : [\tau'_1\concat\tau'_2 \leadsto \tau'_1]$}
+  \LeftLabel{$(\in_\ell)$\footnotemark}
+  \UnaryInfC{$\Gamma \Vdash m : \tau'_1\concat\tau'_2 \leadsto \tau'_1$}
+
+  \AxiomC{$\Gamma \Vdash Y_A m : \tau_2$}
+  \LeftLabel{(\cref{Lemma:Ymax})}
+  \UnaryInfC{$\Gamma \Vdash_\ell m : [\tau'_2 \leadsto \tau'_2]$}
+  \LeftLabel{$(\subseteq_\ell)$}
+  \UnaryInfC{$\Gamma \Vdash_\ell m : [\tau'_1\concat\tau'_2 \leadsto \tau'_2]$}
+  \LeftLabel{$(\in_\ell)$}
+  \UnaryInfC{$\Gamma \Vdash m : \tau'_1\concat\tau'_2 \leadsto \tau'_2$}
+  
+  \LeftLabel{$(\tocap)$}
+  \BinaryInfC{$\Gamma \Vdash m : \tau'_1\concat\tau'_2 \leadsto \tau'_1\concat\tau'_2$}
+  \DisplayProof
+  \vskip 1em
+\end{center}
+
+\footnotetext{The derived rule $(\in_\ell)$ is used to convert between the strict typing relation $\Vdash$ and intersection typing $\Vdash_\ell$ and is stated as: $\Gamma \Vdash_\ell m : \tau_i \land \tau \in \tau_i \implies \Gamma \Vdash m : \tau$}
+
+Having demonstrated the case when \(\tau_i \equiv [\tau_1, \tau_2]\),
+the proof when \(\tau_i\) is arbitrarily long proceeds in much the same
+way:
+
+\begin{Lemma}
+
+\label{Lemma:Ymaxl} Assuming \(\tau_i\) is a non-empty intersection, we
+have:\\
+\(\Gamma \Vdash_\ell Y_A m : \tau_i \implies \exists \tau'_i.\ \Gamma \Vdash m : \tau'_i \leadsto \tau'_i \land \tau_i \subseteq^A_\ell \tau'_i\)
+
+\end{Lemma}
+
+Using \cref{Lemma:Ymaxl}, we can finally show that
+\(\Gamma \Vdash Y_A m : \tau\).\\
+First, we assume \((1): \Gamma \Vdash m : \tau_i \leadsto \tau_j\),
+\((2): [\tau] \subseteq^A_\ell \tau_j\) from \cref{figure:shapemYm}.\\
+Since we also have \(\Gamma \Vdash_\ell Y_A m : \tau_i\), where we know
+that \(\tau_i\) is not empty, by \cref{Lemma:Ymaxl}, we have some
+\(\tau'_i\) s.t. \((3): \Gamma \Vdash m : \tau'_i \leadsto \tau'_i\) and
+\((4): \tau_i \subseteq^A_\ell \tau'_i\).\\
+We can therefore derive
+\(\Gamma \Vdash_\ell m : [\tau'_i \leadsto ([\tau] \concat \tau'_i)]\):
+
+\begin{center}
+  \vskip 1em
+  \AxiomC{}
+  \LeftLabel{$(1)$}
+  \UnaryInfC{$\Gamma \Vdash m : \tau_i \leadsto \tau_j$}
+  \LeftLabel{$(\subseteq)$}
+  \RightLabel{$(\tau'_i \leadsto [\tau] \subseteq^{A \to A} \tau_i \leadsto \tau_j)$}
+  \UnaryInfC{$\Gamma \Vdash m : \tau'_i \leadsto [\tau]$}
+  
+  \AxiomC{}
+  \LeftLabel{$(3)$}
+  \UnaryInfC{$\Gamma \Vdash m : \tau'_i \leadsto \tau'_i$}
+  \LeftLabel{$(\tocap)$}
+  \BinaryInfC{$\Gamma \Vdash m : \tau'_i \leadsto ([\tau] \concat \tau'_i)$}
+
+  \AxiomC{}
+  \LeftLabel{$(nil)$}
+  \UnaryInfC{$\Gamma \Vdash_\ell m : \omega$}
+  \LeftLabel{$(cons)$}
+  \BinaryInfC{$\Gamma \Vdash_\ell m : [\tau'_i \leadsto ([\tau] \concat \tau'_i)]$}
+  \DisplayProof
+  \vskip 1em
+\end{center}
+
+\(\ \)
+
+\begin{Remark}
+
+In the sub-typing rule, used in the tree above,
+\(\tau'_i \leadsto [\tau] \subseteq^{A \to A} \tau_i \leadsto \tau_j\)
+follows by:
+
+\begin{center}
+  \vskip 1em
+  \AxiomC{}
+  \LeftLabel{$(4)$}
+  \UnaryInfC{$\tau_i \subseteq^A_\ell \tau'_i$}
+    
+  \AxiomC{}
+  \LeftLabel{$(2)$}
+  \UnaryInfC{$[\tau] \subseteq^A_\ell \tau_j$}
+
+  \LeftLabel{$(arr)$}
+  \BinaryInfC{$(\tau'_i \leadsto [\tau] \subseteq^{A \to A} \tau_i \leadsto \tau_j)$}
+  \DisplayProof
+  \vskip 1em
+\end{center}
+
+\end{Remark}
+
+Finally, putting all the pieces together, we get:
+
+\begin{center}
+  \vskip 1em
+  \AxiomC{
+    \stackanchor{$[([\tau] \concat \tau'_i) \leadsto ([\tau] \concat \tau'_i)] \subseteq^{A \to A}_\ell [\tau'_i \leadsto ([\tau] \concat \tau'_i)]\ \land$}
+    {$[\tau] \subseteq^A_\ell [\tau] \concat \tau'_i$}}
+  \LeftLabel{$(Y)$}
+  \UnaryInfC{$\Gamma \Vdash Y : [\tau'_i \leadsto ([\tau] \concat \tau'_i)] \leadsto [\tau]$}
+
+  \AxiomC{$\Gamma \Vdash_\ell m : [\tau'_i \leadsto ([\tau] \concat \tau'_i)]$}
+  \LeftLabel{$(app)$}
+  \BinaryInfC{$\Gamma \Vdash Y_{A} m : \tau$}
+  \DisplayProof
+  \vskip 1em
+\end{center}
 
 \footnotesize
 

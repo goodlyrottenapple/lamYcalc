@@ -1,6 +1,9 @@
 #Isabelle vs. Agda {#comp-agda}
 \label{chap:compAgda}
 
+**agda with spacing: 1351 lines**
+**agda without spaces: 1234 lines**
+
 The formalization of the terms and reduction rules of the $\lambda$-Y calculus presented here is a locally nameless presentation due to @aydemir08. 
 The basic definitions of $\lambda$-terms and $\beta$-reduction were borrowed from an implementation of the $\lambda$-calculus with the associated Church Rosser proof in Agda, by @shing-cheng.
 
@@ -396,7 +399,8 @@ The goal `Term .n` follows in exactly the same fashion. Applying 'Refine' to the
 >>>-Term-l : ∀ {t t'} -> t >>> t' -> Term t
 >>>-Term-l refl = var
 >>>-Term-l reflY = Y
->>>-Term-l (app x m>>>m' n>>>n') = app (>>>-Term-l m>>>m') (>>>-Term-l n>>>n')
+>>>-Term-l (app x m>>>m' n>>>n') = 
+  app (>>>-Term-l m>>>m') (>>>-Term-l n>>>n')
 >>>-Term-l (abs L x) = lam {!   0!} {!   1!}
 >>>-Term-l (beta L cf t>>>t') = {!   2!}
 >>>-Term-l (Y t>>>t') = {!   3!}
@@ -417,7 +421,8 @@ At this stage, the interesting goal is `?1`, due to the fact that it is dependen
 >>>-Term-l : ∀ {t t'} -> t >>> t' -> Term t
 >>>-Term-l refl = var
 >>>-Term-l reflY = Y
->>>-Term-l (app x m>>>m' n>>>n') = app (>>>-Term-l m>>>m') (>>>-Term-l n>>>n')
+>>>-Term-l (app x m>>>m' n>>>n') = 
+  app (>>>-Term-l m>>>m') (>>>-Term-l n>>>n')
 >>>-Term-l (abs L x) = lam L {!   0!}
 >>>-Term-l (beta L cf t>>>t') = {!   1!}
 >>>-Term-l (Y t>>>t') = {!   2!}
@@ -439,7 +444,8 @@ Doing these steps explicitly was not in fact necessary, as the automatic proof s
 >>>-Term-l : ∀ {t t'} -> t >>> t' -> Term t
 >>>-Term-l refl = var
 >>>-Term-l reflY = Y
->>>-Term-l (app x m>>>m' n>>>n') = app (>>>-Term-l m>>>m') (>>>-Term-l n>>>n')
+>>>-Term-l (app x m>>>m' n>>>n') = 
+  app (>>>-Term-l m>>>m') (>>>-Term-l n>>>n')
 >>>-Term-l (abs L x) = lam L (λ x∉L → >>>-Term-l (x x∉L))
 >>>-Term-l (beta L cf t>>>t') = app 
   (lam L (λ {x} x∉L → >>>-Term-l (cf x∉L))) 

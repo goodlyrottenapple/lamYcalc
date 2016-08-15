@@ -120,10 +120,10 @@ $\begin{aligned}
 
 we translate the strict types $\mathcal{T}_s$ to Agda in a straightforward way, since we only need to translate$\mathcal{T}_s$ into the style of a GADT (generalized algebraic datatype) definition:
 
-~~~{.agda}
-data Ts where
-  φ : Ts
-  _~>_ : (s : T) -> (t : Ts) -> Ts
+~~~{.agda escapeinside=||}
+data T|$_\texttt{s}$| where
+  φ : T|$_\texttt{s}$|
+  _~>_ : (s : T) -> (t : T|$_\texttt{s}$|) -> T|$_\texttt{s}$|
 ~~~
 $\ $
 <div class="Remark">
@@ -151,17 +151,17 @@ The informal definition of $\mathcal{T}$, however, is slightly more complicated,
 In order to encode this definition in Agda, we will have to rely on some definition of a finite set (since the rule above assumes knowledge of finite sets and the subset relation $\subset$ in its precondition).   
 Whilst the notion of a finite set is so trivial, we rarely bother axiomatizing it, Agda does not actually know about finite sets by default and its standard library only includes the definition of finite sets of natural numbers. We can instead use lists to "simulate" finite sets, as they are similar in many regards, i.e. the Agda implementation of lists includes the notion of subset inclusion for lists, so that one can write a proof of $[1,2] \subseteq [2,2,1]$ easily:
 
-~~~{.agda}
+~~~{.agda escapeinside=||}
 data T where
-  ∩ : List Ts -> T
+  ∩ : List T|$_\texttt{s}$| -> T
 ~~~
 
 Whilst this definition is now largely equivalent to the informal inductive definition, we have lost quite a bit of transparency as a result. Consider the strict type $\tau \cap \psi \leadsto \tau$, is written as `∩ (τ ∷ ψ ∷ [])  \textasciitilde > τ` in Agda. We can improve thigs somewhat by getting rid of the pointless constructor `∩`, by merging the two definitions of $\mathcal{T}$ and $\mathcal{T}_s$ into a single definition, namely:
 
-~~~{.agda}
-data Ts where
-  φ : Ts
-  _~>_ : (s : List Ts) -> (t : Ts) -> Ts
+~~~{.agda escapeinside=||}
+data T|$_\texttt{s}$| where
+  φ : T|$_\texttt{s}$|
+  _~>_ : (s : List T|$_\texttt{s}$|) -> (t : T|$_\texttt{s}$|) -> T|$_\texttt{s}$|
 ~~~
 $\ $
 <div class="Remark">
@@ -179,8 +179,8 @@ This definition now corresponds to the merging of the two previously given induc
 </div>
 Now, $\tau \cap \psi \leadsto \tau$, corresponds to the Agda term `(τ ∷ ψ ∷ [])  \textasciitilde > τ`, which is still not ideal. We can, however, define some simple sugar notation:
 
-~~~{.agda}
-_∩_ : Ts -> Ts -> List Ts
+~~~{.agda escapeinside=||}
+_∩_ : T|$_\texttt{s}$| -> T|$_\texttt{s}$| -> List T|$_\texttt{s}$|
 A ∩ B = A ∷ B ∷ []
 ~~~
 

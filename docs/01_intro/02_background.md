@@ -350,9 +350,8 @@ The @takahashi95 proof simplifies this proof by eliminating the need to do simul
 ####Parallel $\beta Y$-reduction
 Having described the high-level overview of the classical proof and the reason for following the @takahashi95 proof, we now present some of the major lemmas in more detail.   
 Firstly, we give the definition of _parallel $\beta Y$-reduction_ $\gg$ formulated for the terms of the $\lamy$ calculus, which allows simultaneous reduction of multiple parts of a term:
-
-<div class="Definition" head="$\gg$">
 $\ $
+<div class="Definition" head="$\gg$">
 \begin{center}
   \AxiomC{}
   \LeftLabel{$(refl)$}
@@ -425,7 +424,7 @@ When we try to construct a similar tree for $\beta$-reduction, we can clearly se
 Having described the intuition behind the _parallel_ $\beta$-reduction, we proceed to define the _maximum parallel reduction_ $\ggg$, which contracts all redexes in a given term with a single step:
 
 
-<div class="Definition" head="$\ggg$">$\ $
+<div class="Definition" head="$\ggg$">
 \begin{center}
   \AxiomC{}
   \LeftLabel{$(refl)$}
