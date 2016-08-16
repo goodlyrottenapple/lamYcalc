@@ -38,6 +38,15 @@
 % amsthm stuff --------------------------------------------------
 $if(amsthm)$
 \usepackage{amsthm}
+
+\makeatletter
+\def\th@definition{%
+  \thm@headfont{\bfseries}% same as heading font
+  \thm@notefont{\bfseries}% same as heading font
+  \normalfont % body font
+}
+\makeatother
+
 \theoremstyle{plain}
 $for(amsthm.plain)$
 \newtheorem{$amsthm.plain$}{$amsthm.plain$}[$amsthm.parentcounter$]

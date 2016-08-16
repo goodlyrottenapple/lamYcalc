@@ -605,7 +605,7 @@ Assuming that $\Gamma$ is a finite list, consisting of pairs of atoms $Var$ and 
   \DisplayProof
   %------------------------------------
   \hskip 1.5em
-  \AxiomC{$x \not\in \mathsf{dom}\ \Gamma$}
+  \AxiomC{$x \not\in \dom\ \Gamma$}
   \AxiomC{$\wf \Gamma$}
   \LeftLabel{$(cons)$}
   \BinaryInfC{$\wf (x: \bigcap\tau_i,\Gamma)$}

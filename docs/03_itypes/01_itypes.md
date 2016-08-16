@@ -528,7 +528,7 @@ We will start with a very high-level overview of the proof. Having assumed, $\Ga
 
 We have two cases, where $\tau_i$ is an empty intersection $\tau_i \equiv \omega$ or a non-empty list of strict intersection types $\tau_i \equiv [\tau_1,\hdots,\tau_n]$.
 
-###$\tau_i \equiv \omega$ {.unnumbered}
+###$\tau_i \equiv \omega$
 
 From \cref{figure:shapemYm} above, we have $(1): \Gamma \Vdash_s m : \omega \leadsto \tau_j$. Then, we can construct the following proof tree:
 
@@ -585,7 +585,7 @@ Thus, we have:
   \vskip 1em
 \end{center}
 
-###$\tau_i \equiv [\tau_1,\hdots,\tau_n]$ {.unnumbered}
+###$\tau_i \equiv [\tau_1,\hdots,\tau_n]$
 
 This case of the proof is a lot more involved and required several additional rules and lemmas. We will outline the main ideas of the proof in this section.   
 $\ $
@@ -838,12 +838,25 @@ $\Gamma \Vdash_\ell Y_A m : \tau_i \implies \exists \tau'_i.\ \Gamma \Vdash m : 
 </div>
 
 Using \cref{Lemma:Ymaxl}, we can finally show that $\Gamma \Vdash Y_A m : \tau$.    
-First, we assume $(1): \Gamma \Vdash m : \tau_i \leadsto \tau_j$, $(2): [\tau] \subseteq^A_\ell \tau_j$ from \cref{figure:shapemYm}.    
-Since we also have $\Gamma \Vdash_\ell Y_A m : \tau_i$, where we know that $\tau_i$ is not empty, by \cref{Lemma:Ymaxl}, we have some $\tau'_i$ s.t. $(3): \Gamma \Vdash m : \tau'_i \leadsto \tau'_i$ and $(4): \tau_i \subseteq^A_\ell \tau'_i$.   
+
+\setlength\parindent{-.75mm}
+$\begin{aligned}\text{First, from \cref{figure:shapemYm}, we have: }
+&(1): \Gamma \Vdash m : \tau_i \leadsto \tau_j \text{ , }\\
+&(2): [\tau] \subseteq^A_\ell \tau_j \text{ and }\\
+&(3): \Gamma \Vdash_\ell Y_A m : \tau_i.
+\end{aligned}$
+
+$\begin{aligned}
+\text{Since $\tau_i$ is not empty, from $(3)$ and \cref{Lemma:Ymaxl}, we have some $\tau'_i$ s.t. }
+&(4): \Gamma \Vdash m : \tau'_i \leadsto \tau'_i\text{ and }\\
+&(5): \tau_i \subseteq^A_\ell \tau'_i.
+\end{aligned}$
+
+\setlength\parindent{0mm}
+
 We can therefore derive $\Gamma \Vdash_\ell m : [\tau'_i \leadsto ([\tau] \concat \tau'_i)]$:
 
 \begin{center}
-  \vskip 1em
   \AxiomC{}
   \LeftLabel{$(1)$}
   \UnaryInfC{$\Gamma \Vdash m : \tau_i \leadsto \tau_j$}
@@ -852,7 +865,7 @@ We can therefore derive $\Gamma \Vdash_\ell m : [\tau'_i \leadsto ([\tau] \conca
   \UnaryInfC{$\Gamma \Vdash m : \tau'_i \leadsto [\tau]$}
   
   \AxiomC{}
-  \LeftLabel{$(3)$}
+  \LeftLabel{$(4)$}
   \UnaryInfC{$\Gamma \Vdash m : \tau'_i \leadsto \tau'_i$}
   \LeftLabel{$(\tocap)$}
   \BinaryInfC{$\Gamma \Vdash m : \tau'_i \leadsto ([\tau] \concat \tau'_i)$}
@@ -872,7 +885,7 @@ In the sub-typing rule, used in the tree above, $\tau'_i \leadsto [\tau] \subset
 \begin{center}
   \vskip 1em
   \AxiomC{}
-  \LeftLabel{$(4)$}
+  \LeftLabel{$(5)$}
   \UnaryInfC{$\tau_i \subseteq^A_\ell \tau'_i$}
     
   \AxiomC{}
@@ -886,7 +899,7 @@ In the sub-typing rule, used in the tree above, $\tau'_i \leadsto [\tau] \subset
 \end{center}
 </div>
 
-Finally, putting all the pieces together, we get:
+Finally, putting all the pieces together, we get $\Gamma \Vdash Y_{A} m : \tau$:
 
 \begin{center}
   \vskip 1em
@@ -903,3 +916,140 @@ Finally, putting all the pieces together, we get:
   \vskip 1em
 \end{center}
 
+##Proofs of termination for the LN representation
+
+This final section of the chapter briefly describes an interesting implementation quirk/overhead, encountered when proving the substitution lemma, which was required for the proofs of both subject expansion and reduction:
+
+<div class="Lemma" head="Substitution lemma">Given that $m$ and $n$ are both well formed terms and $x \not\in \dom\ \Gamma$, we have:
+\begin{center}
+$\Gamma \Vdash m_{\{A\}}[n_{\{B\}}/x] : \tau \iff \exists \tau_i.\ (x : \tau_i ::_\ell B), \Gamma \Vdash m_{\{A\}} : \tau \land \Gamma \Vdash_\ell n_{\{B\}} : \tau_i$
+\end{center}
+</div>
+
+In the backwards direction ($\Leftarrow$), this proof is fairly straight forward and follows much like the homonymous lemma for simple types.    
+The other direction ($\Rightarrow$), used in the proof of subject expansion, turned out to be more complicated in Agda. This part of the proof proceeds by induction on the well formed term $m$, and whilst trying to prove the goal, when $m$ is a $\lambda$-term, Agda's termination checker would fail. To show why this was the case, we first examine the definition for the $\lambda$-case:
+
+~~~{.agda escapeinside=||}
+subst-⊩-2 : ∀ {A B Γ τ x} ->
+  {m : Λ A} {n : Λ B} -> 
+  ΛTerm m -> ΛTerm n ->
+  x ∉ dom Γ -> Γ ⊩ (m Λ[ x ::= n ]) ∶ τ ->
+  ∃(λ τ|$_\texttt{i}$| -> ( ((x , τ|$_\texttt{i}$| , B) ∷ Γ) ⊩ m ∶ τ ) × ( Γ ⊩|$_\ell$| n ∶ τ|$_\texttt{i}$| ))
+|$\texttt{\vdots}$|
+subst-⊩-2 {A ⟶ B} {C} {Γ} {τ ~> τ'} {x} 
+  {_} {n} 
+  (lam L {m} cf) trm-n 
+  x∉Γ (abs L' cf') = ?
+~~~
+
+Informally, the (pieces of) definition above can be read as:
+
+- `(lam L {m} cf)` : $m$ is a well formed $\lambda$-term, s.t. we have $\forall x' \not\in L.\ \trm(m^{x'})$ for some finite $L$.   
+  (This is captured by the type of `cf`, which is `x₁ ∉ L → ΛTerm (Λ[ 0 >> fv x₁ ] m)`.)
+- `trm-n` : $n$ is a well-formed $\lamy$ term
+- `(abs L' cf')` : the last rule in the derivation tree of $\Gamma \Vdash \lambda_A.m_{\{B\}}[n_{\{C\}}/x] : \tau \leadsto \tau'$ was the $(abs)$ rule and therefore we have `cf'`, which encodes the premise, that there is some finite $L'$ s.t. $\forall x' \not\in L'.\ (x' : \tau ::_\ell A),\Gamma \Vdash_\ell (m[n/x])^{x'} : \tau$.    
+
+The proof proceeds, by first showing that we can obtain a fresh $x'$ s.t. $\trm(m^{x'})$. By picking a sufficiently fresh $x'$, we can also derive $(x' : \tau ::_\ell A),\Gamma \Vdash_\ell (m^{x'})[n/x] : \tau$, essentially swapping the substitution and opening from the assumption above.   
+However, when we then try to apply the induction hypothesis, which corresponds to the following recursive call in Agda, we get an error, claiming that termination checking failed:
+
+~~~{.agda escapeinside=||}
+ih' : (x' , τ , A) ∷ Γ ⊩|$_\ell$| (Λ[ 0 >> fv {A} x' ] m) Λ[ x ::= n ] ∶ τ'
+ih' = ....
+
+ih : ∃(λ τ|$_\texttt{i}$| ->
+  (x , τ|$_\texttt{i}$| , C) ∷ (x' , τ , A) ∷ Γ ⊩|$_\ell$| Λ[ 0 >> fv x' ] m ∶ τ' × 
+  (x' , τ , A) ∷ Γ ⊩|$_\ell$| n ∶ τ|$_\texttt{i}$|)
+ih = subst-⊩|$_\ell$|-2 (cf (∉-cons-l L _ (∉-∷-elim _ x'∉)))
+                trm-n
+                (∉-∷ _ (dom Γ) (λ x₂ -> fv-x≠y _ _ x'∉ (sym x₂)) x∉Γ)
+                ih'
+~~~
+
+In order to see why this happens, we will ignore the explicit arguments passed to `subst-⊩$_\ell$-2` and instead rewrite the snippet above with the implicit arguments:
+
+~~~{.agda escapeinside=||}
+ih = subst-⊩|$_\ell$|-2 {A} {C} {(x' , τ , A) ∷ Γ} {τ'} {x} 
+  {Λ[ 0 >> fv x' ] m} {n} ...
+~~~
+
+Agda's termination checking relies on the fact that the data-types, being pattern matched on, get structurally smaller in recursive calls[^6]. Thus, the parameter `Λ[ 0 >> fv x' ] m` in this definition is obviously problematic, as Agda doesn't know that $m^{x'}$ is structurally smaller than $m$, even though we know that is the case, as the open operation simply replaces a bound variable with a free one. However, whilst $m^{x'}$ is not "bigger" than $m$, it is not structurally smaller than $\lambda.m$ and therefore, structural induction/recursion principles cannot be used in this definition.
+
+[^6]: The details on how the termination checking algorithm in Agda works are sparse, so we are not actually sure about the specifics of how the termination check fails.
+
+Whilst one can suppress termination checking for a specific definition/lemma in Agda, by adding the `\{-\# TERMINATING \#-\}` pragma in front of the definition, it is generally not a good idea to do this, even though we know that the definition is actually terminating. We initially contemplated using well-founded recursion to prove that the proof terminates, but having little experience in Agda, this looked quite complicated.   
+Instead, we devised a simple "hack" to allow Agda to prove termination, by first defining "skeleton" terms $T$, which capture the structure of $\lamy$ terms:
+
+<div class="Definition">
+$T ::= *\ |\ \circ T\ |\ T\ \amp\ T$
+</div>
+
+<div class="Example">
+As an illustration, take the LN $\lamy$ term $\lambda.0(Y_A x)$. We can represented this term as a tree (left). Then, we simply replace any $\lambda$ and $Y_\sigma$ with $\circ$, application becomes & and any free or bound variables are represented as * in the skeleton tree (on the right):
+
+\begin{minipage}{.5\textwidth}
+\begin{center}
+\begin{tikzpicture}[distance=1em,
+  every node/.style = {align=center}]]
+  \node {$\lambda$}
+    child { node {app}
+      child { node {0} }
+      child { node {app} 
+        child { node {$Y_A$} }
+        child { node {x} } } };
+\end{tikzpicture}
+\end{center}
+\end{minipage}
+\begin{minipage}{.5\textwidth}
+\begin{center}
+\begin{tikzpicture}[distance=3em,
+  every node/.style = {align=center}]]
+  \node {$\circ$}
+    child { node {$\amp$}
+      child { node {*} }
+      child { node {$\amp$} 
+        child { node {*} }
+        child { node {*} } } };
+\end{tikzpicture}
+\end{center}
+\end{minipage}
+
+Thus, the skeleton term of $\lambda.0(Y_A x)$ is $\circ(*\ \amp\ (*\ \amp\ *))$.
+</div>
+
+Next, we defined the congruence relation $\sim_T$ between locally nameless $\lamy$ terms and skeleton terms:
+
+<div class="Definition" head="$\sim_T$ relation">
+In the following definition, $m,p,q$ range over simply-typed locally nameless $\lamy$ terms and $s,t$ range over skeleton terms $T$:
+\begin{center}
+  \AxiomC{}
+  \LeftLabel{$(bvar)$}
+  \UnaryInfC{$n \sim_T *$}
+  \DisplayProof
+  %------------------------------------
+  \hskip 1.5em
+  \AxiomC{}
+  \LeftLabel{$(fvar)$}
+  \UnaryInfC{$x \sim_T *$}
+  \DisplayProof
+  %------------------------------------
+  \hskip 1.5em
+  \AxiomC{}
+  \LeftLabel{$(Y)$}
+  \UnaryInfC{$Y_A \sim_T *$}
+  \DisplayProof
+  %------------------------------------
+  \vskip 1.5em
+  \AxiomC{$m \sim_T t$}
+  \LeftLabel{$(un)$}
+  \UnaryInfC{$\lambda_A.m \sim_T \circ t$}
+  \DisplayProof
+  %------------------------------------
+  \hskip 1.5em
+  \AxiomC{$p \sim_T s$}
+  \AxiomC{$q \sim_T t$}
+  \LeftLabel{$(bin)$}
+  \BinaryInfC{$pq \sim_T s\ \amp\ t$}
+  \DisplayProof
+  \vskip 1.5em
+\end{center}
+</div>

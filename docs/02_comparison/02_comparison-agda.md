@@ -84,7 +84,7 @@ will be proved by first unfolding the definition of substitution for `FVar`
 
 and then deriving `x ≠ xa` from the assumption `x ∉ FV (FVar xa)`. Applying these steps explicitly, we get:
 
-```{.isabelle}
+```{.isabelle escapeinside=||}
 lemma subst_fresh: "x ∉ FV t ⟹ t[x ::= u] = t"
 apply (induct t)
 apply (subst subst.simps(1))
@@ -92,7 +92,7 @@ apply (drule subst[OF FV.simps(1)])
 apply (drule subst[OF Set.insert_iff])
 apply (drule subst[OF Set.empty_iff])
 apply (drule subst[OF HOL.simp_thms(31)])
-...
+|$\texttt{\vdots}$|
 ```
 
 where the goal now has the following shape:

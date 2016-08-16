@@ -635,14 +635,14 @@ There were a few quirks when implementing this proof in the nominal mechanizatio
 
 Obviously, this is not the desired shape of the goal, because we obtained a weaker premise, where we have some $R$, such that $\lambda x. P \equiv_\alpha \lambda xa. R$ (this is essentially what `[[atom x]]lst. P = [[atom xa]]lst. R` states) and therefore we get a $P'$ where $M' \equiv P'[Q'/xa]$. What we actually want is a term $P'$ s.t. $M' \equiv P'[Q'/x]$, i.e. $x = xa$. In order to "force" $x$ and $xa$ to actually be the same atom, we had to prove the following "cases" lemma: 
 
-~~~{.isabelle}
+~~~{.isabelle escapeinside=||}
 lemma pbeta_cases_2:
   shows "atom x ♯ t ⟹ App (Lam [x]. s) t ≫ a2 ⟹ 
     (⋀s' t'. a2 = App (Lam [x]. s') t' ⟹ atom x ♯ t' ⟹ 
     	s ≫ s' ⟹ t ≫ t' ⟹ P) ⟹
     (⋀t' s'. a2 = s' [x ::= t'] ⟹ atom x ♯ t ⟹ atom x ♯ t' ⟹ 
     	s ≫ s' ⟹ t ≫ t' ⟹ P) ⟹ P"
-...
+|$\texttt{\vdots}$|
 ~~~
 
 In the lemma above, `(⋀t' s'. a2 = s' [x ::= t'] ⟹ atom x ♯ t ⟹ atom x ♯ t' ⟹ s ≫ s' ⟹ t ≫ t' ⟹ P) ⟹ P` corresponds to the case with the premises we want to have, instead of the ones we get from the "cases" lemma generated as part of the definition of $\gg$.    

@@ -61,7 +61,6 @@ monofontoptions: Scale=0.8
 header-includes: # Things you may want to include in the latex header
 - \usepackage{bussproofs}
 - \usepackage{stackengine}
-- \usepackage{amsthm}
 - \usepackage{minted}
 - \usepackage{tikz}
 - \usetikzlibrary{arrows,automata, positioning}
@@ -83,6 +82,8 @@ header-includes: # Things you may want to include in the latex header
 - \newcommand{\trm}{\textsf{term}}
 - \newcommand{\fv}{\textsf{FV}}
 - \newcommand{\taui}{\bigcap\nolimits_{\underline{n}} \tau_i}
+- \newcommand{\dom}{\mathsf{dom}}
+- \newcommand{\amp}{\text{\&}}
 - \let\oldemptyset\emptyset
 - \let\emptyset\varnothing
 - \usepackage{mdframed}
@@ -110,11 +111,7 @@ appendix:
 
 # amsthm settings
 amsthm:
-  plain:    [Theorem, Lemma]
-  plain-unnumbered: [Proposition, Corollary]
-  definition:   [Definition,Conjecture,Example,Postulate,Problem]
-  definition-unnumbered:    []
-  remark:   [Case]
+  definition:   [Theorem, Lemma, Definition, Example]
   remark-unnumbered:    [Remark,Note]
   proof:    [proof]
   parentcounter:    chapter

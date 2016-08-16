@@ -37,19 +37,22 @@
 
 % amsthm stuff --------------------------------------------------
 \usepackage{amsthm}
+
+\makeatletter
+\def\th@definition{%
+  \thm@headfont{\bfseries}% same as heading font
+  \thm@notefont{\bfseries}% same as heading font
+  \normalfont % body font
+}
+\makeatother
+
 \theoremstyle{plain}
+\theoremstyle{definition}
 \newtheorem{Theorem}{Theorem}[chapter]
 \newtheorem{Lemma}{Lemma}[chapter]
-\newtheorem*{Proposition}{Proposition}
-\newtheorem*{Corollary}{Corollary}
-\theoremstyle{definition}
 \newtheorem{Definition}{Definition}[chapter]
-\newtheorem{Conjecture}{Conjecture}[chapter]
 \newtheorem{Example}{Example}[chapter]
-\newtheorem{Postulate}{Postulate}[chapter]
-\newtheorem{Problem}{Problem}[chapter]
 \theoremstyle{remark}
-\newtheorem{Case}{Case}[chapter]
 \newtheorem*{Remark}{Remark}
 \newtheorem*{Note}{Note}
 
@@ -234,7 +237,6 @@ xetex]{hyperref}
 % - Add to Header --------------------------------------------------------------
 \usepackage{bussproofs}
 \usepackage{stackengine}
-\usepackage{amsthm}
 \usepackage{minted}
 \usepackage{tikz}
 \usetikzlibrary{arrows,automata, positioning}
@@ -253,6 +255,8 @@ xetex]{hyperref}
 \newcommand{\trm}{\textsf{term}}
 \newcommand{\fv}{\textsf{FV}}
 \newcommand{\taui}{\bigcap\nolimits_{\underline{n}} \tau_i}
+\newcommand{\dom}{\mathsf{dom}}
+\newcommand{\amp}{\text{\&}}
 \let\oldemptyset\emptyset
 \let\emptyset\varnothing
 \usepackage{mdframed}
@@ -1422,7 +1426,7 @@ Assuming that \(\Gamma\) is a finite list, consisting of pairs of atoms
   \DisplayProof
   %------------------------------------
   \hskip 1.5em
-  \AxiomC{$x \not\in \mathsf{dom}\ \Gamma$}
+  \AxiomC{$x \not\in \dom\ \Gamma$}
   \AxiomC{$\wf \Gamma$}
   \LeftLabel{$(cons)$}
   \BinaryInfC{$\wf (x: \bigcap\tau_i,\Gamma)$}
@@ -2788,14 +2792,14 @@ term \(P'\) s.t. \(M' \equiv P'[Q'/x]\), i.e. \(x = xa\). In order to
 ``force'' \(x\) and \(xa\) to actually be the same atom, we had to prove
 the following ``cases'' lemma:
 
-\begin{minted}[]{isabelle}
+\begin{minted}[escapeinside=||]{isabelle}
 lemma pbeta_cases_2:
   shows "atom x ♯ t ⟹ App (Lam [x]. s) t ≫ a2 ⟹ 
     (⋀s' t'. a2 = App (Lam [x]. s') t' ⟹ atom x ♯ t' ⟹ 
         s ≫ s' ⟹ t ≫ t' ⟹ P) ⟹
     (⋀t' s'. a2 = s' [x ::= t'] ⟹ atom x ♯ t ⟹ atom x ♯ t' ⟹ 
         s ≫ s' ⟹ t ≫ t' ⟹ P) ⟹ P"
-...
+|$\texttt{\vdots}$|
 \end{minted}
 
 In the lemma above,
@@ -3009,7 +3013,7 @@ will be proved by first unfolding the definition of substitution for
 and then deriving \texttt{x ≠ xa} from the assumption
 \texttt{x ∉ FV (FVar xa)}. Applying these steps explicitly, we get:
 
-\begin{minted}[]{isabelle}
+\begin{minted}[escapeinside=||]{isabelle}
 lemma subst_fresh: "x ∉ FV t ⟹ t[x ::= u] = t"
 apply (induct t)
 apply (subst subst.simps(1))
@@ -3017,7 +3021,7 @@ apply (drule subst[OF FV.simps(1)])
 apply (drule subst[OF Set.insert_iff])
 apply (drule subst[OF Set.empty_iff])
 apply (drule subst[OF HOL.simp_thms(31)])
-...
+|$\texttt{\vdots}$|
 \end{minted}
 
 where the goal now has the following shape:
@@ -4306,8 +4310,7 @@ We have two cases, where \(\tau_i\) is an empty intersection
 \(\tau_i \equiv \omega\) or a non-empty list of strict intersection
 types \(\tau_i \equiv [\tau_1,\hdots,\tau_n]\).
 
-\subsection*{\texorpdfstring{\(\tau_i \equiv \omega\)}{\textbackslash{}tau\_i \textbackslash{}equiv \textbackslash{}omega}}\label{tau_i-equiv-omega}
-\addcontentsline{toc}{subsection}{\(\tau_i \equiv \omega\)}
+\subsection{\texorpdfstring{\(\tau_i \equiv \omega\)}{\textbackslash{}tau\_i \textbackslash{}equiv \textbackslash{}omega}}\label{tau_i-equiv-omega}
 
 From \cref{figure:shapemYm} above, we have
 \((1): \Gamma \Vdash_s m : \omega \leadsto \tau_j\). Then, we can
@@ -4379,8 +4382,7 @@ Thus, we have:
   \vskip 1em
 \end{center}
 
-\subsection*{\texorpdfstring{\(\tau_i \equiv [\tau_1,\hdots,\tau_n]\)}{\textbackslash{}tau\_i \textbackslash{}equiv {[}\textbackslash{}tau\_1,\textbackslash{}hdots,\textbackslash{}tau\_n{]}}}\label{tau_i-equiv-tau_1hdotstau_n}
-\addcontentsline{toc}{subsection}{\(\tau_i \equiv [\tau_1,\hdots,\tau_n]\)}
+\subsection{\texorpdfstring{\(\tau_i \equiv [\tau_1,\hdots,\tau_n]\)}{\textbackslash{}tau\_i \textbackslash{}equiv {[}\textbackslash{}tau\_1,\textbackslash{}hdots,\textbackslash{}tau\_n{]}}}\label{tau_i-equiv-tau_1hdotstau_n}
 
 This case of the proof is a lot more involved and required several
 additional rules and lemmas. We will outline the main ideas of the proof
@@ -4687,18 +4689,19 @@ have:\\
 \end{Lemma}
 
 Using \cref{Lemma:Ymaxl}, we can finally show that
-\(\Gamma \Vdash Y_A m : \tau\).\\
-First, we assume \((1): \Gamma \Vdash m : \tau_i \leadsto \tau_j\),
-\((2): [\tau] \subseteq^A_\ell \tau_j\) from \cref{figure:shapemYm}.\\
-Since we also have \(\Gamma \Vdash_\ell Y_A m : \tau_i\), where we know
-that \(\tau_i\) is not empty, by \cref{Lemma:Ymaxl}, we have some
-\(\tau'_i\) s.t. \((3): \Gamma \Vdash m : \tau'_i \leadsto \tau'_i\) and
-\((4): \tau_i \subseteq^A_\ell \tau'_i\).\\
+\(\Gamma \Vdash Y_A m : \tau\).
+
+\setlength\parindent{-.75mm}
+\(\begin{aligned}\text{First, from \cref{figure:shapemYm}, we have: } &(1): \Gamma \Vdash m : \tau_i \leadsto \tau_j \text{ , }\\ &(2): [\tau] \subseteq^A_\ell \tau_j \text{ and }\\ &(3): \Gamma \Vdash_\ell Y_A m : \tau_i. \end{aligned}\)
+
+\(\begin{aligned} \text{Since $\tau_i$ is not empty, from $(3)$ and \cref{Lemma:Ymaxl}, we have some $\tau'_i$ s.t. } &(4): \Gamma \Vdash m : \tau'_i \leadsto \tau'_i\text{ and }\\ &(5): \tau_i \subseteq^A_\ell \tau'_i. \end{aligned}\)
+
+\setlength\parindent{0mm}
+
 We can therefore derive
 \(\Gamma \Vdash_\ell m : [\tau'_i \leadsto ([\tau] \concat \tau'_i)]\):
 
 \begin{center}
-  \vskip 1em
   \AxiomC{}
   \LeftLabel{$(1)$}
   \UnaryInfC{$\Gamma \Vdash m : \tau_i \leadsto \tau_j$}
@@ -4707,7 +4710,7 @@ We can therefore derive
   \UnaryInfC{$\Gamma \Vdash m : \tau'_i \leadsto [\tau]$}
   
   \AxiomC{}
-  \LeftLabel{$(3)$}
+  \LeftLabel{$(4)$}
   \UnaryInfC{$\Gamma \Vdash m : \tau'_i \leadsto \tau'_i$}
   \LeftLabel{$(\tocap)$}
   \BinaryInfC{$\Gamma \Vdash m : \tau'_i \leadsto ([\tau] \concat \tau'_i)$}
@@ -4732,7 +4735,7 @@ follows by:
 \begin{center}
   \vskip 1em
   \AxiomC{}
-  \LeftLabel{$(4)$}
+  \LeftLabel{$(5)$}
   \UnaryInfC{$\tau_i \subseteq^A_\ell \tau'_i$}
     
   \AxiomC{}
@@ -4747,7 +4750,8 @@ follows by:
 
 \end{Remark}
 
-Finally, putting all the pieces together, we get:
+Finally, putting all the pieces together, we get
+\(\Gamma \Vdash Y_{A} m : \tau\):
 
 \begin{center}
   \vskip 1em
@@ -4763,6 +4767,212 @@ Finally, putting all the pieces together, we get:
   \DisplayProof
   \vskip 1em
 \end{center}
+
+\section{Proofs of termination for the LN
+representation}\label{proofs-of-termination-for-the-ln-representation}
+
+This final section of the chapter briefly describes an interesting
+implementation quirk/overhead, encountered when proving the substitution
+lemma, which was required for the proofs of both subject expansion and
+reduction:
+
+\begin{Lemma}[Substitution lemma]
+
+Given that \(m\) and \(n\) are both well formed terms and
+\(x \not\in \dom\ \Gamma\), we have:
+
+\begin{center}
+$\Gamma \Vdash m_{\{A\}}[n_{\{B\}}/x] : \tau \iff \exists \tau_i.\ (x : \tau_i ::_\ell B), \Gamma \Vdash m_{\{A\}} : \tau \land \Gamma \Vdash_\ell n_{\{B\}} : \tau_i$
+\end{center}
+
+\end{Lemma}
+
+In the backwards direction (\(\Leftarrow\)), this proof is fairly
+straight forward and follows much like the homonymous lemma for simple
+types.\\
+The other direction (\(\Rightarrow\)), used in the proof of subject
+expansion, turned out to be more complicated in Agda. This part of the
+proof proceeds by induction on the well formed term \(m\), and whilst
+trying to prove the goal, when \(m\) is a \(\lambda\)-term, Agda's
+termination checker would fail. To show why this was the case, we first
+examine the definition for the \(\lambda\)-case:
+
+\begin{minted}[escapeinside=||]{agda}
+subst-⊩-2 : ∀ {A B Γ τ x} ->
+  {m : Λ A} {n : Λ B} -> 
+  ΛTerm m -> ΛTerm n ->
+  x ∉ dom Γ -> Γ ⊩ (m Λ[ x ::= n ]) ∶ τ ->
+  ∃(λ τ|$_\texttt{i}$| -> ( ((x , τ|$_\texttt{i}$| , B) ∷ Γ) ⊩ m ∶ τ ) × ( Γ ⊩|$_\ell$| n ∶ τ|$_\texttt{i}$| ))
+|$\texttt{\vdots}$|
+subst-⊩-2 {A ⟶ B} {C} {Γ} {τ ~> τ'} {x} 
+  {_} {n} 
+  (lam L {m} cf) trm-n 
+  x∉Γ (abs L' cf') = ?
+\end{minted}
+
+Informally, the (pieces of) definition above can be read as:
+
+\begin{itemize}
+\tightlist
+\item
+  \texttt{(lam L {m} cf)} : \(m\) is a well formed \(\lambda\)-term,
+  s.t. we have \(\forall x' \not\in L.\ \trm(m^{x'})\) for some finite
+  \(L\).\\
+  (This is captured by the type of \texttt{cf}, which is
+  \texttt{x₁ ∉ L → ΛTerm (Λ[ 0 >> fv x₁ ] m)}.)
+\item
+  \texttt{trm-n} : \(n\) is a well-formed \(\lamy\) term
+\item
+  \texttt{(abs L' cf')} : the last rule in the derivation tree of
+  \(\Gamma \Vdash \lambda_A.m_{\{B\}}[n_{\{C\}}/x] : \tau \leadsto \tau'\)
+  was the \((abs)\) rule and therefore we have \texttt{cf'}, which
+  encodes the premise, that there is some finite \(L'\) s.t.
+  \(\forall x' \not\in L'.\ (x' : \tau ::_\ell A),\Gamma \Vdash_\ell (m[n/x])^{x'} : \tau\).
+\end{itemize}
+
+The proof proceeds, by first showing that we can obtain a fresh \(x'\)
+s.t. \(\trm(m^{x'})\). By picking a sufficiently fresh \(x'\), we can
+also derive
+\((x' : \tau ::_\ell A),\Gamma \Vdash_\ell (m^{x'})[n/x] : \tau\),
+essentially swapping the substitution and opening from the assumption
+above.\\
+However, when we then try to apply the induction hypothesis, which
+corresponds to the following recursive call in Agda, we get an error,
+claiming that termination checking failed:
+
+\begin{minted}[escapeinside=||]{agda}
+ih' : (x' , τ , A) ∷ Γ ⊩|$_\ell$| (Λ[ 0 >> fv {A} x' ] m) Λ[ x ::= n ] ∶ τ'
+ih' = ....
+
+ih : ∃(λ τ|$_\texttt{i}$| ->
+  (x , τ|$_\texttt{i}$| , C) ∷ (x' , τ , A) ∷ Γ ⊩|$_\ell$| Λ[ 0 >> fv x' ] m ∶ τ' × 
+  (x' , τ , A) ∷ Γ ⊩|$_\ell$| n ∶ τ|$_\texttt{i}$|)
+ih = subst-⊩|$_\ell$|-2 (cf (∉-cons-l L _ (∉-∷-elim _ x'∉)))
+                trm-n
+                (∉-∷ _ (dom Γ) (λ x₂ -> fv-x≠y _ _ x'∉ (sym x₂)) x∉Γ)
+                ih'
+\end{minted}
+
+In order to see why this happens, we will ignore the explicit arguments
+passed to \texttt{subst-⊩$_\ell$-2} and instead rewrite the snippet
+above with the implicit arguments:
+
+\begin{minted}[escapeinside=||]{agda}
+ih = subst-⊩|$_\ell$|-2 {A} {C} {(x' , τ , A) ∷ Γ} {τ'} {x} 
+  {Λ[ 0 >> fv x' ] m} {n} ...
+\end{minted}
+
+Agda's termination checking relies on the fact that the data-types,
+being pattern matched on, get structurally smaller in recursive
+calls\footnote{The details on how the termination checking algorithm in
+  Agda works are sparse, so we are not actually sure about the specifics
+  of how the termination check fails.}. Thus, the parameter
+\texttt{Λ[ 0 >> fv x' ] m} in this definition is obviously problematic,
+as Agda doesn't know that \(m^{x'}\) is structurally smaller than \(m\),
+even though we know that is the case, as the open operation simply
+replaces a bound variable with a free one. However, whilst \(m^{x'}\) is
+not ``bigger'' than \(m\), it is not structurally smaller than
+\(\lambda.m\) and therefore, structural induction/recursion principles
+cannot be used in this definition.
+
+Whilst one can suppress termination checking for a specific
+definition/lemma in Agda, by adding the \texttt{\{-\# TERMINATING \#-\}}
+pragma in front of the definition, it is generally not a good idea to do
+this, even though we know that the definition is actually terminating.
+We initially contemplated using well-founded recursion to prove that the
+proof terminates, but having little experience in Agda, this looked
+quite complicated.\\
+Instead, we devised a simple ``hack'' to allow Agda to prove
+termination, by first defining ``skeleton'' terms \(T\), which capture
+the structure of \(\lamy\) terms:
+
+\begin{Definition}
+
+\(T ::= *\ |\ \circ T\ |\ T\ \amp\ T\)
+
+\end{Definition}
+
+\begin{Example}
+
+As an illustration, take the LN \(\lamy\) term \(\lambda.0(Y_A x)\). We
+can represented this term as a tree (left). Then, we simply replace any
+\(\lambda\) and \(Y_\sigma\) with \(\circ\), application becomes \& and
+any free or bound variables are represented as * in the skeleton tree
+(on the right):
+
+\begin{minipage}{.5\textwidth}
+\begin{center}
+\begin{tikzpicture}[distance=1em,
+  every node/.style = {align=center}]]
+  \node {$\lambda$}
+    child { node {app}
+      child { node {0} }
+      child { node {app} 
+        child { node {$Y_A$} }
+        child { node {x} } } };
+\end{tikzpicture}
+\end{center}
+\end{minipage}\begin{minipage}{.5\textwidth}
+\begin{center}
+\begin{tikzpicture}[distance=3em,
+  every node/.style = {align=center}]]
+  \node {$\circ$}
+    child { node {$\amp$}
+      child { node {*} }
+      child { node {$\amp$} 
+        child { node {*} }
+        child { node {*} } } };
+\end{tikzpicture}
+\end{center}
+\end{minipage}
+
+Thus, the skeleton term of \(\lambda.0(Y_A x)\) is
+\(\circ(*\ \amp\ (*\ \amp\ *))\).
+
+\end{Example}
+
+Next, we defined the congruence relation \(\sim_T\) between locally
+nameless \(\lamy\) terms and skeleton terms:
+
+\begin{Definition}[$\sim_T$ relation]
+
+In the following definition, \(m,p,q\) range over simply-typed locally
+nameless \(\lamy\) terms and \(s,t\) range over skeleton terms \(T\):
+
+\begin{center}
+  \AxiomC{}
+  \LeftLabel{$(bvar)$}
+  \UnaryInfC{$n \sim_T *$}
+  \DisplayProof
+  %------------------------------------
+  \hskip 1.5em
+  \AxiomC{}
+  \LeftLabel{$(fvar)$}
+  \UnaryInfC{$x \sim_T *$}
+  \DisplayProof
+  %------------------------------------
+  \hskip 1.5em
+  \AxiomC{}
+  \LeftLabel{$(Y)$}
+  \UnaryInfC{$Y_A \sim_T *$}
+  \DisplayProof
+  %------------------------------------
+  \vskip 1.5em
+  \AxiomC{$m \sim_T t$}
+  \LeftLabel{$(un)$}
+  \UnaryInfC{$\lambda_A.m \sim_T \circ t$}
+  \DisplayProof
+  %------------------------------------
+  \hskip 1.5em
+  \AxiomC{$p \sim_T s$}
+  \AxiomC{$q \sim_T t$}
+  \LeftLabel{$(bin)$}
+  \BinaryInfC{$pq \sim_T s\ \amp\ t$}
+  \DisplayProof
+  \vskip 1.5em
+\end{center}
+
+\end{Definition}
 
 \footnotesize
 
