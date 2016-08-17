@@ -3,8 +3,8 @@
 
 Having compared different mechanizations and implementation languages for the simply typed $\lamy$ calculus in the previous two chapters, we arrived at the "winning" combination of a locally nameless mechanization using Agda. Carrying on in this setting, we present the formalization of intersection types for the $\lamy$ calculus along with the proof of subject invariance for intersection types.   
 Whilst the theory formalized so far "only"  includes the basic definitions of intersection type assignment and the proof of subject invariance, these proofs turned out to be significantly more difficult than their simply typed counterparts (e.g. in case of sub-tying and subject reduction lemmas). Indeed the whole formalization of simple types, along with the proof of the Church Rosser theorem, is roughly only 1350 lines of code in Agda, in comparison to about 1890 lines, for the intersection typing together with proofs of subject invariance.   
-Even though the proof is not novel, there is, to our knowledge, no known fully formal version of it for the $\lamy$ calculus. The chapter mainly focuses on the engineering choices that were made in order to simplify the proofs as much as possible, as well as the necessary implementation overheads that were necessary for the implementation.    
-The chapter is presented in sections, each explaining implementation details that had to be considered and any tweaks to the definitions, presented in \cref{itypesIntro}, that needed to be made. Some of the definitions presented early on in this chapter, thus undergo several revisions, as we discuss the necessities for these changes in a pseudo-chronological manner in which they occurred throughout the mechanization.
+Even though the proof is not novel, there is, to our knowledge, no known fully formal version of it for the $\lamy$ calculus. The chapter mainly focuses on the engineering choices that were made in order to simplify the proofs as much as possible, as well as the necessary implementation overheads and compromises that were made.    
+The chapter is presented in sections, each explaining implementation details for a specific lemma or definition, introduced in \cref{itypesIntro}. Some of the definitions presented early on in this chapter undergo several revisions, as we discuss the necessities for these changes in a pseudo-chronological manner, in which they arose during the implementation stage of this project.
 
 ##Intersection types in Agda
 \label{itypesAgda}
@@ -937,52 +937,52 @@ subst-⊩-2 : ∀ {A B Γ τ x} ->
   ∃(λ τ|$_\texttt{i}$| -> ( ((x , τ|$_\texttt{i}$| , B) ∷ Γ) ⊩ m ∶ τ ) × ( Γ ⊩|$_\ell$| n ∶ τ|$_\texttt{i}$| ))
 |$\texttt{\vdots}$|
 subst-⊩-2 {A ⟶ B} {C} {Γ} {τ ~> τ'} {x} 
-  {_} {n} 
-  (lam L {m} cf) trm-n 
+  {lam .A p} {n} 
+  (lam L {.p} cf) trm-n 
   x∉Γ (abs L' cf') = ?
 ~~~
 
 Informally, the (pieces of) definition above can be read as:
 
-- `(lam L {m} cf)` : $m$ is a well formed $\lambda$-term, s.t. we have $\forall x' \not\in L.\ \trm(m^{x'})$ for some finite $L$.   
-  (This is captured by the type of `cf`, which is `x₁ ∉ L → ΛTerm (Λ[ 0 >> fv x₁ ] m)`.)
+- `{lam .A p}` : $m \equiv \lambda_A.p$
+- `(lam L {.p} cf)` : $p$ is a well formed $\lambda$-term, s.t. we have $\forall x' \not\in L.\ \trm(p^{x'})$ for some finite $L$.   
+  (This is captured by the type of `cf`, which is `x₁ ∉ L → ΛTerm (Λ[ 0 >> fv x₁ ] p)`.)
 - `trm-n` : $n$ is a well-formed $\lamy$ term
-- `(abs L' cf')` : the last rule in the derivation tree of $\Gamma \Vdash \lambda_A.m_{\{B\}}[n_{\{C\}}/x] : \tau \leadsto \tau'$ was the $(abs)$ rule and therefore we have `cf'`, which encodes the premise, that there is some finite $L'$ s.t. $\forall x' \not\in L'.\ (x' : \tau ::_\ell A),\Gamma \Vdash_\ell (m[n/x])^{x'} : \tau$.    
+- `(abs L' cf')` : the last rule in the derivation tree of $\Gamma \Vdash \lambda_A.p_{\{B\}}[n_{\{C\}}/x] : \tau \leadsto \tau'$ was the $(abs)$ rule and therefore we have `cf'`, which encodes the premise, that there is some finite $L'$ s.t. $\forall x' \not\in L'.\ (x' : \tau ::_\ell A),\Gamma \Vdash_\ell (p[n/x])^{x'} : \tau$.    
 
-The proof proceeds, by first showing that we can obtain a fresh $x'$ s.t. $\trm(m^{x'})$. By picking a sufficiently fresh $x'$, we can also derive $(x' : \tau ::_\ell A),\Gamma \Vdash_\ell (m^{x'})[n/x] : \tau$, essentially swapping the substitution and opening from the assumption above.   
-However, when we then try to apply the induction hypothesis, which corresponds to the following recursive call in Agda, we get an error, claiming that termination checking failed:
+The proof proceeds, by first showing that we can obtain a fresh $x'$ s.t. $\trm(p^{x'})$. By picking a sufficiently fresh $x'$, we can also derive $(x' : \tau ::_\ell A),\Gamma \Vdash_\ell (p^{x'})[n/x] : \tau$, essentially swapping the substitution and opening from the assumption above.   
+However, when we then try to apply the induction hypothesis, which corresponds to a recursive call in Agda, we get an error, claiming that termination checking failed.   <!--:
 
 ~~~{.agda escapeinside=||}
-ih' : (x' , τ , A) ∷ Γ ⊩|$_\ell$| (Λ[ 0 >> fv {A} x' ] m) Λ[ x ::= n ] ∶ τ'
+ih' : (x' , τ , A) ∷ Γ ⊩|$_\ell$| (Λ[ 0 >> fv {A} x' ] p) Λ[ x ::= n ] ∶ τ'
 ih' = ....
 
 ih : ∃(λ τ|$_\texttt{i}$| ->
-  (x , τ|$_\texttt{i}$| , C) ∷ (x' , τ , A) ∷ Γ ⊩|$_\ell$| Λ[ 0 >> fv x' ] m ∶ τ' × 
+  (x , τ|$_\texttt{i}$| , C) ∷ (x' , τ , A) ∷ Γ ⊩|$_\ell$| Λ[ 0 >> fv x' ] p ∶ τ' × 
   (x' , τ , A) ∷ Γ ⊩|$_\ell$| n ∶ τ|$_\texttt{i}$|)
 ih = subst-⊩|$_\ell$|-2 (cf (∉-cons-l L _ (∉-∷-elim _ x'∉)))
                 trm-n
                 (∉-∷ _ (dom Γ) (λ x₂ -> fv-x≠y _ _ x'∉ (sym x₂)) x∉Γ)
                 ih'
-~~~
-
-In order to see why this happens, we will ignore the explicit arguments passed to `subst-⊩$_\ell$-2` and instead rewrite the snippet above with the implicit arguments:
+-->
+In order to see why this happens, we will ignore the explicit arguments passed to `subst-⊩$_\ell$-2` and instead focus on the implicit arguments:
 
 ~~~{.agda escapeinside=||}
 ih = subst-⊩|$_\ell$|-2 {A} {C} {(x' , τ , A) ∷ Γ} {τ'} {x} 
-  {Λ[ 0 >> fv x' ] m} {n} ...
+  {Λ[ 0 >> fv x' ] p} {n} ...
 ~~~
 
-Agda's termination checking relies on the fact that the data-types, being pattern matched on, get structurally smaller in recursive calls[^6]. Thus, the parameter `Λ[ 0 >> fv x' ] m` in this definition is obviously problematic, as Agda doesn't know that $m^{x'}$ is structurally smaller than $m$, even though we know that is the case, as the open operation simply replaces a bound variable with a free one. However, whilst $m^{x'}$ is not "bigger" than $m$, it is not structurally smaller than $\lambda.m$ and therefore, structural induction/recursion principles cannot be used in this definition.
+Agda's termination checking relies on the fact that the data-types, being pattern matched on, get structurally smaller in recursive calls[^6]. Thus, the parameter `Λ[ 0 >> fv x' ] m` in this definition is obviously problematic, as Agda doesn't know that $p^{x'}$ is structurally smaller than $m$ (i.e. $\lambda_A. p$), even though we know that is the case, as the open operation simply replaces a bound variable with a free one. However, whilst $p^{x'}$ is not "bigger" than $p$, it is not, strictly speaking, structurally smaller than $\lambda_A.p$ and therefore, structural induction/recursion principles cannot be used in this definition.
 
 [^6]: The details on how the termination checking algorithm in Agda works are sparse, so we are not actually sure about the specifics of how the termination check fails.
 
 Whilst one can suppress termination checking for a specific definition/lemma in Agda, by adding the `\{-\# TERMINATING \#-\}` pragma in front of the definition, it is generally not a good idea to do this, even though we know that the definition is actually terminating. We initially contemplated using well-founded recursion to prove that the proof terminates, but having little experience in Agda, this looked quite complicated.   
-Instead, we devised a simple "hack" to allow Agda to prove termination, by first defining "skeleton" terms $T$, which capture the structure of $\lamy$ terms:
+Instead, we devised a simple "hack" to allow Agda to prove termination for this (slightly modified) lemma, by first defining "skeleton" terms $T$, which capture the structure of $\lamy$ terms:
 
 <div class="Definition">
 $T ::= *\ |\ \circ T\ |\ T\ \amp\ T$
 </div>
-
+$\ $
 <div class="Example">
 As an illustration, take the LN $\lamy$ term $\lambda.0(Y_A x)$. We can represented this term as a tree (left). Then, we simply replace any $\lambda$ and $Y_\sigma$ with $\circ$, application becomes & and any free or bound variables are represented as * in the skeleton tree (on the right):
 
@@ -1012,10 +1012,9 @@ As an illustration, take the LN $\lamy$ term $\lambda.0(Y_A x)$. We can represen
 \end{tikzpicture}
 \end{center}
 \end{minipage}
-
 Thus, the skeleton term of $\lambda.0(Y_A x)$ is $\circ(*\ \amp\ (*\ \amp\ *))$.
 </div>
-
+ 
 Next, we defined the congruence relation $\sim_T$ between locally nameless $\lamy$ terms and skeleton terms:
 
 <div class="Definition" head="$\sim_T$ relation">
@@ -1053,3 +1052,21 @@ In the following definition, $m,p,q$ range over simply-typed locally nameless $\
   \vskip 1.5em
 \end{center}
 </div>
+
+Having defined the $\sim_T$ relation, we could now augment our substitution lemma proof with a skeleton tree corresponding to the LN term $m$, performing (simultaneous) induction on the congruence relation $m \sim_T t$. For the $\lambda$-case, we have a skeleton tree of the form $\circ t$ (for $m \equiv \lambda_A.p$)$. The inductive hypothesis call is now:
+
+~~~{.agda escapeinside=||}
+ih = subst-⊩|$_\ell$|-2 {A} {C} {(x' , τ , A) ∷ Γ} {τ'} {x} 
+  {Λ[ 0 >> fv x' ] m} {n} {t} (opn-~T-inv m~t) ...
+~~~
+
+where $t$ is the skeleton tree corresponding to $p$, and by \cref{Lemma:openCongInv} (`opn-\textasciitilde T-inv`), also to $p^{x'}$:
+
+<div class="Lemma">
+\label{Lemma:openCongInv}
+$m \sim_T t \implies \{k \to x\}m \sim_T t$
+<div class="proof">By induction on the relation $m \sim_T t$. The only interesting case is $(bvar)$. We have two cases, when $n = k$ or $n \neq k$. In both cases, we have $n \sim_T *$, thus in case $n \neq k$, the result follows by assumption, otherwise we have $n\{k \to x\} \equiv x$ and thus $x \sim_T *$ by $(fvar)$.
+</div>
+</div>
+
+After this modification, Agda (grudgingly) accepted the definition as terminating, even though this rather complicated inductive/recursive definition of the proof now takes a rather long time to compile (slowdown by up to a factor of 6 compared to other theories of similar length).

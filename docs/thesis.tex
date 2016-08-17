@@ -3588,14 +3588,13 @@ Even though the proof is not novel, there is, to our knowledge, no known
 fully formal version of it for the \(\lamy\) calculus. The chapter
 mainly focuses on the engineering choices that were made in order to
 simplify the proofs as much as possible, as well as the necessary
-implementation overheads that were necessary for the implementation.\\
+implementation overheads and compromises that were made.\\
 The chapter is presented in sections, each explaining implementation
-details that had to be considered and any tweaks to the definitions,
-presented in \cref{itypesIntro}, that needed to be made. Some of the
-definitions presented early on in this chapter, thus undergo several
-revisions, as we discuss the necessities for these changes in a
-pseudo-chronological manner in which they occurred throughout the
-mechanization.
+details for a specific lemma or definition, introduced in
+\cref{itypesIntro}. Some of the definitions presented early on in this
+chapter undergo several revisions, as we discuss the necessities for
+these changes in a pseudo-chronological manner, in which they arose
+during the implementation stage of this project.
 
 \section{Intersection types in Agda}\label{intersection-types-in-agda}
 
@@ -4805,8 +4804,8 @@ subst-⊩-2 : ∀ {A B Γ τ x} ->
   ∃(λ τ|$_\texttt{i}$| -> ( ((x , τ|$_\texttt{i}$| , B) ∷ Γ) ⊩ m ∶ τ ) × ( Γ ⊩|$_\ell$| n ∶ τ|$_\texttt{i}$| ))
 |$\texttt{\vdots}$|
 subst-⊩-2 {A ⟶ B} {C} {Γ} {τ ~> τ'} {x} 
-  {_} {n} 
-  (lam L {m} cf) trm-n 
+  {lam .A p} {n} 
+  (lam L {.p} cf) trm-n 
   x∉Γ (abs L' cf') = ?
 \end{minted}
 
@@ -4815,51 +4814,38 @@ Informally, the (pieces of) definition above can be read as:
 \begin{itemize}
 \tightlist
 \item
-  \texttt{(lam L {m} cf)} : \(m\) is a well formed \(\lambda\)-term,
-  s.t. we have \(\forall x' \not\in L.\ \trm(m^{x'})\) for some finite
+  \texttt{{lam .A p}} : \(m \equiv \lambda_A.p\)
+\item
+  \texttt{(lam L {.p} cf)} : \(p\) is a well formed \(\lambda\)-term,
+  s.t. we have \(\forall x' \not\in L.\ \trm(p^{x'})\) for some finite
   \(L\).\\
   (This is captured by the type of \texttt{cf}, which is
-  \texttt{x₁ ∉ L → ΛTerm (Λ[ 0 >> fv x₁ ] m)}.)
+  \texttt{x₁ ∉ L → ΛTerm (Λ[ 0 >> fv x₁ ] p)}.)
 \item
   \texttt{trm-n} : \(n\) is a well-formed \(\lamy\) term
 \item
   \texttt{(abs L' cf')} : the last rule in the derivation tree of
-  \(\Gamma \Vdash \lambda_A.m_{\{B\}}[n_{\{C\}}/x] : \tau \leadsto \tau'\)
+  \(\Gamma \Vdash \lambda_A.p_{\{B\}}[n_{\{C\}}/x] : \tau \leadsto \tau'\)
   was the \((abs)\) rule and therefore we have \texttt{cf'}, which
   encodes the premise, that there is some finite \(L'\) s.t.
-  \(\forall x' \not\in L'.\ (x' : \tau ::_\ell A),\Gamma \Vdash_\ell (m[n/x])^{x'} : \tau\).
+  \(\forall x' \not\in L'.\ (x' : \tau ::_\ell A),\Gamma \Vdash_\ell (p[n/x])^{x'} : \tau\).
 \end{itemize}
 
 The proof proceeds, by first showing that we can obtain a fresh \(x'\)
-s.t. \(\trm(m^{x'})\). By picking a sufficiently fresh \(x'\), we can
+s.t. \(\trm(p^{x'})\). By picking a sufficiently fresh \(x'\), we can
 also derive
-\((x' : \tau ::_\ell A),\Gamma \Vdash_\ell (m^{x'})[n/x] : \tau\),
+\((x' : \tau ::_\ell A),\Gamma \Vdash_\ell (p^{x'})[n/x] : \tau\),
 essentially swapping the substitution and opening from the assumption
 above.\\
 However, when we then try to apply the induction hypothesis, which
-corresponds to the following recursive call in Agda, we get an error,
-claiming that termination checking failed:
-
-\begin{minted}[escapeinside=||]{agda}
-ih' : (x' , τ , A) ∷ Γ ⊩|$_\ell$| (Λ[ 0 >> fv {A} x' ] m) Λ[ x ::= n ] ∶ τ'
-ih' = ....
-
-ih : ∃(λ τ|$_\texttt{i}$| ->
-  (x , τ|$_\texttt{i}$| , C) ∷ (x' , τ , A) ∷ Γ ⊩|$_\ell$| Λ[ 0 >> fv x' ] m ∶ τ' × 
-  (x' , τ , A) ∷ Γ ⊩|$_\ell$| n ∶ τ|$_\texttt{i}$|)
-ih = subst-⊩|$_\ell$|-2 (cf (∉-cons-l L _ (∉-∷-elim _ x'∉)))
-                trm-n
-                (∉-∷ _ (dom Γ) (λ x₂ -> fv-x≠y _ _ x'∉ (sym x₂)) x∉Γ)
-                ih'
-\end{minted}
-
-In order to see why this happens, we will ignore the explicit arguments
-passed to \texttt{subst-⊩$_\ell$-2} and instead rewrite the snippet
-above with the implicit arguments:
+corresponds to a recursive call in Agda, we get an error, claiming that
+termination checking failed. In order to see why this happens, we will
+ignore the explicit arguments passed to \texttt{subst-⊩$_\ell$-2} and
+instead focus on the implicit arguments:
 
 \begin{minted}[escapeinside=||]{agda}
 ih = subst-⊩|$_\ell$|-2 {A} {C} {(x' , τ , A) ∷ Γ} {τ'} {x} 
-  {Λ[ 0 >> fv x' ] m} {n} ...
+  {Λ[ 0 >> fv x' ] p} {n} ...
 \end{minted}
 
 Agda's termination checking relies on the fact that the data-types,
@@ -4868,12 +4854,13 @@ calls\footnote{The details on how the termination checking algorithm in
   Agda works are sparse, so we are not actually sure about the specifics
   of how the termination check fails.}. Thus, the parameter
 \texttt{Λ[ 0 >> fv x' ] m} in this definition is obviously problematic,
-as Agda doesn't know that \(m^{x'}\) is structurally smaller than \(m\),
-even though we know that is the case, as the open operation simply
-replaces a bound variable with a free one. However, whilst \(m^{x'}\) is
-not ``bigger'' than \(m\), it is not structurally smaller than
-\(\lambda.m\) and therefore, structural induction/recursion principles
-cannot be used in this definition.
+as Agda doesn't know that \(p^{x'}\) is structurally smaller than \(m\)
+(i.e. \(\lambda_A. p\)), even though we know that is the case, as the
+open operation simply replaces a bound variable with a free one.
+However, whilst \(p^{x'}\) is not ``bigger'' than \(p\), it is not,
+strictly speaking, structurally smaller than \(\lambda_A.p\) and
+therefore, structural induction/recursion principles cannot be used in
+this definition.
 
 Whilst one can suppress termination checking for a specific
 definition/lemma in Agda, by adding the \texttt{\{-\# TERMINATING \#-\}}
@@ -4882,15 +4869,17 @@ this, even though we know that the definition is actually terminating.
 We initially contemplated using well-founded recursion to prove that the
 proof terminates, but having little experience in Agda, this looked
 quite complicated.\\
-Instead, we devised a simple ``hack'' to allow Agda to prove
-termination, by first defining ``skeleton'' terms \(T\), which capture
-the structure of \(\lamy\) terms:
+Instead, we devised a simple ``hack'' to allow Agda to prove termination
+for this (slightly modified) lemma, by first defining ``skeleton'' terms
+\(T\), which capture the structure of \(\lamy\) terms:
 
 \begin{Definition}
 
 \(T ::= *\ |\ \circ T\ |\ T\ \amp\ T\)
 
 \end{Definition}
+
+\(\ \)
 
 \begin{Example}
 
@@ -4973,6 +4962,44 @@ nameless \(\lamy\) terms and \(s,t\) range over skeleton terms \(T\):
 \end{center}
 
 \end{Definition}
+
+Having defined the \(\sim_T\) relation, we could now augment our
+substitution lemma proof with a skeleton tree corresponding to the LN
+term \(m\), performing (simultaneous) induction on the congruence
+relation \(m \sim_T t\). For the \(\lambda\)-case, we have a skeleton
+tree of the form \(\circ t\) (for \(m \equiv \lambda_A.p\))\$. The
+inductive hypothesis call is now:
+
+\begin{minted}[escapeinside=||]{agda}
+ih = subst-⊩|$_\ell$|-2 {A} {C} {(x' , τ , A) ∷ Γ} {τ'} {x} 
+  {Λ[ 0 >> fv x' ] m} {n} {t} (opn-~T-inv m~t) ...
+\end{minted}
+
+where \(t\) is the skeleton tree corresponding to \(p\), and by
+\cref{Lemma:openCongInv} (\texttt{opn-\textasciitilde T-inv}), also to
+\(p^{x'}\):
+
+\begin{Lemma}
+
+\label{Lemma:openCongInv} \(m \sim_T t \implies \{k \to x\}m \sim_T t\)
+
+\begin{proof}
+
+By induction on the relation \(m \sim_T t\). The only interesting case
+is \((bvar)\). We have two cases, when \(n = k\) or \(n \neq k\). In
+both cases, we have \(n \sim_T *\), thus in case \(n \neq k\), the
+result follows by assumption, otherwise we have
+\(n\{k \to x\} \equiv x\) and thus \(x \sim_T *\) by \((fvar)\).
+
+\end{proof}
+
+\end{Lemma}
+
+After this modification, Agda (grudgingly) accepted the definition as
+terminating, even though this rather complicated inductive/recursive
+definition of the proof now takes a rather long time to compile
+(slowdown by up to a factor of 6 compared to other theories of similar
+length).
 
 \footnotesize
 
