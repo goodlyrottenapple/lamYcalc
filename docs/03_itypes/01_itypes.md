@@ -127,7 +127,7 @@ In the definition below, $\tau, \tau'$ range over $\mathcal{T}_s$, $\tau_i, \hdo
 
 ##Well typed $\subseteq$
 
-The presentation of the $\subseteq$ relation in \cref{Definition:subseteqOrig} differs quite significantly from the one presented above. The main difference is obviously the addition of type refinement, but the definition now also includes the $(base)$ rule, which allows one to derive the  previously **?verbally/implicitly?** stated reflexivity and transitivity rules.
+The presentation of the $\subseteq$ relation in \cref{Definition:subseteqOrig} differs quite significantly from the one presented above. The main difference is obviously the addition of type refinement, but the definition now also includes the $(base)$ rule, which allows one to derive the previously implicitly stated reflexivity and transitivity rules.
 <!--\vspace{1.5em}
 <div class="Remark">
 From $(base)$, one can prove the general $(refl_S)$ and $(refl)$ rules: 
@@ -234,7 +234,7 @@ When we try to prove the above using the well typed rules, we first need to coer
   \DisplayProof
 \end{center}
 
-The open branch $[[\psi , \tau , \rho] \to \psi] \subseteq_\ell [[\psi , \tau] \to \psi]$ in the example clearly demonstrates that the current formulation of the two properties clearly doesn't quite capture the intended **??meaning??**.
+The open branch $[[\psi , \tau , \rho] \to \psi] \subseteq_\ell [[\psi , \tau] \to \psi]$ in the example clearly demonstrates that the current formulation of the two properties clearly doesn't quite capture the intended meaning.
 </div>
 
 Since we know by reflexivity that $\tau \subseteq \tau$, we can reformulate $(prop'\ 1)$ as:

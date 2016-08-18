@@ -1,4 +1,5 @@
 #Introduction
+\label{chap:intro}
 
 ##Motivation
 
@@ -9,10 +10,11 @@ In recent years, advances in higher order model checking (HOMC) have been made (
 
 
 ##Aims
-The aim of this project is to make a start of mechanizing the proofs underpinning HOMC approaches using type-checking of higher-order recursion schemes, by formalizing and formally proving certain key properties about the $\lamy$ calculus with the intersection-type system described by **??which one...should I omit??**, which can be used to study HOMC as an alternative to higher order recursion schemes (HORS).    
-The first part of this work focuses on the mechanization aspect of the simply typed $\lamy$ calculus in a theorem prover, in a fashion similar to the $\poplm$ challenge, by exploring different encodings of binders in a theorem prover and also the use of different theorem provers. The reason why we chose to do such a comparison was to evaluate and chose the best mechanization approach and implementation language for the $\lamy$ calculus, as there is little infomration available concerning the merits and disadvantages of different implementation approaches of $\lamy$ or indeed just the (simply typed) $\lambda$-calculus. The comparison of different mechanizations focuses on the engineering choices and formalization overheads which result from translating the informal definitions into a fully-formal setting of a theorem prover.
+The aim of this project is to make a start of mechanizing the proofs underpinning HOMC approaches using type-checking of higher-order recursion schemes, by formalizing and formally proving certain key properties about the $\lamy$ calculus with an intersection-type system (@clairambault13, @tsukada14), which can be used to study HOMC as an alternative to higher order recursion schemes (HORS).    
+The first part of this work focuses on the mechanization aspect of the simply typed $\lamy$ calculus in a theorem prover, in a fashion similar to the $\poplm$ challenge, by exploring different encodings of binders in a theorem prover and also the use of different theorem provers. The reason why we chose to do such a comparison was to evaluate and chose the best mechanization approach and implementation language for the $\lamy$ calculus, as there is little information available concerning the merits and disadvantages of different implementation approaches of $\lamy$ or indeed just the (simply typed) $\lambda$-calculus. The comparison of different mechanizations focuses on the engineering choices and formalization overheads which result from translating the informal definitions into a fully-formal setting of a theorem prover.
 The project is roughly split into two main parts, with the first part exploring and evaluating the different formalizations of the simply-typed $\lamy$ calculus together with the proof of the Church Rosser Theorem. The reason why we chose to formalize the Church Rosser theorem was to to test the implementation of a non-trivial, but simple enough proof in a fully formal setting.   
-The second part focuses on implementing the intersection-type system for the $\lamy$ calculus and formalizing the proof of subject invariance for this type system. The formalization and engineering choices made in the implementation of the intersection-type system reflect the survey and analysis of the different possible choices of mechanization, explored in the first part of the project.
+The second part focuses on implementing the intersection-type system for the $\lamy$ calculus and formalizing the proof of subject invariance for this type system. The formalization and engineering choices made in the implementation of the intersection-type system reflect the survey and analysis of the different possible choices of mechanization, explored in the first part of the project.   
+All the code described in this project can be found in the git repository at: \url{https://github.com/goodlyrottenapple/lamYcalc}.
 
 ##Main Achievements
 
@@ -23,4 +25,16 @@ The second part focuses on implementing the intersection-type system for the $\l
 -	Analysis and comparison of binder encodings
 -	Comparison of Agda and Isabelle
 -	Formalization of an intersection-type system for the $\lamy$ calculus and proof of subject invariance for intersection-types
+
+
+##Dissertation Structure
+
+The dissertation has 7 chapters and is split into three conceptual parts. The first part (chapters 1-3) describes the domain and the goals of this project, the second part (chapters 4 and 5) is a comparison of several mechanizations of the simply typed $\lamy$ calculus and the third part (chapter 6) discusses the intersection typing and associated proofs.   
+\cref{chap:intro} is an overview of the aims and achievements of this project.    
+\cref{chap:background} gives an introduction to the $\lamy$ calculus, together with an overview of the proof of confluence (Church Rosser). The chapter also introduces intersection types and discusses an important aspect of a fully formal mechanization of a $\lambda$-calculus, namely the treatment of binders in a fully formal setting of a theorem prover.    
+\cref{chap:method} introduces the methodology used for comparing the different mechanizations discussed in later chapters.   
+\cref{chap:compIsa} compares two mechanizations of the $\lamy$ calculus (nominal and locally nameless), focused around the treatment of binders. The comparison looks at the overall length and structure of the two formalizations, as well as using specific instances of the same definitions/lemmas across the two mechanizations, to illustrate the advantages and disadvantages of both mechanizations.    
+\cref{chap:compAgda} details the differences between using Isabelle and Agda for formalizing the $\lamy$ calculus.   
+\cref{chap:itypes} discusses the implementation details of intersection types for the $\lamy$ calculus and the various engineering choices that were made in order to simplify the ensuing proof of subject invariance.    
+\cref{chap:concl} summarizes the outcomes of the project and details possible further work.
 

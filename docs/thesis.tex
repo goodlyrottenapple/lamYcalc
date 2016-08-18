@@ -280,30 +280,45 @@ xetex]{hyperref}
 
 % - Title ----------------------------------------------------------------------
 \maketitle
+\null\newpage
 
 % - Dedication -----------------------------------------------------------------
-\begin{dedication}
-This is a dedication
-\end{dedication}
 
 % - Acknowledgements -----------------------------------------------------------
 \begin{acknowledgements}
 Say thanks to whoever listened to your rants for 2 months
 \end{acknowledgements}
+\null\newpage
 
 
 % - Originality ----------------------------------------------------------------
-\begin{originality}
-This is the statement of originality
-\end{originality}
 
 
 % - Abstract -------------------------------------------------------------------
 \begin{abstract}
-This is the abstract. For this and the other front-matter options you
-can either include the text directly on the metadata file or you can use
-in order to include your text.
+Higher order model checking (HOMC), has been intensively studied in
+recent years (C.-H. L. Ong (\protect\hyperlink{ref-ong06}{2006}),
+Kobayashi (\protect\hyperlink{ref-kobayashi13}{2013}), Ramsay,
+Neatherway, and Ong (\protect\hyperlink{ref-ramsay14}{2014}), Tsukada
+and Ong (\protect\hyperlink{ref-tsukada14}{2014})). A common approach to
+studying HOMC is through higher order recursion schemes (HORS).\\
+Recently, it was shown that \(\lamy\) calculus with intersection-types
+can be used as an alternative to HORS, when studying higher order model
+checking. Whilst the theory of HORS and \(\lamy\) has been formalized
+``on paper'', there has been little done in mechanizing this theory in a
+fully formal setting of a theorem prover.\\
+The aim of this project was to start such a formalization, by first
+mechanizing the \(\lamy\) calculus along with the proof of confluence
+for simple types. This served as a benchmark for choosing the
+implementation specifics, such as the binder representation strategy as
+well as the implementation language.\\
+The formalization of the terms of the calculus along with the proof of
+confluence served as a benchmark for comparing the chosen mechanization
+approaches. The best mechanization was then extended with the
+formalization of intersection types for the \(\lamy\) calculus, along
+with the proofs of subject invariance.
 \end{abstract}
+\null\newpage
 
 
 
@@ -323,6 +338,8 @@ in order to include your text.
 % - BODY -----------------------------------------------------------------------
 \pagenumbering{arabic}
 \chapter{Introduction}\label{introduction}
+
+\label{chap:intro}
 
 \section{Motivation}\label{motivation}
 
@@ -367,17 +384,18 @@ theorem prover.
 The aim of this project is to make a start of mechanizing the proofs
 underpinning HOMC approaches using type-checking of higher-order
 recursion schemes, by formalizing and formally proving certain key
-properties about the \(\lamy\) calculus with the intersection-type
-system described by \textbf{??which one\ldots{}should I omit??}, which
-can be used to study HOMC as an alternative to higher order recursion
-schemes (HORS).\\
+properties about the \(\lamy\) calculus with an intersection-type system
+(Clairambault and Murawski
+(\protect\hyperlink{ref-clairambault13}{2013}), Tsukada and Ong
+(\protect\hyperlink{ref-tsukada14}{2014})), which can be used to study
+HOMC as an alternative to higher order recursion schemes (HORS).\\
 The first part of this work focuses on the mechanization aspect of the
 simply typed \(\lamy\) calculus in a theorem prover, in a fashion
 similar to the \(\poplm\) challenge, by exploring different encodings of
 binders in a theorem prover and also the use of different theorem
 provers. The reason why we chose to do such a comparison was to evaluate
 and chose the best mechanization approach and implementation language
-for the \(\lamy\) calculus, as there is little infomration available
+for the \(\lamy\) calculus, as there is little information available
 concerning the merits and disadvantages of different implementation
 approaches of \(\lamy\) or indeed just the (simply typed)
 \(\lambda\)-calculus. The comparison of different mechanizations focuses
@@ -394,7 +412,9 @@ the \(\lamy\) calculus and formalizing the proof of subject invariance
 for this type system. The formalization and engineering choices made in
 the implementation of the intersection-type system reflect the survey
 and analysis of the different possible choices of mechanization,
-explored in the first part of the project.
+explored in the first part of the project.\\
+All the code described in this project can be found in the git
+repository at: \url{https://github.com/goodlyrottenapple/lamYcalc}.
 
 \section{Main Achievements}\label{main-achievements}
 
@@ -419,7 +439,42 @@ end}
   calculus and proof of subject invariance for intersection-types
 \end{itemize}
 
+\section{Dissertation Structure}\label{dissertation-structure}
+
+The dissertation has 7 chapters and is split into three conceptual
+parts. The first part (chapters 1-3) describes the domain and the goals
+of this project, the second part (chapters 4 and 5) is a comparison of
+several mechanizations of the simply typed \(\lamy\) calculus and the
+third part (chapter 6) discusses the intersection typing and associated
+proofs.\\
+\cref{chap:intro} is an overview of the aims and achievements of this
+project.\\
+\cref{chap:background} gives an introduction to the \(\lamy\) calculus,
+together with an overview of the proof of confluence (Church Rosser).
+The chapter also introduces intersection types and discusses an
+important aspect of a fully formal mechanization of a
+\(\lambda\)-calculus, namely the treatment of binders in a fully formal
+setting of a theorem prover.\\
+\cref{chap:method} introduces the methodology used for comparing the
+different mechanizations discussed in later chapters.\\
+\cref{chap:compIsa} compares two mechanizations of the \(\lamy\)
+calculus (nominal and locally nameless), focused around the treatment of
+binders. The comparison looks at the overall length and structure of the
+two formalizations, as well as using specific instances of the same
+definitions/lemmas across the two mechanizations, to illustrate the
+advantages and disadvantages of both mechanizations.\\
+\cref{chap:compAgda} details the differences between using Isabelle and
+Agda for formalizing the \(\lamy\) calculus.\\
+\cref{chap:itypes} discusses the implementation details of intersection
+types for the \(\lamy\) calculus and the various engineering choices
+that were made in order to simplify the ensuing proof of subject
+invariance.\\
+\cref{chap:concl} summarizes the outcomes of the project and details
+possible further work.
+
 \chapter{Background}\label{background}
+
+\label{chap:background}
 
 \section{Binders}\label{binders}
 
@@ -523,10 +578,12 @@ As was mentioned before, defining ``raw'' terms and the notion of
 overhead in a theorem prover and is therefore not favored.
 
 To obtain an inductive definition of \(\lambda\)-terms with a built in
-notion of \(\alpha\)-equivalence, one can instead use nominal sets
-(\textbf{described in the section on nominal sets/Isabelle?}). The
-nominal package in Isabelle provides tools to automatically define terms
-with binders, which generate inductive definitions of
+notion of \(\alpha\)-equivalence, one can instead use nominal sets. The
+theory of nominal sets captures the notion of bound variables and
+freshness, as it is based around the notion of having properties
+invariant in name permutation.\\
+The nominal package in Isabelle provides tools to automatically define
+terms with binders, which generate inductive definitions of
 \(\alpha\)-equivalent terms. Using nominal sets in Isabelle results in a
 definition of terms which looks very similar to the informal
 presentation of the lambda calculus:
@@ -853,10 +910,9 @@ next section, use the untyped definition of \(\beta\)-reduction. Whilst
 it is possible to define a typed version of \(\beta\)-reduction, it
 turned out to be much easier to first prove the Church Rosser theorem
 for the so called ``untyped'' \(\lamy\) calculus and the additionally
-restrict this result to only well-types \(\lamy\) terms (see
-\cref{utypReason} for more details). Thus, the definition of the Church
-Rosser Theorem, formulated for the \(\lamy\) calculus, is the following
-one:
+restrict this result to only well-types \(\lamy\) terms.\\
+Thus, the definition of the Church Rosser Theorem, formulated for the
+\(\lamy\) calculus, is the following one:
 
 \begin{Theorem}[Church Rosser]
 
@@ -894,7 +950,8 @@ The first part of this project focuses on formalizing the simply typed
 \(\lamy\) calculus and the proof of confluence for this calculus (proof
 of the Church Rosser Theorem is sometimes also referred to as proof of
 confluence). The usual/informal definition of the \(\lamy\) terms and
-the simple types are given below:
+the simple types are given below:\\
+\(\ \)
 
 \begin{Definition}[$\lamy$ types and terms]
 
@@ -920,16 +977,17 @@ The usual definition of \(\beta\)-reduction is then augmented with the
 \((Y)\) rule (this is the typed version of the rule):
 
 \begin{center}
-  \vskip 1.5em
+  \vskip 1em
   \AxiomC{$\Gamma \vdash M : \sigma \to \sigma$}
   \LeftLabel{$(Y)$}
   \UnaryInfC{$\Gamma \vdash Y_\sigma M \red M (Y_\sigma M) : \sigma$}
   \DisplayProof
-  \vskip 1.5em
+  \vskip 1em
 \end{center}
 
 In essence, the \(Y\) rule allows (some) well-typed recursive
-definitions over simply typed \(\lambda\)-terms.
+definitions over simply typed \(\lambda\)-terms.\\
+\(\ \)
 
 \begin{Example}
 
@@ -1438,6 +1496,8 @@ Assuming that \(\Gamma\) is a finite list, consisting of pairs of atoms
 
 \chapter{Methodology}\label{methodology}
 
+\label{chap:method}
+
 The idea of formalizing a functional language in multiple theorem
 provers and objectively assessing the merits and pitfalls of the
 different formalizations is definitely not a new idea. The most well
@@ -1759,22 +1819,35 @@ of each one. Even though this measure also carries disadvantages (one
 could, for example, in-line the whole Church Rosser proof into one giant
 lemma) it is less sensitive in regard to transparency.
 
-A clear mechanization overhead in this project is the treatment of
-binders, introduced in \cref{binders} of the previous chapter and
-described in more detail in the following Chapter. In the project, we
-decided to use nominal sets and locally nameless representation for
-binders. The choice of nominal sets was tied to the implementation
-language Isabelle, which has a well developed
+Another aspect which ties into both transparency and mechanization
+overheads is the level of automation. As was demonstrated by
+\cref{Example:sqareOdd}, wherein the lemma could in fact be proved
+automatically with almost no user input, having low implementation
+overheads is often tied to the level of automation the tool provides.\\
+More concretely, a tool with good automation will include a standard
+library of common definitions and theorems, so that the user does not
+have to re-prove these basic properties and instead can focus on the
+specific theory she/he wants to prove.\\
+This is indeed largely the reason why we used Isabelle along with the
 \href{http://www.inf.kcl.ac.uk/staff/urbanc/Nominal/}{nominal sets
-library}, maintained by Christian Urban. The appeal of using nominal
-sets is of course the touted transparency with regards to the usual
-informal definitions as well as minimal overheads.\\
-The choice of locally nameless encoding, as opposed to using pure de
-Bruijn indices, was motivated by the claim that locally nameless
-encoding largely mitigates the disadvantages of de Bruijn indices
-especially when it comes to technology transparency (i.e.~theorems about
-locally nameless presentation are much closer in formulation to the
-informal presentation than theorems formulated for de Bruijn indices).
+library}, maintained by Christian Urban, where the theory was
+conveniently hidden away and managed for us by Isabelle's automatic
+provers, so that our mechanization overheads were minimal. However,
+there were several caveats to this, which we discuss in the next
+chapter.\\
+On the other hand, the choice of locally nameless encoding, as opposed
+to using pure de Bruijn indices, was motivated by the claim that locally
+nameless encoding largely mitigates the disadvantages of de Bruijn
+indices especially when it comes to technology transparency. The LN
+encoding is also a lot more bare-bones and carries relatively small but
+manageable overheads.\\
+In order to keep our comparison balanced, we didn't leverage Isabelle's
+automation to it's fullest, choosing instead, to keep some lemmas
+(especially in the nominal implementation) deliberately verbose, so as
+to keep them both more transparent and easier to compare with the
+locally nameless versions. Another reason to this was the choice of the
+second implementation language, Agda, which doesn't include as many
+automation features as Isabelle.
 
 \chapter{Nominal vs.~Locally nameless}\label{comp-isa}
 
@@ -1967,12 +2040,12 @@ nominal_datatype trm =
 
 The special \textbf{\texttt{binds \_ in \_}} syntax in the \texttt{Lam}
 constructor declares \texttt{x} to be bound in the body \texttt{t},
-telling Nominal Isabelle that \texttt{Lam} terms should be
-\textbf{?equated up to \(\alpha\)-equivalence?}, where a term
-\(\lambda x. x\) and \(\lambda y. y\) are considered equivalent, because
-both \(x\) and \(y\) are bound in the two respective terms, and can both
-be \(\alpha\)-converted to the same term, for example \(\lambda z .z\).
-In fact, proving such a lemma in Isabelle is trivial:
+telling Nominal Isabelle that \texttt{Lam} terms should be identified up
+to \(\alpha\)-equivalence, where a term \(\lambda x. x\) and
+\(\lambda y. y\) are considered identical/equal, because both \(x\) and
+\(y\) are bound in the two respective terms, and can both be
+\(\alpha\)-converted to the same term, for example \(\lambda z. z\). In
+fact, proving such a lemma in Nominal Isabelle is trivial:
 
 \begin{minted}[]{isabelle}
 lemma "Lam [x]. Var x = Lam [y]. Var y" by simp
@@ -2038,8 +2111,8 @@ Unfortunately, this isn't the case for the
 \textbf{\texttt{nominal\_function}} declaration, where there are several
 goals (13 in the case of the \texttt{subst} definition) which the user
 has to manually prove about the function definition, including proving
-termination and \textbf{???}. This turned out to be a bit problematic,
-as the goals involved proving properties like:
+termination, and pattern disjointness and completeness. This turned out
+to be a bit problematic, as the goals involved proving properties like:
 
 \begin{minted}[]{idris}
 ⋀x t xa ya sa ta.
@@ -2050,9 +2123,6 @@ as the goals involved proving properties like:
   [[atom x]]lst. subst_sumC (t, ya, sa) = 
     [[atom xa]]lst. subst_sumC (ta, ya, sa)
 \end{minted}
-
-\textbf{do i need to explain what this property is? or is it ok for
-illustrative purposes?}
 
 Whilst most of the goals were trivial, proving cases involving
 \(\lambda\)-terms involved a substantial understanding of the internal
@@ -2326,14 +2396,14 @@ implicit. In the LN presentation, however, this operation is made
 explicit by opening both \(M\) and \(M'\) with some free variable \(x\)
 (not appearing in either \(M\) nor \(M'\)), which replaces the bound
 variables/indices (bound to the outermost \(\lambda\)) with \(x\).\\
-While this definition is equivalent to \cref{Definition:betaRedNom}, the
-induction principle this definition yields may not always be sufficient,
-especially in situations where we want to open up a term with a free
-variable which is not only fresh in \(M\) and \(M'\), but possibly in a
-wider context. We therefore followed the approach of B. Aydemir et al.
-(\protect\hyperlink{ref-aydemir08}{2008}) and re-defined the \((abs)\)
-rule (and other definitions involving picking fresh/free variables)
-using \emph{cofinite quantification}:
+While this definition is equivalent to the usual/informal definition,
+the induction principle this definition yields may not always be
+sufficient, especially in situations where we want to open up a term
+with a free variable which is not only fresh in \(M\) and \(M'\), but
+possibly in a wider context. We therefore followed the approach of B.
+Aydemir et al. (\protect\hyperlink{ref-aydemir08}{2008}) and re-defined
+the \((abs)\) rule (and other definitions involving the choice of
+fresh/free variables) using \emph{cofinite quantification}:
 
 \begin{center}
     \vskip 1.5em
@@ -2408,7 +2478,7 @@ sub-term of any given \(M\).
 This is indeed the case when using the nominal mechanization, where the
 proof looks like this:
 
-\begin{minted}[xleftmargin=1em, linenos=true]{isabelle}
+\begin{minted}[xleftmargin=1em, linenos=true, escapeinside=||]{isabelle}
 lemma pbeta_max_ex:
   fixes M
   shows "∃M'. M >>> M'"
@@ -2419,7 +2489,7 @@ apply (case_tac "not_Y S")
 apply auto[1]
 proof goal_cases
 case (1 P Q P' Q')
-  then obtain σ where 2: "P = Y σ" using not_Y_ex by auto
+  then obtain |σ| where 2: "P = Y σ" using not_Y_ex by auto
   have "App (Y σ) Q >>> App Q' (App (Y σ) Q')"
   apply (rule_tac pbeta_max.Y)
   by (rule 1(2))
@@ -2467,7 +2537,7 @@ that the fresh variables won't appear in either of the terms.\\
 Since bound variables are distinct in the LN representation, the
 equivalent proof simply uses the usual induction rule (line 19):
 
-\begin{minted}[xleftmargin=1em, linenos=true]{isabelle}
+\begin{minted}[xleftmargin=1em, linenos=true, escapeinside=||]{isabelle}
 lemma pbeta_max_ex:
   fixes M assumes "trm M"
   shows "∃M'. M >>> M'"
@@ -2478,7 +2548,7 @@ apply (case_tac "not_Y t1")
 apply auto[1]
 proof goal_cases
 case (1 P Q P' Q')
-  then obtain σ where 2: "P = Y σ" using not_Y_ex by auto
+  then obtain |σ| where 2: "P = Y σ" using not_Y_ex by auto
   have "App (Y σ) Q >>> App Q' (App (Y σ) Q')"
   apply (rule_tac pbeta_max.Y)
   by (rule 1(4))
@@ -2652,9 +2722,6 @@ substitution, we can now ``close'' the term \(M'\), with respect to the
 \(x\) we fixed earlier and thus show that
 \(\forall y \not\in L.\ M^y \ggg (\cls M')^y\).
 
-\textbf{Should I go into more detail here or just wrap it up by saying
-how much more code was necessary over the nominal version??}
-
 \subsection{\texorpdfstring{\cref{Lemma:maxClose}}{}}\label{section-1}
 
 While it may seem that the nominal mechanization was universally more
@@ -2685,7 +2752,7 @@ We have \(M \equiv (\lambda x. P) Q\) and
 By performing case analysis on the reduction
 \((\lambda x. P) Q \gg M'\), we know that
 \(M' \equiv (\lambda x. P') Q'\) or \(M' \equiv P'[Q'/x]\) for some
-\(P', Q'\), since only these two \textbf{??reduction trees??} are valid:
+\(P', Q'\), since only these two trees are valid:
 
 \begin{center}
     \AxiomC{$\vdots$}
@@ -2857,8 +2924,7 @@ this version of the lemma came from the use of \cref{Lemma:parRed}, in
 that the lemma was first proved in it's classical formulation using
 substitution, but due to the way substitution of bound terms is handled
 in the LN mechanization (using the \emph{open function}), a ``helper''
-lemma was proved to convert this result to one using \emph{open}:\\
-\(\ \)
+lemma was proved to convert this result to one using \emph{open}:
 
 \begin{Lemma}[Parallel open]
 
@@ -2892,25 +2958,43 @@ been made shorter and more ``tailored'' to the LN mechanization.
 
 \label{chap:compAgda}
 
-\textbf{agda with spacing: 1351 lines} \textbf{agda without spaces: 1234
-lines}
+Having previously looked at two approaches to mechanizing binders in
+Isabelle and having concluded that there were only minor differences
+between the nominal and LN approaches, we proceeded to the next round of
+our comparison, by implementing the locally nameless version of the
+\(\lamy\) calculus along with proofs of confluence in Agda.\\
+Whilst using Nominal sets in Isabelle turned out to be slightly more
+transparent and shorter, the big disadvantage, especially for Agda, was
+the fact that the nominal set theory would have been much more tedious
+to use, if we had to, say, implement it from scratch. Whilst Nominal
+Isabelle is a fairly mature library, formalizing the theory of nominal
+sets and providing ample sugar for the user to hide away the theory,
+Agda is a lot more bare-bones and the ``penalty'' incurred by
+formalizing and then using nominal sets would have been significantly
+higher.\\
+Instead, we chose to implement the locally nameless version, which
+proved to have consistent, but fairly minimal overheads, requiring
+relatively little extra theory. This is supported by the fact that the
+LN version of the calculus and proofs in Isabelle was roughly 1140 lines
+of code, whereas the Agda version was only slightly longer at 1350
+lines, which, when adjusted to the same spacing/formatting comes down to
+roughly 1230 lines. This rough metric also demonstrates that whilst
+Isabelle's automation can be a lot more powerful than Agda's, in our
+case (partially by design), there were only a few instances where
+Isabelle clearly had the upper hand. Over all, it turned out, once
+again, that there were only small, often just cosmetic, differences
+between the two implementations.
 
-The formalization of the terms and reduction rules of the \(\lambda\)-Y
-calculus presented here is a locally nameless presentation due to B.
-Aydemir et al. (\protect\hyperlink{ref-aydemir08}{2008}). The basic
-definitions of \(\lambda\)-terms and \(\beta\)-reduction were borrowed
-from an implementation of the \(\lambda\)-calculus with the associated
-Church Rosser proof in Agda, by Mu
-(\protect\hyperlink{ref-shing-cheng}{2011}).
+\section{Overview}\label{overview-2}
 
-One of the most obvious differences between Agda and Isabelle is the
+One of the most apparent differences between Agda and Isabelle is the
 treatment of functions and proofs in both languages. Whilst in Isabelle,
 there is always a clear syntactic distinction between programs and
 proofs, Agda's richer dependent-type system allows constructing proofs
-as programs. This distinction is especially apparent in inductive
-proofs, which have a completely distinct syntax in Isabelle. As proofs
-are not objects which can be directly manipulated in Isabelle, to modify
-the proof goal, user commands such as \texttt{apply rule} or
+as programs. This distinction is especially visible in inductive proofs,
+which have a completely distinct syntax in Isabelle. As proofs are not
+objects which can be directly manipulated in Isabelle, to modify the
+proof goal, user commands such as \texttt{apply rule} or
 \texttt{by auto} are used:
 
 \begin{minted}[]{isabelle}
@@ -2937,23 +3021,24 @@ goal (5 subgoals):
 5. ⋀xa. x ∉ FV (Y xa) ⟹ Y xa [x ::= u] = Y xa
 \end{minted}
 
-These can then discharged by the call to \texttt{auto}, which is another
-command that invokes the automatic solver, which tries to prove all the
+These can then discharged by the call to \texttt{auto}, which is a
+command that invokes the automatic solver, that tries to prove all the
 goals in the given context.
 
-In comparison, in an Agda proof the proof objects are available to the
-user directly. Instead of using commands modifying the proof state, one
-begins with a definition of the lemma:
+In contrast to this, in an Agda proof, the proof objects are available
+to the user directly. Instead of using commands modifying the proof
+state, one begins with a definition of the lemma:
 
 \begin{minted}[]{agda}
 subst-fresh : ∀ x t u -> (x∉FVt : x ∉ (FV t)) -> (t [ x ::= u ]) ≡ t
 subst-fresh x t u x∉FVt = ?
 \end{minted}
 
-The \texttt{?} acts as a `hole' which the user needs to fill in, to
-construct the proof. Using the emacs/atom agda-mode, once can apply a
-case split to \texttt{t}, corresponding to the \texttt{apply (induct t)}
-call in Isabelle, generating the following definition:
+The \texttt{?} acts as a `hole' which the user fills in, by
+incrementally constructing the proof. Using the Emacs/Atom editor's
+``agda-mode'', once can apply a case split to \texttt{t} (corresponding
+to the \texttt{apply (induct t)} call in Isabelle), generating the
+following definition:
 
 \begin{minted}[]{agda}
 subst-fresh : ∀ x t u -> (x∉FVt : x ∉ (FV t)) -> (t [ x ::= u ]) ≡ t
@@ -2986,18 +3071,20 @@ constraints given in the definition.
 
 \section{Automation}\label{automation}
 
-As seen in the first example, Isabelle includes several automatic
-provers of varying complexity, including \texttt{simp}, \texttt{auto},
-\texttt{blast}, \texttt{metis} and others. These are tactics/programs
-which automatically apply rewrite-rules until the goal is discharged. If
-the tactic fails to discharge a goal within a set number of steps, it
-stops and lets the user direct the proof. The use of tactics in Isabelle
-is common to prove trivial goals, which usually follow from simple
-rewriting of definitions or case analysis of certain variables.
+As seen in the first example, Isabelle relies on automation in its
+proofs. It includes several automatic provers of varying complexity,
+including \texttt{simp}, \texttt{auto}, \texttt{blast}, \texttt{metis}
+and others. These are usually tactics/programs which automatically apply
+rewrite-rules, until the goal is discharged. If the tactic fails to
+discharge a goal within a set number of steps, it stops and lets the
+user direct the proof. The use of tactics in Isabelle is commonly used
+to prove trivial goals, which usually follow from simple rewriting of
+definitions or case analysis of certain variables.\\
+\(\ \)
 
 \begin{Example}
 
-For example, the proof goal
+\label{Example:substFresh} For example, the proof goal
 
 \begin{minted}[]{idris}
 ⋀xa. x ∉ FV (FVar xa) ⟹ FVar xa [x ::= u] = FVar xa
@@ -3011,7 +3098,8 @@ will be proved by first unfolding the definition of substitution for
 \end{minted}
 
 and then deriving \texttt{x ≠ xa} from the assumption
-\texttt{x ∉ FV (FVar xa)}. Applying these steps explicitly, we get:
+\texttt{x ∉ FV (FVar xa)}.\\
+Applying these steps explicitly, we get:
 
 \begin{minted}[escapeinside=||]{isabelle}
 lemma subst_fresh: "x ∉ FV t ⟹ t[x ::= u] = t"
@@ -3032,15 +3120,16 @@ where the goal now has the following shape:
 
 From this point, the simplifier rewrites \texttt{xa = x} to
 \texttt{False} and \texttt{(if False then u else FVar xa)} to
-\texttt{FVar xa} in the goal. The use of tactics and automated tools is
-heavily ingrained in Isabelle and it is actually impossible
-(i.e.~impossible for me) to not use \texttt{simp} at this point in the
-proof, partly because one gets so used to discharging such trivial goals
-automatically and partly because it becomes nearly impossible to do the
-last two steps explicitly without having a detailed knowledge of the
-available commands and tactics in Isabelle (i.e.~I don't).\\
-Doing these steps explicitly, quickly becomes cumbersome, as one needs
-to constantly look up the names of basic lemmas, such as
+\texttt{FVar xa} in the goal.\\
+The use of tactics and automated tools is heavily ingrained in Isabelle
+and it is actually impossible (i.e.~impossible for me) to not use
+\texttt{simp} at this point in the proof, partly because one gets so
+used to discharging such trivial goals automatically and partly because
+it becomes nearly impossible to do the last two steps explicitly without
+having a detailed knowledge of the available commands and tactics in
+Isabelle (i.e.~I don't).\\
+Doing these steps explicitly quickly becomes cumbersome, as one needs to
+constantly look up the names of basic lemmas, such as
 \texttt{Set.empty\_iff}, which is a simple rewrite rule
 \texttt{(?c ∈ \{\}) = False}.
 
@@ -3050,18 +3139,17 @@ Unlike Isabelle, Agda does not include nearly as much automation. The
 only proof search tool included with Agda is Agsy, which is similar,
 albeit often weaker than the \texttt{simp} tactic. It may therefore seem
 that Agda will be much more cumbersome to reason in than Isabelle. This,
-however, turns out not to be the case in this formalization, in part due
-to Agda's type system and the powerful pattern matching as well as
-direct access to the proof goals.
-
-However, automation did not play as major a part in this project as it
-might have, especially in this round of the comparison, since the LN
-mechanization had to be implemented from scratch and thus, the proofs
-written in Isabelle were only later modified to leverage some
-automation. However, since most proofs required induction, which theorem
-provers are generally not very good at performing wihtout user guidance,
-the only place where automation was really apparent was in the case of a
-few lemmas involving equational reasoning, like the ``open-swap'' lemma:
+however, turns out not to be the case (at least in this formalization),
+in part due to Agda's type system and the powerful pattern matching as
+well as direct access to the proof goals. Automation did not play as
+major a part in this project as it might have, especially in this round
+of the comparison, since the LN mechanization had to be implemented from
+scratch and thus, the proofs written in Isabelle were only later
+modified to leverage some automation. However, since most proofs
+required induction, which theorem provers are generally not very good at
+performing without user guidance, the only place where automation was
+really apparent was in the case of a few lemmas involving equational
+reasoning, like the ``open-swap'' lemma:
 
 \begin{Lemma}
 
@@ -3073,7 +3161,7 @@ few lemmas involving equational reasoning, like the ``open-swap'' lemma:
 Whilst in Isabelle, this was a trivial case of applying induction on the
 term \(M\) and letting \texttt{auto} prove all the remaining cases. In
 Agda, this was a lot more painful, as the cases had to be constructed
-and proved more or less manually, yielding this rather longer proof:
+and proved more or less manually, yielding this rather long(er) proof:
 
 \begin{minted}[]{agda}
 ^-^-swap : ∀ k n x y m -> ¬(k ≡ n) -> ¬(x ≡ y) -> 
@@ -3101,27 +3189,27 @@ and proved more or less manually, yielding this rather longer proof:
 ^-^-swap k n x y (Y _) k≠n x≠y = refl
 \end{minted}
 
-\section{Proofs-as-programs}\label{proofs-as-programs}
+\section{Proofs-as-programs in Agda}\label{proofs-as-programs-in-agda}
 
 \label{proofAsProg}
 
 As was already mentioned, Agda treats proofs as programs, and therefore
 provides direct access to proof objects. In Isabelle, the proof goal is
-of the form:
+usually of the form:
 
 \begin{minted}[]{idris}
 lemma x: "assm-1 ⟹ ... ⟹ assm-n ⟹ concl"
 \end{minted}
 
-using the `apply-style' reasoning in Isabelle can become burdensome, if
-one needs to modify or reason with the assumptions, as was seen in the
-example above. In the example, the \texttt{drule} tactic, which is used
-to apply rules to the premises rather than the conclusion, was applied
-repeatedly. Other times, we might have to use structural rules for
-exchange or weakening, which are necessary purely for
+Using the `apply-style' reasoning in Isabelle can become burdensome, if
+one needs to modify or reason with the assumptions, as was seen in
+\cref{Example:substFresh}. In this example, the \texttt{drule} tactic,
+which is used to apply rules to the premises rather than the conclusion,
+was applied repeatedly. Other times, we might have to use structural
+rules for exchange or weakening, which are necessary purely for
 \texttt{organizational} purposes of the proof.\\
 In Agda, such rules are not necessary, since the example above looks
-like a functional definition:
+like a function definition:
 
 \begin{minted}[]{idris}
 x assm-1 ... assm-n = ?
@@ -3132,11 +3220,11 @@ function x, which expects something of type \texttt{concl} in the place
 of \texttt{?}. This presentation allows one to use the given assumptions
 arbitrarily, perhaps passing them to another function/proof or
 discarding them if not needed.\\
-This way of reasoning is also supported in Isabelle to some extent via
-the use of the Isar proof language, where (the previous snippet of) the
-proof of \texttt{subst\_fresh} can be expressed in the following way:
+This way of reasoning is also supported in Isabelle to some extent, via
+the use of the Isar proof language, where (the snippet of) the proof of
+\texttt{subst\_fresh} can be expressed in the following way:
 
-\begin{minted}[]{isabelle}
+\begin{minted}[escapeinside=||]{isabelle}
 lemma subst_fresh': 
   assumes "x ∉ FV t"
   shows "t[x ::= u] = t"
@@ -3146,7 +3234,7 @@ case (FVar y)
   then have "x ≠ y" unfolding Set.insert_iff Set.empty_iff HOL.simp_thms(31) .
   then show ?case unfolding subst.simps(1) by simp
 next
-...
+|$\texttt{\vdots}$|
 qed
 \end{minted}
 
@@ -3239,10 +3327,7 @@ unlike in Isabelle, where the definition of substitution had to be
 manually unfolded (the command \texttt{unfolding subst.simps(1)}), Agda
 performs type reduction automatically and can rewrite the term
 \texttt{(fv y [ x ::= u ] | no .¬p)} to \texttt{fv y} when type-checking
-the expression. Since all functions in Agda terminate, this operation on
-types is safe \textbf{(not sure this is clear enough\ldots{} im not
-entirely sure why\ldots{} found here:
-http://people.inf.elte.hu/divip/AgdaTutorial/Functions.Equality\_Proofs.html\#automatic-reduction-of-types)}.
+the expression.
 
 For the case where \texttt{x} and \texttt{y} are equal, one can
 immediately derive a contradiction from the fact that \texttt{x} cannot
@@ -3280,7 +3365,7 @@ subst-fresh' x (fv y) u x∉FVt with x ≟ y
 ... | no ¬p = refl
 \end{minted}
 
-We can even tranform the Isabelle proof to closer match the Agda proof:
+We can even transform the Isabelle proof to closer match the Agda proof:
 
 \begin{minted}[]{isabelle}
 case (FVar y)
@@ -3294,7 +3379,7 @@ case (FVar y)
   qed
 \end{minted}
 
-We can thus see that using Isar style proofs and Agda reasoning ends up
+Thus, we can see that using Isar style proofs and Agda reasoning ends up
 being rather similar in practice.
 
 \section{Pattern matching}\label{pattern-matching}
@@ -3564,8 +3649,6 @@ cases, the completed proof is given below:
 
 \end{Example}
 
-\newpage
-
 \chapter{Intersection types}\label{intersection-types-1}
 
 \label{chap:itypes}
@@ -3764,8 +3847,8 @@ The presentation of the \(\subseteq\) relation in
 \cref{Definition:subseteqOrig} differs quite significantly from the one
 presented above. The main difference is obviously the addition of type
 refinement, but the definition now also includes the \((base)\) rule,
-which allows one to derive the previously \textbf{?verbally/implicitly?}
-stated reflexivity and transitivity rules. \\
+which allows one to derive the previously implicitly stated reflexivity
+and transitivity rules. \\
 Another departure from the original definition is the formulation of the
 following two properties as the \((nil)\) and \((cons)\) rules:
 
@@ -3876,8 +3959,7 @@ try to construct the derivation tree:
 The open branch
 \([[\psi , \tau , \rho] \to \psi] \subseteq_\ell [[\psi , \tau] \to \psi]\)
 in the example clearly demonstrates that the current formulation of the
-two properties clearly doesn't quite capture the intended
-\textbf{??meaning??}.
+two properties clearly doesn't quite capture the intended meaning.
 
 \end{Example}
 
@@ -5063,11 +5145,6 @@ doi:\href{https://doi.org/10.1145/1480881.1480933}{10.1145/1480881.1480933}.
 ---------. 2013. ``Model Checking Higher-Order Programs.'' \emph{J. ACM}
 60 (3). New York, NY, USA: ACM: 20:1--20:62.
 doi:\href{https://doi.org/10.1145/2487241.2487246}{10.1145/2487241.2487246}.
-
-\hypertarget{ref-shing-cheng}{}
-Mu, Shin-Cheng. 2011. ``Proving the Church-Rosser Theorem Using a
-Locally Nameless Representation.'' Blog.
-\url{http://www.iis.sinica.edu.tw/~scm/2011/proving-the-church-rosser-theorem}.
 
 \hypertarget{ref-ong06}{}
 Ong, C.-H. L. 2006. ``On Model-Checking Trees Generated by Higher-Order

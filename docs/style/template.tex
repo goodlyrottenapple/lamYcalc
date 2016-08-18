@@ -424,6 +424,7 @@ $endfor$
 % - Title ----------------------------------------------------------------------
 $if(title)$
 \maketitle
+\null\newpage
 $endif$
 
 % - Dedication -----------------------------------------------------------------
@@ -431,6 +432,7 @@ $if(dedication)$
 \begin{dedication}
 $dedication$
 \end{dedication}
+\null\newpage
 $endif$
 
 % - Acknowledgements -----------------------------------------------------------
@@ -438,12 +440,14 @@ $if(acknowledgements)$
 \begin{acknowledgements}
 $acknowledgements$
 \end{acknowledgements}
+\null\newpage
 $endif$
 
 $if(acknowledgementslong)$
 \begin{acknowledgementslong}
 $acknowledgementslong$
 \end{acknowledgementslong}
+\null\newpage
 $endif$
 
 % - Originality ----------------------------------------------------------------
@@ -451,12 +455,14 @@ $if(originality)$
 \begin{originality}
 $originality$
 \end{originality}
+\null\newpage
 $endif$
 
 $if(originalitylong)$
 \begin{originalitylong}
 $originalitylong$
 \end{originalitylong}
+\null\newpage
 $endif$
 
 % - Abstract -------------------------------------------------------------------
@@ -464,12 +470,14 @@ $if(abstract)$
 \begin{abstract}
 $abstract$
 \end{abstract}
+\null\newpage
 $endif$
 
 $if(abstractlong)$
 \begin{abstractlong}
 $abstractlong$
 \end{abstractlong}
+\null\newpage
 $endif$
 
 $for(include-before)$

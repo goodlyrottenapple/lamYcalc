@@ -1,4 +1,5 @@
 #Background
+\label{chap:background}
 
 ##Binders
 \label{binders}
@@ -46,7 +47,7 @@ datatype trm =
 
 As was mentioned before, defining "raw" terms and the notion of $\alpha$-equivalence of "raw" terms separately carries a lot of overhead in a theorem prover and is therefore not favored. 
 
-To obtain an inductive definition of $\lambda$-terms with a built in notion of $\alpha$-equivalence, one can instead use nominal sets (**described in the section on nominal sets/Isabelle?**).
+To obtain an inductive definition of $\lambda$-terms with a built in notion of $\alpha$-equivalence, one can instead use nominal sets. The theory of nominal sets captures the notion of bound variables and freshness, as it is based around the notion of having properties invariant in name permutation.    
 The nominal package in Isabelle provides tools to automatically define terms with binders, which generate inductive definitions of $\alpha$-equivalent terms. Using nominal sets in Isabelle results in a definition of terms which looks very similar to the informal presentation of the lambda calculus:
 
 ~~~{.isabelle}
@@ -232,7 +233,8 @@ Take the following simply typed term $\{y:\tau\} \vdash \lambda x.xy : (\tau \to
 </div>
 
 In the untyped $\lambda$-calculus, simple types and $\lambda$-terms are completely separate, brought together only through the typing relation $\vdash$ in the case of simple types _a la Curry_. The definition of $\lamy$ terms, however, is dependent on the simple types in the case of the $Y$ constants, which are indexed by simple types. When talking about the $\lamy$ calculus, we tend to conflate the "untyped" $\lamy$ terms, which are just the terms defined in \cref{Definition:lamyTrms}, with the "typed" $\lamy$ terms, which are simply-typed terms _a la Curry_ of the form $\Gamma \vdash M : \sigma$, where $M$ is an "untyped" $\lamy$ term. Thus, results about the $\lamy$ calculus in this work are in fact results about the "typed" $\lamy$ calculus.    
-However, the proofs of the Church Rosser theorem, as presented in the next section, use the untyped definition of $\beta$-reduction. Whilst it is possible to define a typed version of $\beta$-reduction, <!--as was demonstrated by the typed version of the $(Y)$ reduction rule,--> it turned out to be much easier to first prove the Church Rosser theorem for the so called "untyped" $\lamy$ calculus and the additionally restrict this result to only well-types $\lamy$ terms (see \cref{utypReason} for more details). Thus, the definition of the Church Rosser Theorem, formulated for the $\lamy$ calculus, is the following one:
+However, the proofs of the Church Rosser theorem, as presented in the next section, use the untyped definition of $\beta$-reduction. Whilst it is possible to define a typed version of $\beta$-reduction, <!--as was demonstrated by the typed version of the $(Y)$ reduction rule,--> it turned out to be much easier to first prove the Church Rosser theorem for the so called "untyped" $\lamy$ calculus and the additionally restrict this result to only well-types $\lamy$ terms<!-- (see \cref{utypReason} for more details)-->.    
+Thus, the definition of the Church Rosser Theorem, formulated for the $\lamy$ calculus, is the following one:
 
 <div class="Theorem" head="Church Rosser">
 $\Gamma \vdash M : \sigma \land M \red^* M' \land M \red^* M'' \implies \exists M'''.\ \ M' \red^* M''' \land M'' \red^* M''' \land \Gamma \vdash M''' : \sigma$
@@ -250,8 +252,8 @@ Originally, the field of higher order model checking mainly involved studying hi
 
 ###Definitions
 
-The first part of this project focuses on formalizing the simply typed $\lamy$ calculus and the proof of confluence for this calculus (proof of the Church Rosser Theorem is sometimes also referred to as proof of confluence). The usual/informal definition of the $\lamy$ terms and the simple types are given below:
-
+The first part of this project focuses on formalizing the simply typed $\lamy$ calculus and the proof of confluence for this calculus (proof of the Church Rosser Theorem is sometimes also referred to as proof of confluence). The usual/informal definition of the $\lamy$ terms and the simple types are given below:    
+$\ $
 <div class="Definition" head="$\lamy$ types and terms">The set of simple types $\sigma$ is built up inductively form the $\mathsf{o}$ constant and the arrow type $\to$.     
 Let $Var$ be a countably infinite set of atoms in the definition of the set of $\lambda$-terms $M$:
 \label{Definition:lamyTrms}
@@ -262,22 +264,21 @@ $\begin{aligned}
 M ::=&\ x\ |\ MM\ |\ \lambda x.M\ |\ Y_\sigma \text{ where }x \in Var
 \end{aligned}$
 \end{center}
-
 </div> 
 
 The $\lamy$ calculus differs from the simply typed $\lambda$-calculus only in the addition of the $Y$ constant family, indexed at every simple type $\sigma$, where the (simple) type of a $Y_A$ constant (indexed with the type $A$) is $(A \to A) \to A$. The usual definition of $\beta$-reduction is then augmented with the $(Y)$ rule (this is the typed version of the rule):
 
 \begin{center}
-  \vskip 1.5em
+  \vskip 1em
   \AxiomC{$\Gamma \vdash M : \sigma \to \sigma$}
   \LeftLabel{$(Y)$}
   \UnaryInfC{$\Gamma \vdash Y_\sigma M \red M (Y_\sigma M) : \sigma$}
   \DisplayProof
-  \vskip 1.5em
+  \vskip 1em
 \end{center}
 
-In essence, the $Y$ rule allows (some) well-typed recursive definitions over simply typed $\lambda$-terms. 
-
+In essence, the $Y$ rule allows (some) well-typed recursive definitions over simply typed $\lambda$-terms.    
+$\ $
 <div class="Example">
 Take for example the term $\lambda x.x$, commonly referred to as the _identity_. The _identity_ term can be given a type $\sigma \to \sigma$ for any simple type $\sigma$. We can therefore perform the following (well-typed) reduction in the $\lamy$ calculus:
 

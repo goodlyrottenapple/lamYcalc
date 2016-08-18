@@ -1,4 +1,5 @@
 #Methodology
+\label{chap:method}
 
 The idea of formalizing a functional language in multiple theorem provers and objectively assessing the merits and pitfalls of the different formalizations is definitely not a new idea. The most well known attempt to do so on a larger scale is the $\poplm$ challenge, proposed in the "Mechanized Metatheory for the Masses: The $\poplm$ Challenge" paper by @aydemir05.   
 This paper prompted several formalizations of the benchmark typed $\lambda$-calculus, proposed by the authors of the challenge, in multiple theorem provers, such as Coq, Isabelle, Matita or Twelf. However, to the best of our knowledge, there has been no published follow-up work, drawing conclusions about the aptitude of different mechanizations, which would be useful in deciding the best mechanization approach to take in formalizing the $\lamy$ calculus.   
@@ -191,45 +192,8 @@ As the above example clearly shows, the first/simplest measure of the amount of 
 Whilst the length of code might provide an indication of the possible level of implementation overheads, it is important to keep in mind, that brevity of code can often also depend on the level of transparency, as evidenced by both \cref{Example:sqareOdd} and the one above, where the shorter code turned also the less transparent one. Depending on the priorities, we therefore often sacrifice either transparency for brevity or vice versa (which can greatly impact his simple metric for overheads).    
 Therefore, instead of simply looking at the length of the produced document, we also compare the number of lemmas, disregarding the length of each one. Even though this measure also carries disadvantages (one could, for example, in-line the whole Church Rosser proof into one giant lemma) it is less sensitive in regard to transparency.
 
-A clear mechanization overhead in this project is the treatment of binders, introduced in \cref{binders} of the previous chapter and described in more detail in the following Chapter. In the project, we decided to use nominal sets and locally nameless representation for binders. The choice of nominal sets was tied to the implementation language Isabelle, which has a well developed [nominal sets library](http://www.inf.kcl.ac.uk/staff/urbanc/Nominal/), maintained by Christian Urban. The appeal of using nominal sets is of course the touted transparency with regards to the usual informal definitions as well as minimal overheads.   
-The choice of locally nameless encoding, as opposed to using pure de Bruijn indices, was motivated by the claim that locally nameless encoding largely mitigates the disadvantages of de Bruijn indices especially when it comes to technology transparency (i.e. theorems about locally nameless presentation are much closer in formulation to the informal presentation than theorems formulated for de Bruijn indices).   
-
-<!--<div class="Example">
-\label{Example:commNat}
-Another classic example of mechanization overheads, imposed by a fully formal setting of a theorem prover is something as trivial as the proof of commutativity of addition of natural numbers. In order to prove this property formally in Agda, we first have to define what is a natural number, using peano numbers where we have a `Z` zero constructor and a successor function `S`:
-
-~~~{.agda}
-data ℕ : Set where
-  Z : ℕ
-  S : ℕ -> ℕ
-~~~
-
-Then we can define the addition operation for natural numbers:
-
-~~~{.agda}
-_+_ : ℕ -> ℕ -> ℕ
-Z + x = x
-S x + y = S (x + y)
-~~~
-
-Finally, the proof of commutativity of addition may end up looking something like this:
-
-~~~{.agda}
-S-inj : ∀ {x y} -> x ≡ y -> S x ≡ S y
-S-inj refl = refl
-
-+-comm' : ∀ x -> x + Z ≡ x
-+-comm' Z = refl
-+-comm' (S x) = S-inj (+-comm' x)
-
-+-comm'' : ∀ x y -> x + S y ≡ S (x + y)
-+-comm'' Z y = refl
-+-comm'' (S x) y = S-inj (+-comm'' x y)
-
-+-comm : ∀ x y -> (x + y) ≡ (y + x)
-+-comm Z y rewrite +-comm' y = refl
-+-comm (S x) y rewrite +-comm'' y x = S-inj (+-comm x y)
-~~~
-
-As we see here, this proof is quite long for something seemingly so trivial. Proofs of this type are usually unavoidable in a theorem prover, especially when we want to use such lemmas in a more interesting result we wan to formalize. Having low implementation overheads thus usually depends on the automation of the tool, wherein the tool itself is able to prove these properties automatically. What is more likely, however, is that a "good" tool will include something such a base theory (of natural numbers) in its library, so that he user does not have to re-prove these basic properties and instead can focus on the specific theory she/he wants to prove. This is indeed largely what happened when we used the nominal library, where the theory was conveniently hidden away and managed for us by Isabelle's automatic provers.
-</div>-->
+Another aspect which ties into both transparency and mechanization overheads is the level of automation. As was demonstrated by \cref{Example:sqareOdd}, wherein the lemma could in fact be proved automatically with almost no user input, having low implementation overheads is often tied to the level of automation  the tool provides.  
+More concretely, a tool with good automation will include a standard library of common definitions and theorems, so that the user does not have to re-prove these basic properties and instead can focus on the specific theory she/he wants to prove.    
+This is indeed largely the reason why we used Isabelle along with the [nominal sets library](http://www.inf.kcl.ac.uk/staff/urbanc/Nominal/), maintained by Christian Urban, where the theory was conveniently hidden away and managed for us by Isabelle's automatic provers, so that our mechanization overheads were minimal. However, there were several caveats to this, which we discuss in the next chapter.   
+On the other hand, the choice of locally nameless encoding, as opposed to using pure de Bruijn indices, was motivated by the claim that locally nameless encoding largely mitigates the disadvantages of de Bruijn indices especially when it comes to technology transparency. The LN encoding is also a lot more bare-bones and carries relatively small but manageable overheads.   
+In order to keep our comparison balanced, we didn't leverage Isabelle's automation to it's fullest, choosing instead, to keep some lemmas (especially in the nominal implementation) deliberately verbose, so as to keep them both more transparent and easier to compare with the locally nameless versions. Another reason to this was the choice of the second implementation language, Agda, which doesn't include as many automation features as Isabelle.

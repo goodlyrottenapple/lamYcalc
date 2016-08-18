@@ -76,7 +76,7 @@ nominal_datatype trm =
 | Y type
 ~~~
 
-The special **`binds \_ in \_`** syntax in the `Lam` constructor declares `x` to be bound in the body `t`, telling Nominal Isabelle that `Lam` terms should be **?equated up to $\alpha$-equivalence?**, where a term $\lambda x. x$ and $\lambda y. y$ are considered equivalent, because both $x$ and $y$ are bound in the two respective terms, and can both be $\alpha$-converted to the same term, for example $\lambda z .z$. In fact, proving such a lemma in Isabelle is trivial:
+The special **`binds \_ in \_`** syntax in the `Lam` constructor declares `x` to be bound in the body `t`, telling Nominal Isabelle that `Lam` terms should be identified up to $\alpha$-equivalence, where a term $\lambda x. x$ and $\lambda y. y$ are considered identical/equal, because both $x$ and $y$ are bound in the two respective terms, and can both be $\alpha$-converted to the same term, for example $\lambda z. z$. In fact, proving such a lemma in Nominal Isabelle is trivial:
 
 ~~~{.isabelle}
 lemma "Lam [x]. Var x = Lam [y]. Var y" by simp
@@ -116,7 +116,7 @@ where
 ~~~
 
 Unlike using the usual **`fun`** declaration of a recursive function in Isabelle, where Isabelle automatically checks the definition for pattern completeness (for the term being pattern matched on) and overlap. The **`fun`** definition also automatically checks/proves termination of such recursive functions and generates simplification rules, which can be used for equational reasoning involving the function.   
-Unfortunately, this isn't the case for the **`nominal\_function`** declaration, where there are several goals (13 in the case of the `subst` definition) which the user has to manually prove about the function definition, including proving termination and **???**. This turned out to be a bit problematic, as the goals involved proving properties like:
+Unfortunately, this isn't the case for the **`nominal\_function`** declaration, where there are several goals (13 in the case of the `subst` definition) which the user has to manually prove about the function definition, including proving termination, and pattern disjointness and completeness. This turned out to be a bit problematic, as the goals involved proving properties like:
 
 ~~~{.idris}
 ⋀x t xa ya sa ta.
@@ -128,7 +128,7 @@ Unfortunately, this isn't the case for the **`nominal\_function`** declaration, 
   	[[atom xa]]lst. subst_sumC (ta, ya, sa)
 ~~~
 
-**do i need to explain what this property is? or is it ok for illustrative purposes?**
+<!--**do i need to explain what this property is? or is it ok for illustrative purposes?**-->
 
 Whilst most of the goals were trivial, proving cases involving $\lambda$-terms involved a substantial understanding of the internal workings of Isabelle and the Nominal package early on into the mechanization and as a novice to using Nominal Isabelle, understanding and proving these properties proved challenging.    
 Whilst our formalization required only a handful of other recursive function definitions, in a different theory with significantly more function definitions, proving such goals from scratch would prove a challenge to a Nominal Isabelle newcomer as well as a tedious implementation overhead.
@@ -309,7 +309,7 @@ Finally, we examine the formulation of $\beta$-reduction in the LN presentation 
 
 As expected, the _open_ operation is now used instead of substitution in the $(\beta)$ rule.    
 The $(abs)$ rule is also slightly different, also using the _open_ in its precondition. Intuitively, the usual formulation of the $(abs)$ rule states that in order to prove that $\lambda x. M$ reduces to $\lambda x. M'$, we can simply "un-bind" $x$ in both $M$ and $M'$ and show that $M$ reduces to $M'$ (reasoning bottom-up from the conclusion to the premises). Since in the usual formulation of the $\lambda$-calculus, there is no distinction between free and bound variables, this change (where $x$ becomes free) is implicit. In the LN presentation, however, this operation is made explicit by opening both $M$ and $M'$ with some free variable $x$ (not appearing in either $M$ nor $M'$), which replaces the bound variables/indices (bound to the outermost $\lambda$) with $x$.   
-While this definition is equivalent to \cref{Definition:betaRedNom}, the induction principle this definition yields may not always be sufficient, especially in situations where we want to open up a term with a free variable which is not only fresh in $M$ and $M'$, but possibly in a wider context. We therefore followed the approach of @aydemir08 and re-defined the $(abs)$ rule (and other definitions involving picking fresh/free variables) using _cofinite quantification_:
+While this definition is equivalent to the usual/informal definition, the induction principle this definition yields may not always be sufficient, especially in situations where we want to open up a term with a free variable which is not only fresh in $M$ and $M'$, but possibly in a wider context. We therefore followed the approach of @aydemir08 and re-defined the $(abs)$ rule (and other definitions involving the choice of fresh/free variables) using _cofinite quantification_:
 
 \begin{center}
 	\vskip 1.5em
@@ -351,7 +351,7 @@ Seen as a weaker version of \cref{Lemma:reflM}, the proof of \cref{Lemma:maxEx},
 
 This is indeed the case when using the nominal mechanization, where the proof looks like this:
 
-~~~{.isabelle xleftmargin=1em linenos=true}
+~~~{.isabelle xleftmargin=1em linenos=true escapeinside=||}
 lemma pbeta_max_ex:
   fixes M
   shows "∃M'. M >>> M'"
@@ -362,7 +362,7 @@ apply (case_tac "not_Y S")
 apply auto[1]
 proof goal_cases
 case (1 P Q P' Q')
-  then obtain σ where 2: "P = Y σ" using not_Y_ex by auto
+  then obtain |σ| where 2: "P = Y σ" using not_Y_ex by auto
   have "App (Y σ) Q >>> App Q' (App (Y σ) Q')"
   apply (rule_tac pbeta_max.Y)
   by (rule 1(2))
@@ -401,7 +401,7 @@ The two remaining cases are discharged with the additional information that $S$ 
 So far, we have looked at the version of the proof using nominal Isabelle and this is especially apparent in line 19, where we use the stronger `nominal\_induct` rule, with the extra parameter `avoiding: Q Q'`, which ensures that any new bound variables will be sufficiently fresh with regards to `Q` and `Q'`, in that the fresh variables won't appear in either of the terms.    
 Since bound variables are distinct in the LN representation, the equivalent proof simply uses the usual induction rule (line 19):
 
-~~~{.isabelle xleftmargin=1em linenos=true}
+~~~{.isabelle xleftmargin=1em linenos=true escapeinside=||}
 lemma pbeta_max_ex:
   fixes M assumes "trm M"
   shows "∃M'. M >>> M'"
@@ -412,7 +412,7 @@ apply (case_tac "not_Y t1")
 apply auto[1]
 proof goal_cases
 case (1 P Q P' Q')
-  then obtain σ where 2: "P = Y σ" using not_Y_ex by auto
+  then obtain |σ| where 2: "P = Y σ" using not_Y_ex by auto
   have "App (Y σ) Q >>> App Q' (App (Y σ) Q')"
   apply (rule_tac pbeta_max.Y)
   by (rule 1(4))
@@ -528,7 +528,7 @@ We can now see that $\{k+1 \to y\} \{k+1 \leftarrow x\} \{0 \to z\} M = (\{0 \to
 
 Having defined the _close_ operation and shown that it satisfies certain properties with respect to the _open_ operation and substitution, we can now "close" the term $M'$, with respect to the $x$ we fixed earlier and thus show that $\forall y \not\in L.\ M^y \ggg (\cls M')^y$.
 
-**Should I go into more detail here or just wrap it up by saying how much more code was necessary over the nominal version??**
+<!--**Should I go into more detail here or just wrap it up by saying how much more code was necessary over the nominal version??**-->
 
 ###\cref{Lemma:maxClose}
 
@@ -543,7 +543,7 @@ The proof of this lemma proceeds by induction on the relation $\ggg$. Here we wi
 ####$(\beta)$ case
 
 We have $M \equiv (\lambda x. P) Q$ and $M_{max} \equiv P_{max}[Q_{max}/x]$, and therefore $(\lambda x. P) Q \ggg P_{max}[Q_{max}/x]$ and $(\lambda x. P) Q \gg M'$.    
-By performing case analysis on the reduction $(\lambda x. P) Q \gg M'$, we know that $M' \equiv (\lambda x. P') Q'$ or $M' \equiv P'[Q'/x]$ for some $P', Q'$, since only these two **??reduction trees??** are valid:
+By performing case analysis on the reduction $(\lambda x. P) Q \gg M'$, we know that $M' \equiv (\lambda x. P') Q'$ or $M' \equiv P'[Q'/x]$ for some $P', Q'$, since only these two trees are valid:
 
 \begin{center}
 	\AxiomC{$\vdots$}
@@ -668,11 +668,10 @@ The LN mechanization, whilst having bigger overheads in terms of extra definitio
 
 ####LN implementation
 
-The troublesome case analysis in the Nominal version of the proof was much more straight forward in the LN proof. In fact, there was no need to prove a separate lemma similar to `pbeta\_cases\_2`, since the auto-generated `pbeta.cases` was sufficient. The only overhead in this version of the lemma came from the use of \cref{Lemma:parRed}, in that the lemma was first proved in it's classical formulation using substitution, but due to the way substitution of bound terms is handled in the LN mechanization (using the _open function_), a "helper" lemma was proved to convert this result to one using _open_:    
-$\ $
+The troublesome case analysis in the Nominal version of the proof was much more straight forward in the LN proof. In fact, there was no need to prove a separate lemma similar to `pbeta\_cases\_2`, since the auto-generated `pbeta.cases` was sufficient. The only overhead in this version of the lemma came from the use of \cref{Lemma:parRed}, in that the lemma was first proved in it's classical formulation using substitution, but due to the way substitution of bound terms is handled in the LN mechanization (using the _open function_), a "helper" lemma was proved to convert this result to one using _open_:
+
 <div class="Lemma" head="Parallel open">
 \label{Lemma:parOpn}The following rule is admissible in the LN version of $\gg$:
-
 \begin{center}
 	\vskip 1.5em
 	\AxiomC{$\forall x \not\in L.\ M^x \gg M'^x$}

@@ -1,13 +1,17 @@
 #Isabelle vs. Agda {#comp-agda}
 \label{chap:compAgda}
 
-**agda with spacing: 1351 lines**
-**agda without spaces: 1234 lines**
+Having previously looked at two approaches to mechanizing binders in Isabelle and having concluded that there were only minor differences between the nominal and LN approaches, we proceeded to the next round of our comparison, by implementing the locally nameless version of the $\lamy$ calculus along with proofs of confluence in Agda.    
+Whilst using Nominal sets in Isabelle turned out to be slightly more transparent and shorter, the big disadvantage, especially for Agda, was the fact that the nominal set theory would have been much more tedious to use, if we had to, say, implement it from scratch. Whilst Nominal Isabelle is a fairly mature library, formalizing the theory of nominal sets and providing ample sugar for the user to hide away the theory, Agda is a lot more bare-bones and the "penalty" incurred by formalizing and then using nominal sets would have been significantly higher.    
+Instead, we chose to implement the locally nameless version, which proved to have consistent, but fairly minimal overheads, requiring relatively little extra theory. This is supported by the fact that the LN version of the calculus and proofs in Isabelle was roughly 1140 lines of code, whereas the Agda version was only slightly longer at 1350 lines, which, when adjusted to the same spacing/formatting comes down
+to roughly 1230 lines. This rough metric also demonstrates that whilst Isabelle's automation can be a lot more powerful than Agda's, in our case (partially by design), there were only a few instances where Isabelle clearly had the upper hand. Over all, it turned out, once again, that there were only small, often just cosmetic, differences between the two implementations. 
 
-The formalization of the terms and reduction rules of the $\lambda$-Y calculus presented here is a locally nameless presentation due to @aydemir08. 
-The basic definitions of $\lambda$-terms and $\beta$-reduction were borrowed from an implementation of the $\lambda$-calculus with the associated Church Rosser proof in Agda, by @shing-cheng.
+<!--**agda with spacing: 1351 lines**
+**agda without spaces: 1234 lines**-->
 
-One of the most obvious differences between Agda and Isabelle is the treatment of functions and proofs in both languages. Whilst in Isabelle, there is always a clear syntactic distinction between programs and proofs, Agda's richer dependent-type system allows constructing proofs as programs. This distinction is especially apparent in inductive proofs, which have a completely distinct syntax in Isabelle. As proofs are not objects which can be directly manipulated in Isabelle, to modify the proof goal, user commands such as `apply rule` or `by auto` are used: 
+##Overview
+
+One of the most apparent differences between Agda and Isabelle is the treatment of functions and proofs in both languages. Whilst in Isabelle, there is always a clear syntactic distinction between programs and proofs, Agda's richer dependent-type system allows constructing proofs as programs. This distinction is especially visible in inductive proofs, which have a completely distinct syntax in Isabelle. As proofs are not objects which can be directly manipulated in Isabelle, to modify the proof goal, user commands such as `apply rule` or `by auto` are used: 
 
 ```{.isabelle}
 lemma subst_fresh: "x ∉ FV t ⟹ t[x ::= u] = t"
@@ -31,16 +35,16 @@ goal (5 subgoals):
 5. ⋀xa. x ∉ FV (Y xa) ⟹ Y xa [x ::= u] = Y xa
 ```
 
-These can then discharged by the call to `auto`, which is another command that invokes the automatic solver, which tries to prove all the goals in the given context.
+These can then discharged by the call to `auto`, which is a command that invokes the automatic solver, that tries to prove all the goals in the given context.
 
-In comparison, in an Agda proof the proof objects are available to the user directly. Instead of using commands modifying the proof state, one begins with a definition of the lemma:
+In contrast to this, in an Agda proof, the proof objects are available to the user directly. Instead of using commands modifying the proof state, one begins with a definition of the lemma:
 
 ```{.agda}
 subst-fresh : ∀ x t u -> (x∉FVt : x ∉ (FV t)) -> (t [ x ::= u ]) ≡ t
 subst-fresh x t u x∉FVt = ?
 ```
 
-The `?` acts as a 'hole' which the user needs to fill in, to construct the proof. Using the emacs/atom agda-mode, once can apply a case split to `t`, corresponding to the `apply (induct t)` call in Isabelle, generating the following definition:
+The `?` acts as a 'hole' which the user fills in, by incrementally constructing the proof. Using the Emacs/Atom editor's "agda-mode", once can apply a case split to `t` (corresponding to the `apply (induct t)` call in Isabelle), generating the following definition:
 
 ```{.agda}
 subst-fresh : ∀ x t u -> (x∉FVt : x ∉ (FV t)) -> (t [ x ::= u ]) ≡ t
@@ -67,9 +71,10 @@ Due to this correspondence, reasoning in both systems is often largely similar. 
 
 ##Automation
 
-As seen in the first example, Isabelle includes several automatic provers of varying complexity, including `simp`, `auto`, `blast`, `metis` and others. These are tactics/programs which automatically apply rewrite-rules until the goal is discharged. If the tactic fails to discharge a goal within a set number of steps, it stops and lets the user direct the proof. The use of tactics in Isabelle is common to prove trivial goals, which usually follow from simple rewriting of definitions or case analysis of certain variables.
-
-<div class="Example"> 
+As seen in the first example, Isabelle relies on automation in its proofs. It includes several automatic provers of varying complexity, including `simp`, `auto`, `blast`, `metis` and others. These are usually tactics/programs which automatically apply rewrite-rules, until the goal is discharged. If the tactic fails to discharge a goal within a set number of steps, it stops and lets the user direct the proof. The use of tactics in Isabelle is commonly used to prove trivial goals, which usually follow from simple rewriting of definitions or case analysis of certain variables.   
+$\ $
+<div class="Example">
+\label{Example:substFresh}
 For example, the proof goal 
 
 ```{.idris}
@@ -82,7 +87,8 @@ will be proved by first unfolding the definition of substitution for `FVar`
 (FVar xa)[x ::= u] = (if xa = x then u else FVar xa)
 ```
 
-and then deriving `x ≠ xa` from the assumption `x ∉ FV (FVar xa)`. Applying these steps explicitly, we get:
+and then deriving `x ≠ xa` from the assumption `x ∉ FV (FVar xa)`.    
+Applying these steps explicitly, we get:
 
 ```{.isabelle escapeinside=||}
 lemma subst_fresh: "x ∉ FV t ⟹ t[x ::= u] = t"
@@ -101,20 +107,19 @@ where the goal now has the following shape:
 1. ⋀xa. x ≠ xa ⟹ (if xa = x then u else FVar xa) = FVar xa
 ```
 
-From this point, the simplifier rewrites `xa = x` to `False` and `(if False then u else FVar xa)` to `FVar xa` in the goal. The use of tactics and automated tools is heavily ingrained in Isabelle and it is actually impossible (i.e. impossible for me) to not use `simp` at this point in the proof, partly because one gets so used to discharging such trivial goals automatically and partly because it becomes nearly impossible to do the last two steps explicitly without having a detailed knowledge of the available commands and tactics in Isabelle (i.e. I don't).   
-Doing these steps explicitly, quickly becomes cumbersome, as one needs to constantly look up the names of basic lemmas, such as `Set.empty\_iff`, which is a simple rewrite rule `(?c ∈ \{\}) = False`.
+From this point, the simplifier rewrites `xa = x` to `False` and `(if False then u else FVar xa)` to `FVar xa` in the goal.    
+The use of tactics and automated tools is heavily ingrained in Isabelle and it is actually impossible (i.e. impossible for me) to not use `simp` at this point in the proof, partly because one gets so used to discharging such trivial goals automatically and partly because it becomes nearly impossible to do the last two steps explicitly without having a detailed knowledge of the available commands and tactics in Isabelle (i.e. I don't).   
+Doing these steps explicitly quickly becomes cumbersome, as one needs to constantly look up the names of basic lemmas, such as `Set.empty\_iff`, which is a simple rewrite rule `(?c ∈ \{\}) = False`.
 </div>
 
-Unlike Isabelle, Agda does not include nearly as much automation. The only proof search tool included with Agda is Agsy, which is similar, albeit often weaker than the `simp` tactic. It may therefore seem that Agda will be much more cumbersome to reason in than Isabelle. This, however, turns out not to be the case in this formalization, in part due to Agda's type system and the powerful pattern matching as well as direct access to the proof goals.    
-
-However, automation did not play as major a part in this project as it might have, especially in this round of the comparison, since the LN mechanization had to be implemented from scratch and thus, the proofs written in Isabelle were only later modified to leverage some automation. However, since most proofs required induction, which theorem provers are generally not very good at performing wihtout user guidance, the only place where automation was really apparent was in the case of a few lemmas involving equational reasoning, like the "open-swap" lemma:
+Unlike Isabelle, Agda does not include nearly as much automation. The only proof search tool included with Agda is Agsy, which is similar, albeit often weaker than the `simp` tactic. It may therefore seem that Agda will be much more cumbersome to reason in than Isabelle. This, however, turns out not to be the case (at least in this formalization), in part due to Agda's type system and the powerful pattern matching as well as direct access to the proof goals. Automation did not play as major a part in this project as it might have, especially in this round of the comparison, since the LN mechanization had to be implemented from scratch and thus, the proofs written in Isabelle were only later modified to leverage some automation. However, since most proofs required induction, which theorem provers are generally not very good at performing without user guidance, the only place where automation was really apparent was in the case of a few lemmas involving equational reasoning, like the "open-swap" lemma:
 
 <div class="Lemma">
 \label{Lemma:opnSwap}
 $k \neq n \implies x \neq y \implies \{k \to x\}\{n \to y\}M = \{n \to y\}\{k \to x\}M$
 </div>
 
-Whilst in Isabelle, this was a trivial case of applying induction on the term $M$ and letting `auto` prove all the remaining cases. In Agda, this was a lot more painful, as the cases had to be constructed and proved more or less manually, yielding this rather longer proof:
+Whilst in Isabelle, this was a trivial case of applying induction on the term $M$ and letting `auto` prove all the remaining cases. In Agda, this was a lot more painful, as the cases had to be constructed and proved more or less manually, yielding this rather long(er) proof:
 
 ~~~{.agda}
 ^-^-swap : ∀ k n x y m -> ¬(k ≡ n) -> ¬(x ≡ y) -> 
@@ -142,26 +147,26 @@ Whilst in Isabelle, this was a trivial case of applying induction on the term $M
 ^-^-swap k n x y (Y _) k≠n x≠y = refl
 ~~~
 
-##Proofs-as-programs
+##Proofs-as-programs in Agda
 \label{proofAsProg}
 
-As was already mentioned, Agda treats proofs as programs, and therefore provides direct access to proof objects. In Isabelle, the proof goal is of the form:
+As was already mentioned, Agda treats proofs as programs, and therefore provides direct access to proof objects. In Isabelle, the proof goal is usually of the form:
 
 ```{.idris}
 lemma x: "assm-1 ⟹ ... ⟹ assm-n ⟹ concl"
 ```
 
-using the 'apply-style' reasoning in Isabelle can become burdensome, if one needs to modify or reason with the assumptions, as was seen in the example above. In the example, the `drule` tactic, which is used to apply rules to the premises rather than the conclusion, was applied repeatedly. Other times, we might have to use structural rules for exchange or weakening, which are necessary purely for `organizational` purposes of the proof.   
-In Agda, such rules are not necessary, since the example above looks like a functional definition:
+Using the 'apply-style' reasoning in Isabelle can become burdensome, if one needs to modify or reason with the assumptions, as was seen in \cref{Example:substFresh}. In this example, the `drule` tactic, which is used to apply rules to the premises rather than the conclusion, was applied repeatedly. Other times, we might have to use structural rules for exchange or weakening, which are necessary purely for `organizational` purposes of the proof.   
+In Agda, such rules are not necessary, since the example above looks like a function definition:
 
 ```{.idris}
 x assm-1 ... assm-n = ?
 ```
 
 Here, `assm-1` to `assm-n` are simply arguments to the function x, which expects something of type `concl` in the place of `?`. This presentation allows one to use the given assumptions arbitrarily, perhaps passing them to another function/proof or discarding them if not needed.   
-This way of reasoning is also supported in Isabelle to some extent via the use of the Isar proof language, where (the previous snippet of) the proof of `subst\_fresh` can be expressed in the following way:
+This way of reasoning is also supported in Isabelle to some extent, via the use of the Isar proof language, where (the snippet of) the proof of `subst\_fresh` can be expressed in the following way:
 
-```{.isabelle}
+```{.isabelle escapeinside=||}
 lemma subst_fresh': 
   assumes "x ∉ FV t"
   shows "t[x ::= u] = t"
@@ -171,7 +176,7 @@ case (FVar y)
   then have "x ≠ y" unfolding Set.insert_iff Set.empty_iff HOL.simp_thms(31) .
   then show ?case unfolding subst.simps(1) by simp
 next
-...
+|$\texttt{\vdots}$|
 qed
 ```
 
@@ -193,7 +198,6 @@ goal (1 subgoal):
 ```
 
 The individual reasoning steps described in the previous section have also been separated out into 'mini-lemmas' (the command `have` creates an new proof goal which has to be proved and then becomes available as an assumption in the current context) along the lines of the intuitive reasoning discussed initially. While this proof is more human readable, it is also more verbose and potentially harder to automate, as generating valid Isar style proofs is more difficult, due to 'Isar-style' proofs being obviously more complex than 'apply-style' proofs.
-
 
 Whilst using the Isar proof language gives us a finer control and better structuring of proofs, one still references proofs only indirectly. Looking at the same proof in Agda, we have the following definition for the case of free variables:
 
@@ -232,7 +236,7 @@ subst-fresh' x (fv y) u x∉FVt with x ≟ y
 ?1  :  (fv y [ x ::= u ] | no ¬p) ≡ fv y
 ```
 
-In the second case, when `x` and `y` are different, Agda can automatically fill in the hole with `refl`. Notice that unlike in Isabelle, where the definition of substitution had to be manually unfolded (the command `unfolding subst.simps(1)`), Agda performs type reduction automatically and can rewrite the term `(fv y [ x ::= u ] | no .¬p)` to `fv y` when type-checking the expression. Since all functions in Agda terminate, this operation on types is safe **(not sure this is clear enough... im not entirely sure why... found here: http://people.inf.elte.hu/divip/AgdaTutorial/Functions.Equality_Proofs.html#automatic-reduction-of-types)**.
+In the second case, when `x` and `y` are different, Agda can automatically fill in the hole with `refl`. Notice that unlike in Isabelle, where the definition of substitution had to be manually unfolded (the command `unfolding subst.simps(1)`), Agda performs type reduction automatically and can rewrite the term `(fv y [ x ::= u ] | no .¬p)` to `fv y` when type-checking the expression. <!--Since all functions in Agda terminate, this operation on types is safe **(not sure this is clear enough... im not entirely sure why... found here: http://people.inf.elte.hu/divip/AgdaTutorial/Functions.Equality_Proofs.html#automatic-reduction-of-types)**.-->
 
 For the case where `x` and `y` are equal, one can immediately derive a contradiction from the fact that `x` cannot be equal to `y`, since `x` is not a free variable in `fv y`. The type of false propositions is `⊥` in Agda. Given `⊥`, one can derive any proposition. To derive `⊥`, we first inspect the type of `x∉FVt`, which is `x ∉ y ∷ []`. Further examining the definition of `∉`, we find that `x ∉ xs = ¬ x ∈ xs`, which further unfolds to `x ∉ xs = x ∈ xs → ⊥`. Thus to obtain `⊥`, we simply have to show that `x ∈ xs`, or in this specific instance `x ∈ y ∷ []`. The definition of `∈` is itself just sugar for `x ∈ xs = Any (\_≈\_ x) xs`, where `Any P xs` means that there is an element of the list `xs` which satisfies `P`. In this instance, `P = (\_≈\_ x)`, thus an inhabitant of the type `Any (\_≈\_ x) (y ∷ [])` can be constructed if one has a proof that at least one element in `y ∷ []` is equivalent to `x`. As it happens, such a proof was given as an argument in `yes p`:
 
@@ -252,7 +256,7 @@ subst-fresh' x (fv y) u x∉FVt with x ≟ y
 ... | no ¬p = refl
 ```
 
-We can even tranform the Isabelle proof to closer match the Agda proof:
+We can even transform the Isabelle proof to closer match the Agda proof:
 
 ```{.isabelle}
 case (FVar y)
@@ -266,7 +270,7 @@ case (FVar y)
   qed
 ```
 
-We can thus see that using Isar style proofs and Agda reasoning ends up being rather similar in practice.
+Thus, we can see that using Isar style proofs and Agda reasoning ends up being rather similar in practice.
 
 ##Pattern matching
 
@@ -454,14 +458,13 @@ Doing these steps explicitly was not in fact necessary, as the automatic proof s
 ```
 </div>
 
-\newpage
 
 <!--
 
 rewriting in types?
 status of rewrite rules in agda??
 
-automation in agda does not include local lemmas -dose too!!!
+automation in agda does not include local lemmas -does too!!!
 
 style of proving in isabelle can differ , i.e. more dependent on automation, not the case here in practise
 
@@ -470,8 +473,6 @@ equational reasoning / rewriting
 
 
 subst-fresh, do the example for agda
-
-
 
 
  -->

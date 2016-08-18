@@ -17,18 +17,20 @@ degreedate: Trinity 2016
 # .tex file or you can simply write the text directly here.
 # -----------------------------------------------------------------------------
 abstract: |
-  This is the abstract.
-  For this and the other front-matter options you can either include the text directly on the metadata file or
-  you can use in order to include your text.
+  Higher order model checking (HOMC), has been intensively studied in recent years (@ong06, @kobayashi13, @ramsay14, @tsukada14). A common approach to studying HOMC is through higher order recursion schemes (HORS).   
+  Recently, it was shown that $\lamy$ calculus with intersection-types can be used as an alternative to HORS, when studying higher order model checking. Whilst the theory of HORS and $\lamy$ has been formalized "on paper", there has been little done in mechanizing this theory in a fully formal setting of a theorem prover.    
+  The aim of this project was to start such a formalization, by first mechanizing the $\lamy$ calculus along with the proof of confluence for simple types. This served as a benchmark for choosing the implementation specifics, such as the binder representation strategy as well as the implementation language.   
+  The formalization of the terms of the calculus along with the proof of confluence served as a benchmark for comparing the chosen mechanization approaches. The best mechanization was then extended with the formalization of intersection types for the $\lamy$ calculus, along with the proofs of subject invariance.
+  
 
-dedication: |
-  This is a dedication
+# dedication: |
+#   This is a dedication...
 
 acknowledgements: |
   Say thanks to whoever listened to your rants for 2 months
 
-originality: |
-  This is the statement of originality
+# originality: |
+#   This is the statement of originality
 
 # -----------------------------------------------------------------------------
 # -- Other Pandoc Options -----------------------------------------------------
