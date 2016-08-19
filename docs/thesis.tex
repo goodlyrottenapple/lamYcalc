@@ -257,6 +257,7 @@ xetex]{hyperref}
 \newcommand{\taui}{\bigcap\nolimits_{\underline{n}} \tau_i}
 \newcommand{\dom}{\mathsf{dom}}
 \newcommand{\amp}{\text{\&}}
+\newcommand{\trel}{\sim_\mathfrak{T}}
 \let\oldemptyset\emptyset
 \let\emptyset\varnothing
 \usepackage{mdframed}
@@ -420,26 +421,32 @@ at: \url{https://github.com/goodlyrottenapple/lamYcalc}.
 
 \section{Main Achievements}\label{main-achievements}
 
-\textbf{TODO: Expand on the points eventually\ldots{}.leaving for the
-end}
+We achieved the following goals in this project:
 
-\begin{itemize}
+\begin{enumerate}
+\def\labelenumi{\arabic{enumi})}
 \tightlist
 \item
-  Formalization of the simply typed \(\lamy\) calculus and proofs of
-  confluence in Isabelle, using both Nominal sets and locally nameless
+  Formalized the simply typed \(\lamy\) calculus and proofs of
+  confluence in Isabelle, using both nominal sets and locally nameless
   encoding of binders.
 \item
-  Formalization of the simply typed \(\lamy\) calculus and proofs of
+  Formalized the simply typed \(\lamy\) calculus and proofs of
   confluence in Agda, using a locally nameless encoding of binders
 \item
-  Analysis and comparison of binder encodings
+  Compared the implementations of the nominal and locally nameless
+  versions of the \(\lamy\) calculus along with the proof of confluence,
+  demonstrating the implementation overheads of both approaches.
 \item
-  Comparison of Agda and Isabelle
+  Compared Isabelle and Agda, establishing their relative similarities
+  and highlighting their specific feauters in relation to the
+  implementation of the \(\lamy\) calculus.
 \item
-  Formalization of an intersection-type system for the \(\lamy\)
-  calculus and proof of subject invariance for intersection-types
-\end{itemize}
+  Formalized the intersection-type system for the \(\lamy\) calculus
+\item
+  Created a fully formal proof of subject invariance for
+  intersection-types in Agda
+\end{enumerate}
 
 \section{Dissertation Structure}\label{dissertation-structure}
 
@@ -1877,21 +1884,22 @@ mechanization.
 Whilst we found that the nominal version of the definitions and proofs
 turned out to be more transparent than the locally nameless
 mechanization, there were some large overheads associated with the
-implementation of certain features in the \(\lamy\) calculus. The LN
-mechanization, on the other hand, carried a small but consistent level
-of overhead throughout the formalization, proving that it was indeed a
-good compromise between implementation overheads and transparency.
+implementation of certain features of the \(\lamy\) calculus using
+nominal sets. The LN mechanization, on the other hand, carried a small
+but consistent level of overhead throughout the formalization, proving
+that it was indeed a good compromise between implementation overheads
+and transparency.
 
 \section{Overview}\label{overview-1}
 
 We chose the length of the implemented theory files as a simple measure
-of implementation overheads. As expected, the Locally nameless version
-of the calculus (1143 lines) was about 50\% longer than the Nominal
+of implementation overheads. As expected, the locally nameless version
+of the calculus (1143 lines) was about 50\% longer than the nominal
 encoding (723 lines). However, this measure is not always ideal (due to
 the reasons outlined in \cref{mechOverheads}), and we therefore also
 present the comparison between the two versions in terms of the
 individual definitions and lemmas that correspond to each other in the
-two mechanizations and the informal definitions/lemmas:
+two mechanizations:
 
 \newcommand{\lem}[1]{\bf{lemma}\ \it{#1}}
 \newcommand{\fun}[1]{\bf{fun}\ \it{#1}}
@@ -1957,31 +1965,32 @@ Definition of substitution\strut
 \end{longtable}
 
 The table above lists the major lemmas discussed throughout this thesis,
-along with the names of these lemmas in the concrete implementations
-(these can be found in the Appendix), as well as the additional lemmas
-the proofs of these depend on. For example, the lemma
-\emph{pbeta\_max\_ex} depends on \emph{fv\_opn\_cls\_id2} and
-\emph{pbeta\_max\_cls} (which may themselves depend on other smaller
-lemmas). Overall, the mechanization using nominal sets includes 33
-lemmas, whereas the locally nameless has 71 individual lemmas. The fact
-that whilst the LN mechanization includes more than twice as many lemmas
-as the nominal formalization, its only roughly 50\% longer, meaning that
-many of these lemmas are short simple proofs, which supports our
-assertion that using the locally nameless representation of binders
-carries larger overhead, but keeps the difficulty of proving these
-additional lemmas low.
+along with their names in the concrete implementations (the printouts of
+the Isabelle theory files can be found in the
+\hyperref[appendix]{Appendix}). The table also lists some of the
+additional lemmas, on which the main lemmas depend. For example, the
+lemma \emph{pbeta\_max\_ex} corresponds to \cref{Lemma:maxEx} and
+depends on \emph{fv\_opn\_cls\_id2} and \emph{pbeta\_max\_cls}. Overall,
+the mechanization using nominal sets includes 33 lemmas, whereas the
+locally nameless has 71 individual lemmas. Even though the LN
+mechanization includes more than twice as many lemmas as the nominal
+formalization, it's roughly only 50\% longer, meaning that many of these
+lemmas are short simple proofs, which supports our assertion that using
+the locally nameless representation of binders carries larger overhead,
+but keeps the difficulty of proving these additional lemmas low.
 
 The rest of this chapter provides an overview of some of the technical
-points of the \(\lamy\) calculus mechanization which highlight the
+points of the \(\lamy\) calculus mechanization, which highlight the
 differences between the two mechanizations. However, we conclude that on
 the whole, neither mechanization proved to be significantly better than
 the other.\\
-This is especially true when it comes to proofs in both mechanizations.
-As the code printout in the Appendix clearly shows, both mechanizations
-have the same structure and largely the same syntax and formulation of
+This is especially true when it comes to individual proofs in both
+mechanizations. As the code printout in the
+\hyperref[appendix]{Appendix} clearly shows, both mechanizations have
+the same structure and largely the same syntax and formulation of
 lemmas.\\
 Additionally, when taking a finer grained look at the length of code by
-section, rather than as a whole, the lengths of the main lemmas in both
+sections, rather than as a whole, the lengths of the main lemmas in both
 mechanizations are much closer, as the overheads of the locally nameless
 encoding occur mainly in the definitions of terms and
 substitution/open/close operations:
@@ -2012,9 +2021,7 @@ Whilst the LN mechanization proved to have significantly higher
 ``obvious'' mechanization overheads in terms of code length, the
 implementation using the nominal library proved to be more difficult to
 use at certain points, due to the more complex nominal sets theory that
-implicitly underpinned the mechanization. The LN mechanization proved to
-be much more simple in practice, even without any library support and
-the automation, which comes with using Nominal Isabelle.\\
+implicitly underpinned the mechanization.
 
 \section{Definitions}\label{definitions-1}
 
@@ -2026,11 +2033,11 @@ Unsurprisingly, the main differences in these definitions involve
 \subsection{Nominal sets
 representation}\label{nominal-sets-representation}
 
-As was shown already in \cref{binders}, nominal set representation of
-terms is largely identical with the informal definition, which is the
-main reason why this representation was chosen. This section will
-examine the implementation of \(\lamy\) calculus in Isabelle, using the
-Nominal package.
+This section will examine the implementation of \(\lamy\) calculus in
+Isabelle, using the Nominal package. As was shown already in
+\cref{binders}, nominal set representation of terms is largely identical
+with the informal definition, which is the main reason why this
+representation was chosen.
 
 The declaration of the terms and types in Nominal Isabelle is handled
 using the reserved keywords \textbf{\texttt{atom\_decl}} and
@@ -2054,8 +2061,8 @@ The special \textbf{\texttt{binds \_ in \_}} syntax in the \texttt{Lam}
 constructor declares \texttt{x} to be bound in the body \texttt{t},
 telling Nominal Isabelle that \texttt{Lam} terms should be identified up
 to \(\alpha\)-equivalence, where a term \(\lambda x. x\) and
-\(\lambda y. y\) are considered identical/equal, because both \(x\) and
-\(y\) are bound in the two respective terms, and can both be
+\(\lambda y. y\) are considered identical/equal. This is because both
+\(x\) and \(y\) are bound in the two respective terms, and can both be
 \(\alpha\)-converted to the same term, for example \(\lambda z. z\). In
 fact, proving such a lemma in Nominal Isabelle is trivial:
 
@@ -2065,8 +2072,16 @@ lemma "Lam [x]. Var x = Lam [y]. Var y" by simp
 
 The special \textbf{\texttt{nominal\_datatype}} declaration also
 generates definitions of free variables/freshness and other
-simplification rules. (Note: These can be inspected in Isabelle, using
-the \textbf{\texttt{print\_theorems}} command.)
+simplification rules.
+
+\(\ \)
+
+\begin{Note}
+
+These auto-generated rules can be inspected in Isabelle, using the
+\textbf{\texttt{print\_theorems}} command.
+
+\end{Note}
 
 Other definitions, such as \(\beta\)-reduction and the notion of
 substitution are also unchanged with regards to the usual definition
@@ -2093,14 +2108,15 @@ read as ``\(x\) is fresh in \(N\)'', namely, the atom \(x\) is not the
 same as \(y\) and does not appear in \(S\), i.e.~for a \(\lambda\)-term
 \(M\), we have \(x\ \sharp\ M\) iff \(x \not\in \fv(M)\).
 
-Whilst on paper, all this definition is unchanged from the informal
+Whilst on paper, these definitions are unchanged from the informal
 presentation, there are a few caveats when it comes to actually
-implementing these definitions in Isabelle, using the Nominal package.
-Since this definition of substitution includes the freshness condition,
-it cannot be defined using the usual structural recursion via the
-\textbf{\texttt{primrec}} or \textbf{\texttt{fun}} keywords, generally
-used for this purpose. Instead we have to define capture avoiding
-substitution using a \textbf{\texttt{nominal\_function}} declaration:
+implementing them in Nominal Isabelle. Since this definition of
+substitution includes the freshness condition (and is defined over
+nominal terms), it cannot be defined using normal structural recursion
+via the \textbf{\texttt{primrec}} or \textbf{\texttt{fun}} keywords,
+generally used for this purpose. Instead we have to define capture
+avoiding substitution using a \textbf{\texttt{nominal\_function}}
+declaration:
 
 \begin{minted}[]{isabelle}
 nominal_function
@@ -2112,13 +2128,13 @@ where
 | "(Y t)[y ::= s] = Y t"
 \end{minted}
 
-Unlike using the usual \textbf{\texttt{fun}} declaration of a recursive
-function in Isabelle, where Isabelle automatically checks the definition
-for pattern completeness (for the term being pattern matched on) and
-overlap. The \textbf{\texttt{fun}} definition also automatically
-checks/proves termination of such recursive functions and generates
-simplification rules, which can be used for equational reasoning
-involving the function.\\
+The usual \textbf{\texttt{fun}} declaration of a recursive function in
+Isabelle automatically checks the definition for pattern completeness
+and overlap (for the term being pattern matched on). The
+\textbf{\texttt{fun}} definition also automatically checks/proves
+termination of such recursive functions and generates simplification
+rules, which can be used for equational reasoning involving the
+function.\\
 Unfortunately, this isn't the case for the
 \textbf{\texttt{nominal\_function}} declaration, where there are several
 goals (13 in the case of the \texttt{subst} definition) which the user
@@ -2139,12 +2155,12 @@ to be a bit problematic, as the goals involved proving properties like:
 Whilst most of the goals were trivial, proving cases involving
 \(\lambda\)-terms involved a substantial understanding of the internal
 workings of Isabelle and the Nominal package early on into the
-mechanization and as a novice to using Nominal Isabelle, understanding
+mechanization, and as a novice to using Nominal Isabelle, understanding
 and proving these properties proved challenging.\\
 Whilst our formalization required only a handful of other recursive
 function definitions, in a different theory with significantly more
-function definitions, proving such goals from scratch would prove a
-challenge to a Nominal Isabelle newcomer as well as a tedious
+function definitions, proving such goals from scratch would be a
+challenge to a Nominal Isabelle newcomer, as well as a tedious
 implementation overhead.
 
 \subsection{Locally nameless
@@ -2185,10 +2201,10 @@ corresponding (named) \(\lamy\) term to \(\lambda 3\).
 \end{Example}
 
 Since we don't want to work with terms that do not correspond to
-\(\lamy\) terms, we have to introduce the notion of a \emph{well-formed
-term}, which restricts the set of pre-terms to only those that
-correspond to \(\lamy\) terms (i.e.~this inductive definition ensures
-that there are no ``out of bounds'' indices in a given pre-term):
+\(\lamy\) terms, we have to introduce the notion of a \emph{well-formed}
+term, which restricts the set of pre-terms to only those that correspond
+to \(\lamy\) terms (i.e.~this inductive definition ensures that there
+are no ``out of bounds'' indices in a given pre-term):
 
 \begin{Definition}[Well-formed terms]
 
@@ -2226,9 +2242,9 @@ we start thinking about \(\alpha\)-equivalence and capture-avoiding
 substitution. Since the LN terms use de Bruijn levels for bound
 variables, there is only one way to write the term \(\lambda x.x\) or
 \(\lambda y.y\) as a LN term, namely \(\lambda 0\). As the
-\(\alpha\)-equivalence classes of named \(\lamy\) terms collapse into a
-singleton \(\alpha\)-equivalence class in a LN representation, the
-notion of \(\alpha\)-equivalence becomes trivial.
+\(\alpha\)-equivalence classes of named \(\lamy\) terms also collapse
+into a singleton \(\alpha\)-equivalence class in a LN representation,
+the notion of \(\alpha\)-equivalence becomes trivial.
 
 As a result of using LN representation of binders, the notion of
 substitution is split into two distinct operations. One operation is the
@@ -2396,18 +2412,19 @@ formed:\(\\\)
 
 As expected, the \emph{open} operation is now used instead of
 substitution in the \((\beta)\) rule.\\
-The \((abs)\) rule is also slightly different, also using the
-\emph{open} in its precondition. Intuitively, the usual formulation of
-the \((abs)\) rule states that in order to prove that \(\lambda x. M\)
-reduces to \(\lambda x. M'\), we can simply ``un-bind'' \(x\) in both
-\(M\) and \(M'\) and show that \(M\) reduces to \(M'\) (reasoning
-bottom-up from the conclusion to the premises). Since in the usual
-formulation of the \(\lambda\)-calculus, there is no distinction between
-free and bound variables, this change (where \(x\) becomes free) is
-implicit. In the LN presentation, however, this operation is made
-explicit by opening both \(M\) and \(M'\) with some free variable \(x\)
-(not appearing in either \(M\) nor \(M'\)), which replaces the bound
-variables/indices (bound to the outermost \(\lambda\)) with \(x\).\\
+The \((abs)\) rule is also slightly different, using the \emph{open} in
+its precondition instead of the usual substitution. Intuitively, the
+usual formulation of the \((abs)\) rule states that in order to prove
+that \(\lambda x. M\) reduces to \(\lambda x. M'\), we can simply
+``un-bind'' \(x\) in both \(M\) and \(M'\) and show that \(M\) reduces
+to \(M'\) (reasoning bottom-up from the conclusion to the premises).
+Since in the usual formulation of the \(\lambda\)-calculus, there is no
+distinction between free and bound variables, this change (where \(x\)
+becomes free) is implicit. In the LN presentation, however, this
+operation is made explicit by opening both \(M\) and \(M'\) with some
+free variable \(x\) (not appearing in either \(M\) nor \(M'\)), which
+replaces the bound variables/indices (bound to the outermost
+\(\lambda\)) with \(x\).\\
 While this definition is equivalent to the usual/informal definition,
 the induction principle this definition yields may not always be
 sufficient, especially in situations where we want to open up a term
@@ -2426,18 +2443,18 @@ fresh/free variables) using \emph{cofinite quantification}:
     \vskip 1.5em
 \end{center}
 
-For an example, where this formulation using \emph{cofinite
-quantification} was necessary, see \cref{Lemma:opnClsSubst}).
+For an example, where using \emph{cofinite quantification} was
+necessary, see \cref{Lemma:opnClsSubst}).
 
 \section{Proofs}\label{proofs}
 
 Having described the implementations of the two binder representations
 along with the definitions of capture-avoiding substitution using
-nominal sets and the corresponding \emph{subsitution} and \emph{open}
+nominal sets and the corresponding substitution and \emph{open}
 operations in the LN mechanization, we come the the main part of the
 comparison, namely the proof of the Church Rosser theorem. This section
-examines specific instances of some of the major lemmas which form parts
-of this bigger result. The general outline of the proof has been
+examines specific instances of some of the major lemmas, which form
+parts of this bigger result. The general outline of the proof has been
 described in \cref{cr-def}.
 
 \subsection{\texorpdfstring{\cref{Lemma:maxEx}}{}}\label{section}
@@ -2475,7 +2492,7 @@ By induction on \(M\).
 \end{Remark}
 
 Since \(\ggg\) restricts the use of the \((app)\) rule to terms which do
-not contain a \(\lambda\) or \(Y\) as its left-most sub term,
+not contain a \(\lambda\) or \(Y\) as its left-most sub-term,
 \cref{Lemma:reflM} does not hold in \(\ggg\) for terms like
 \((\lambda x.x)y\), namely, \((\lambda x.x)y \ggg (\lambda x.x)y\) is
 not a valid reduction (see \cref{Example:ggVsGgg}). It is, however, not
@@ -2517,8 +2534,8 @@ qed
 After applying induction and calling \texttt{auto}, which is Isabelle's
 automatic prover that does simple term rewriting and basic proof search,
 we can inspect the remaining goals at line 5, to see that the only goal
-that remains is the case of \(M\) being an application, naley we have to
-prove the following:
+that remains is the case of \(M\) being an application, namely we have
+to prove the following:
 
 \begin{center}
 $\forall S\ T\ U\ V.\ S \ggg U \implies T \ggg V \implies \exists M'.\ ST \ggg M'$
@@ -2544,8 +2561,7 @@ So far, we have looked at the version of the proof using nominal
 Isabelle and this is especially apparent in line 19, where we use the
 stronger \texttt{nominal\_induct} rule, with the extra parameter
 \texttt{avoiding: Q Q'}, which ensures that any new bound variables will
-be sufficiently fresh with regards to \texttt{Q} and \texttt{Q'}, in
-that the fresh variables won't appear in either of the terms.\\
+be sufficiently fresh with regards to \texttt{Q} and \texttt{Q'}.\\
 Since bound variables are distinct in the LN representation, the
 equivalent proof simply uses the usual induction rule (line 19):
 
@@ -2600,7 +2616,7 @@ automation. The nominal package, on the other hand, was designed to make
 reasoning with binders as painless as possible, which definitely shows
 in this example.
 
-When we compare the two goals for the \(\lambda\) case in both versions
+When we compare the two goals for the \(\lambda\)-case in both versions
 of the proof, we clearly see the differences in the treatment of
 binders:
 
@@ -2612,12 +2628,11 @@ $\begin{aligned}
 \end{aligned}$
 \end{center}
 
-Unlike in the nominal proof, where from \(M \ggg M'\) we get
-\(\lambda x.M \ggg \lambda x.M'\) by \((abs)\) immediately, the proof of
-\(\exists M'.\ \lambda.M \ggg M'\) in the LN mechanization is not as
-trivial.\\
-The difficulty arises with the precondition
-\(\forall x \not\in L.\ M^x \ggg (M')^x\) in the LN version of the
+Unlike in the nominal proof, where we get
+\(\lambda x.M \ggg \lambda x.M'\) from \(M \ggg M'\) by \((abs)\)
+immediately, the proof of \(\exists M'.\ \lambda.M \ggg M'\) in the LN
+mechanization is not as trivial.\\
+The difficulty in the LN version arises from the precondition of the
 \((abs)\) rule:
 
 \begin{center}
@@ -2676,7 +2691,7 @@ y & otherwise
 
 To demonstrate the close operation, take the term \(\lambda xy\).
 Applying the close operation with the free variable \(x\), we get
-\(\cls (\lambda xy) = \lambda 1y\). Whilst the original term might have
+\(\cls (\lambda xy) = \lambda 0y\). Whilst the original term might have
 been well formed, the closed term, as is the case here, may not be.
 
 \end{Example}
@@ -2684,8 +2699,8 @@ been well formed, the closed term, as is the case here, may not be.
 Intuitively, it is easy to see that closing a well formed term and then
 opening it with the same free variable produces the original term,
 namely \((\cls M)^x \equiv M\). This can be made even more general with
-the following lemma about the relationship between the open, close and
-substitution operations:
+the following lemma about the relationship between the \emph{open},
+\emph{close} and substitution operations:
 
 \begin{Lemma}
 
@@ -2711,14 +2726,15 @@ Then:
 \end{align}
 
 Starting from the goal (4.1), we expand the definitions of \emph{open},
-\emph{close} and substitution for the \(\lambda\) case in (4.2). (4.3)
+\emph{close} and substitution for the \(\lambda\)-case in (4.2). (4.3)
 holds by injectivity of \(\lambda\). Then, by choosing a sufficiently
 fresh \(z\) that does not appear in the given context \(L\) as well as
 in neither \(\fv(M)\) nor \(\{x, y\}\), we have (4.4). We can reorder
-the open and close operations in (4.5) because it can never be the case
-that \(k+1 = 0\) and \(z\) is different from both \(x\) and \(y\).
-Finally, (4.6) follows from the fact that we have chosen a \(z\) that
-does not appear in \(M\) and is different from \(y\).\\
+the \emph{open} and \emph{close} operations in (4.5) because it can
+never be the case that \(k+1 = 0\) and \(z\) is different from both
+\(x\) and \(y\). Finally, (4.6) follows from the fact that we have
+chosen a \(z\) that does not appear in \(M\) and is different from
+\(y\).\\
 We can now see that
 \(\{k+1 \to y\} \{k+1 \leftarrow x\} \{0 \to z\} M = (\{0 \to z\} M)[y/x]\)
 is in fact the \emph{IH}
@@ -2741,7 +2757,7 @@ concise and easier to work in than the locally nameless implementation,
 there were a few instances where using the nominal library turned out to
 be more difficult to understand and use. One such instance, namely
 defining a \textbf{\texttt{nominal\_function}}, was already discussed.
-Another example can be found in the implmentation of
+Another example can be found in the implementation of
 \cref{Lemma:maxClose}, which is stated as:
 
 \begin{center}
@@ -2764,7 +2780,7 @@ We have \(M \equiv (\lambda x. P) Q\) and
 By performing case analysis on the reduction
 \((\lambda x. P) Q \gg M'\), we know that
 \(M' \equiv (\lambda x. P') Q'\) or \(M' \equiv P'[Q'/x]\) for some
-\(P', Q'\), since only these two trees are valid:
+\(P', Q'\), since only the following two reduction trees can be valid:
 
 \begin{center}
     \AxiomC{$\vdots$}
@@ -2784,7 +2800,7 @@ By performing case analysis on the reduction
     \LeftLabel{$(\beta)$}
     \BinaryInfC{$(\lambda x. P) Q \gg P'[Q'/x]$}
     \DisplayProof
-    \vskip 1.5em
+    \vskip 1em
 \end{center}
 
 For the first case, where \(M' \equiv (\lambda x. P') Q'\), by
@@ -2792,7 +2808,7 @@ For the first case, where \(M' \equiv (\lambda x. P') Q'\), by
 can prove that \(M' \gg P_{max}[Q_{max}/x]\):
 
 \begin{center}
-    \vskip 1.5em
+    \vskip 1em
     \AxiomC{}
     \LeftLabel{$(IH)$}
     \UnaryInfC{$P' \gg P_{max}$}
@@ -2802,7 +2818,7 @@ can prove that \(M' \gg P_{max}[Q_{max}/x]\):
     \LeftLabel{$(\beta)$}
     \BinaryInfC{$(\lambda x. P') Q' \gg P_{max}[Q_{max}/x]$}
     \DisplayProof
-    \vskip 1.5em
+    \vskip 1em
 \end{center}
 
 In the case where \(M' \equiv P'[Q'/x]\), we also have
@@ -2815,13 +2831,11 @@ lemma:
 \label{Lemma:parRed}The following rule is admissible in \(\gg\):
 
 \begin{center}
-    \vskip 1.5em
     \AxiomC{$M \gg M'$}
     \AxiomC{$N \gg N'$}
     \LeftLabel{$(||_{subst})$}
     \BinaryInfC{$M[N/x] \gg M'[N'/x]$}
     \DisplayProof
-    \vskip 1.5em
 \end{center}
 
 \end{Lemma}
@@ -2849,10 +2863,10 @@ case (beta x Q Qmax P Pmax)
 \end{minted}
 
 There were a few quirks when implementing this proof in the nominal
-mechanization, specifically in line 3, where the case analysis on the
-shape of \(M'\) needed to be performed. Applying the automatically
-generated \texttt{pbeta.cases} rule yielded the following goal for the
-case where \(M' \equiv P'[Q'/x]\):
+setting, specifically in line 3, where the case analysis on the shape of
+\(M'\) needed to be performed. Applying the automatically generated
+\texttt{pbeta.cases} rule yielded the following goal for the case where
+\(M' \equiv P'[Q'/x]\):
 
 \begin{minted}[]{idris}
  2. ⋀xa Q' R P'.
@@ -2884,13 +2898,13 @@ lemma pbeta_cases_2:
 In the lemma above,
 \texttt{(⋀t' s'. a2 = s' [x ::= t'] ⟹ atom x ♯ t ⟹ atom x ♯ t' ⟹ s ≫ s' ⟹ t ≫ t' ⟹ P) ⟹ P}
 corresponds to the case with the premises we want to have, instead of
-the ones we get from the ``cases'' lemma generated as part of the
-definition of \(\gg\).
+the ones we get from the \texttt{pbeta.cases} lemma generated as part of
+the definition of \(\gg\).
 
 The proof of this lemma required proving another lemma shown below,
 which required descending into nominal set theory that was previously
-mostly hidden away from the mechanization (the proofs of the
-\texttt{have} lemmas were omitted for brevity):
+mostly hidden away from the mechanization (the proof-scripts indicated
+by \texttt{...} were omitted for brevity):
 
 \begin{minted}[]{isabelle}
 lemma "(Lam [x]. s) ≫ s' ⟹ ∃t. s' = Lam [x]. t ∧ s ≫ t"
@@ -2915,7 +2929,7 @@ For us, the nominal package thus proved to be a double edged sword, as
 it initially provided a fairly low cost of entry (there was practically
 no need to understand any nominal set theory to get started), but proved
 to be much more challenging to understand in certain places, such as
-when proving \texttt{pbeta\_cases\_2}.\\
+when proving \texttt{pbeta\_cases\_2} or the auxiliary lemma above.\\
 Whilst the finial \texttt{pbeta\_cases\_2} proof turned out to be fairly
 short thanks to automation of the nominal set theory, it took some time
 to work out the proof outline in such a ways as to leverage Isabelle's
@@ -2928,14 +2942,14 @@ lemmas.
 
 \subsubsection{LN implementation}\label{ln-implementation}
 
-The troublesome case analysis in the Nominal version of the proof was
+The troublesome case analysis in the nominal version of the proof was
 much more straight forward in the LN proof. In fact, there was no need
 to prove a separate lemma similar to \texttt{pbeta\_cases\_2}, since the
 auto-generated \texttt{pbeta.cases} was sufficient. The only overhead in
 this version of the lemma came from the use of \cref{Lemma:parRed}, in
 that the lemma was first proved in it's classical formulation using
 substitution, but due to the way substitution of bound terms is handled
-in the LN mechanization (using the \emph{open function}), a ``helper''
+in the LN mechanization (using the \emph{open} function), a ``helper''
 lemma was proved to convert this result to one using \emph{open}:
 
 \begin{Lemma}[Parallel open]
@@ -2944,13 +2958,11 @@ lemma was proved to convert this result to one using \emph{open}:
 of \(\gg\):
 
 \begin{center}
-    \vskip 1.5em
     \AxiomC{$\forall x \not\in L.\ M^x \gg M'^x$}
     \AxiomC{$N \gg N'$}
     \LeftLabel{$(||_{open})$}
     \BinaryInfC{$M^N \gg M'^{N'}$}
     \DisplayProof
-    \vskip 1.5em
 \end{center}
 
 \end{Lemma}
@@ -2970,44 +2982,44 @@ been made shorter and more ``tailored'' to the LN mechanization.
 
 \label{chap:compAgda}
 
-Having previously looked at two approaches to mechanizing binders in
-Isabelle and having concluded that there were only minor differences
-between the nominal and LN approaches, we proceeded to the next round of
-our comparison, by implementing the locally nameless version of the
-\(\lamy\) calculus along with proofs of confluence in Agda.\\
-Whilst using Nominal sets in Isabelle turned out to be slightly more
+After having looked at two approaches to mechanizing binders in Isabelle
+in the last chapter and concluding that there were only minor
+differences between the nominal and LN approaches, we proceeded to the
+next round of our comparison, by implementing the locally nameless
+version of the \(\lamy\) calculus along with proofs of confluence in
+Agda.\\
+Whilst using nominal sets in Isabelle turned out to be slightly more
 transparent and shorter, the big disadvantage, especially for Agda, was
 the fact that the nominal set theory would have been much more tedious
-to use, if we had to, say, implement it from scratch. Whilst Nominal
-Isabelle is a fairly mature library, formalizing the theory of nominal
-sets and providing ample sugar for the user to hide away the theory,
-Agda is a lot more bare-bones and the ``penalty'' incurred by
-formalizing and then using nominal sets would have been significantly
-higher.\\
+to use, if we had to, implement it from scratch. Nominal Isabelle is a
+fairly mature library, formalizing the theory of nominal sets and
+providing ample sugar for the user to hide away the theory. Agda, on the
+other hand, is a lot more bare-bones when it comes to automation, and
+there is, to our knowledge, no implementation of nominal sets anywhere
+close in quality to Nominal Isabelle.\\
 Instead, we chose to implement the locally nameless version, which
 proved to have consistent, but fairly minimal overheads, requiring
-relatively little extra theory. This is supported by the fact that the
-LN version of the calculus and proofs in Isabelle was roughly 1140 lines
-of code, whereas the Agda version was only slightly longer at 1350
-lines, which, when adjusted to the same spacing/formatting comes down to
-roughly 1230 lines. This rough metric also demonstrates that whilst
-Isabelle's automation can be a lot more powerful than Agda's, in our
-case (partially by design), there were only a few instances where
+relatively little extra underlying theory. This is supported by the fact
+that the LN version of the calculus and proofs in Isabelle was roughly
+1140 lines of code, whereas the Agda version was only slightly longer at
+1350 lines, which, when adjusted to the same spacing/formatting comes
+down to roughly 1230 lines. This rough metric also demonstrates that
+whilst Isabelle's automation can be a lot more powerful than Agda's, in
+our case (partially by design), there were only a few instances where
 Isabelle clearly had the upper hand. Over all, it turned out, once
-again, that there were only small, often just cosmetic, differences
-between the two implementations.
+again, that there were only small, often cosmetic, differences between
+the two implementations.
 
 \section{Overview}\label{overview-2}
 
 One of the most apparent differences between Agda and Isabelle is the
-treatment of functions and proofs in both languages. Whilst in Isabelle,
-there is always a clear syntactic distinction between programs and
-proofs, Agda's richer dependent-type system allows constructing proofs
-as programs. This distinction is especially visible in inductive proofs,
-which have a completely distinct syntax in Isabelle. As proofs are not
-objects which can be directly manipulated in Isabelle, to modify the
-proof goal, user commands such as \texttt{apply rule} or
-\texttt{by auto} are used:
+treatment of functions and proofs. Whilst in Isabelle, there is always a
+clear syntactic distinction between programs and proofs, Agda's richer
+dependent-type system allows constructing proofs as programs.\\
+This distinction is especially visible in inductive proofs, which have a
+completely distinct syntax in Isabelle. As proofs are not objects which
+can be directly manipulated in Isabelle, to modify the proof goal, user
+commands such as \texttt{apply rule} or \texttt{by auto} are used:
 
 \begin{minted}[]{isabelle}
 lemma subst_fresh: "x ∉ FV t ⟹ t[x ::= u] = t"
@@ -3685,11 +3697,11 @@ mainly focuses on the engineering choices that were made in order to
 simplify the proofs as much as possible, as well as the necessary
 implementation overheads and compromises that were made.\\
 The chapter is presented in sections, each explaining implementation
-details for a specific lemma or definition, introduced in
-\cref{itypesIntro}. Some of the definitions presented early on in this
-chapter undergo several revisions, as we discuss the necessities for
-these changes in a pseudo-chronological manner, in which they arose
-during the implementation stage of this project.
+details for a specific lemma or definition (some of which were
+introduced in \cref{itypesIntro}). Some of the definitions presented
+early on in this chapter undergo several revisions, as we discuss the
+necessities for these changes in a (mostly) chronological manner, in
+which they arose during the implementation stage of this project.
 
 \section{Intersection types in Agda}\label{intersection-types-in-agda}
 
@@ -3737,25 +3749,25 @@ data IType : Set where
 
 \section{Type refinement}\label{type-refinement}
 
-One of the first things we needed to add to the notion of intersection
-type assignment (and as a result also to the \(\subseteq\) relation on
-intersection types) was the notion of simple-type refinement. The main
-idea of intersection types for \(\lamy\) terms is for the intersection
-types to somehow ``refine'' the simple types. Intuitively, this notion
-should capture the relationship between the ``shape'' of the
+One of the first things we needed to add to the notion of
+intersection-type assignment (and as a result also to the \(\subseteq\)
+relation on intersection types) was the notion of simple-type
+refinement. The main idea of intersection types for \(\lamy\) terms is
+for the intersection types to ``refine'' the simple types. Intuitively,
+this notion should capture the relationship between the ``shape'' of the
 intersection and simple types.
 
 To demonstrate the reason for introducing type refinement, we look at
 the initial formulation of the (intersection) typing rule \((Y)\):
 
 \begin{center}
-  \vskip 1.5em
+  \vskip 1em
   \AxiomC{}
   \LeftLabel{$(Y)$}
   \RightLabel{$(j \in \underline{n})$}
   \UnaryInfC{$\Gamma \Vdash Y_\sigma : (\taui \leadsto \tau_1 \cap\hdots\cap \taui \leadsto \tau_i) \leadsto \tau_j$}
   \DisplayProof
-  \vskip 1.5em
+  \vskip 1em
 \end{center}
 
 The lack of connection between simple and intersection types in the
@@ -3775,11 +3787,11 @@ type \(\sigma\):
   \vskip 1.5em
 \end{center}
 
-The refinement relation has been defined in Kobayashi
+The refinement relation has been defined by Kobayashi
 (\protect\hyperlink{ref-kobayashi09}{2009}) (amongst others) and is
 presented below:
 
-\begin{Definition}[Intersection type refinement]
+\begin{Definition}[Intersection-type refinement]
 
 Since intersection types are defined in terms of strict
 (\(\mathcal{T}_s\)) and non-strict (\(\mathcal{T}\)) intersection types,
@@ -3875,10 +3887,10 @@ To give a motivation as to why we chose a different formulation of these
 properties, we first examine the original definition and show why it's
 not rigorous enough for a well typed Agda definition.\\
 As we've shown in \cref{itypesAgda}, the definition of intersection
-types is implicitly split into strict \texttt{IType}s and intersections,
-encoded as \texttt{List IType}s. All the preceding definitions follow
-this split with the strict and non strict versions of the type
-refinement (\(::\) and \(::_\ell\) respectively) and sub-typing
+types is implicitly split into strict \texttt{IType}-s and
+intersections, encoded as \texttt{List IType}-s. All the preceding
+definitions follow this split with the strict and non strict versions of
+the type refinement (\(::\) and \(::_\ell\) respectively) and sub-typing
 relations (\(\subseteq\) and \(\subseteq_\ell\) respectively).\\
 If we tried to turn the first property above into a rule, such as:
 
@@ -4018,10 +4030,10 @@ example above:
 \end{center}
 
 Also, since the only rules that can proceed \((prop'\ 2)\) in the
-derivation tree are \((refl)\) or \((prop'\ 1)\), and it's easy to see
-that in case of \((refl)\) preceding, we can always apply \((prop'\ 1)\)
-before \((refl)\), we can in fact merge \((prop'\ 1)\) and
-\((prop'\ 2)\) into the single rule:
+derivation tree are \((refl)\) or \((prop''\ 1)\), and it's easy to see
+that in case of \((refl)\) preceding, we can always apply
+\((prop''\ 1)\) before \((refl)\), we can in fact merge \((prop''\ 1)\)
+and \((prop'\ 2)\) into the single rule:
 
 \begin{center}
   \AxiomC{$\forall \tau' \in \tau_i.\ \exists \tau'' \in \tau.\ \tau' \subseteq \tau''$}
@@ -4033,14 +4045,15 @@ before \((refl)\), we can in fact merge \((prop'\ 1)\) and
 The final version of this rule, as it appears in
 \cref{Definition:subseteqNew}, is simply an iterated version, split into
 the \((nil)\) and \((cons)\) cases, to mirror the constructors of lists,
-since these rules ``operate'' with \texttt{List IType}. This iterated
-style of rules was adopted throughout this chapter for all definitions
-involving \texttt{List IType}, wherever possible, since it is more
-natural to work with, in Agda.
+since these rules ``operate'' with \texttt{List IType}-s. This iterated
+style of rules was adopted throughout the whole chapter for all
+definitions involving \texttt{List IType}-s (wherever possible), since
+it is more natural to work with in Agda.
 
 \begin{Example}
 
-To illustrate this, take the following lemma about type refinement:
+To illustrate the use of iterated versions of rules working with
+\texttt{List IType}-s, take the following lemma about type refinement:
 
 \begin{Lemma}
 
@@ -4101,12 +4114,12 @@ For comparison, the same proof in Agda reads much the same as the
 \section{Intersection-type
 assignment}\label{intersection-type-assignment}
 
-Having modified the initial definition of sub-typing and added the
-notion of type refinement, we now take a look at the definition of
-intersection type assignment and the modifications that were needed for
-the mechanization.
+After we modified the initial definition of sub-typing and added the
+notion of type refinement, we will now take a look at the definition of
+intersection-type assignment and the modifications that were needed to
+be made for the mechanization.
 
-Whilst before, intersection typing consisted of the triple
+While before, intersection typing consisted of the triple
 \(\Gamma \Vdash M : \tau)\), where \(\Gamma\) was the intersection type
 context, \(M\) was an untyped \(\lamy\) term and \(\tau\) was an
 intersection type, this information is not actually sufficient when we
@@ -4114,7 +4127,7 @@ introduce type refinement. As we've shown with the \((Y)\) rule, the
 refinement relation \(::\) provides a connection between intersection
 and simple types. We therefore want \(M\) in the triple to be a simply
 typed \(\lamy\) term.\\
-Even though, we could use the definition of simple types from the
+Even though we could use the definition of simple types from the
 previous chapters, this notation would be rather cumbersome.
 
 \begin{Example}
@@ -4136,12 +4149,13 @@ typing.
 
 Instead of using the \emph{a la Curry} simple typing, presented in the
 example above, we chose to define typed \(\lamy\) terms \emph{a la
-Church}. However, since we are using the Locally Nameless representation
-of binders, we actually give the definition of simply typed pre-terms:
+Church}. Since we are using the locally nameless representation of
+binders, we actually give the definition of \emph{Church}-style simply
+typed pre-terms:
 
-\begin{Definition}[Simply typed pre-terms a la Church]
+\begin{Definition}[Simply typed pre-terms \textit{a la Church}]
 
-For every simple type \(A\), the set of simply typed pre-terms
+For every simple type \(A, B\), the set of simply typed pre-terms
 \(\Lambda_A\) is inductively defined in the following way:
 
 \begin{center}
@@ -4155,15 +4169,15 @@ For every simple type \(A\), the set of simply typed pre-terms
   \UnaryInfC{$n \in \Lambda_A$}
   \DisplayProof
   \hskip 1.5em
-  \AxiomC{$s \in \Lambda_{B \to A}$}
-  \AxiomC{$t \in \Lambda_B$}
+  \AxiomC{$S \in \Lambda_{B \to A}$}
+  \AxiomC{$T \in \Lambda_B$}
   \LeftLabel{$(app)$}
-  \BinaryInfC{$st \in \Lambda_A$}
+  \BinaryInfC{$ST \in \Lambda_A$}
   \DisplayProof
   \hskip 1.5em
-  \AxiomC{$s \in \Lambda_B$}
+  \AxiomC{$S \in \Lambda_B$}
   \LeftLabel{$(lam)$}
-  \UnaryInfC{$\lambda_A.s \in \Lambda_{A \to B}$}
+  \UnaryInfC{$\lambda_A.S \in \Lambda_{A \to B}$}
   \DisplayProof
   \vskip 1.5em
   \AxiomC{}
@@ -4174,7 +4188,7 @@ For every simple type \(A\), the set of simply typed pre-terms
 
 \end{Definition}
 
-It's easy to see that the definition of Church-style simply typed
+It's easy to see that the definition of \emph{Church}-style simply typed
 \(\lamy\) pre-terms differs form the untyped pre-terms only in the
 \(\lambda\) case, with the addition of the extra typing information,
 much like in the case of \(Y\). We also adopt a typing convention, where
@@ -4219,8 +4233,8 @@ current form. To create a compromise between the unrestricted
 intersection-types of \(\lambda_\cap^{BCD}\), which made expressing the
 \((Y)\) rule much simpler, and the strict typing, which provided a
 restricted version of type derivation over the \(\lambda_\cap^{BCD}\)
-system, we modified strict types to include intersections on both the
-left and right sub-terms of a strict type:
+system, we modified strict types to have intersections as both the left
+and right sub-terms of a strict type:
 
 \begin{Definition}[Semi-strict intersection types]
 
@@ -4249,8 +4263,7 @@ following inversion lemma:
 \begin{Lemma}[Inversion Lemma for $(app)$]
 
 \label{Lemma:invApp} In the following lemma, \(\tau_i\) is an
-intersection, i.e.~a list of strict intersection types
-\(\mathcal{T}_s\):
+intersection, i.e.~a list of strict intersection terms:
 
 \begin{center}
 $\Gamma \Vdash uv : \tau \iff \exists \tau_i.\ \Gamma \Vdash u : \tau_i \leadsto \tau \land \Gamma \Vdash_\ell v : \tau_i$
@@ -4259,9 +4272,9 @@ $\Gamma \Vdash uv : \tau \iff \exists \tau_i.\ \Gamma \Vdash u : \tau_i \leadsto
 \end{Lemma}
 
 Such a lemma is in fact not even needed in Agda, since the shape of the
-term \(uv\) and the type \(\tau\) uniquely determine that the derivation
-tree must have had an application of the \((app)\) rule at its base. In
-an Agda proof, such as:
+term \(uv\) and the strict type \(\tau\) uniquely determine that the
+derivation tree must have had an application of the \((app)\) rule at
+its base. In an Agda proof, such as:
 
 \begin{minted}[]{agda}
 sample-lemma Γ⊩uv∶τ = ?
@@ -4378,8 +4391,8 @@ reduction rule and show that given a well typed term
 \(Y_\sigma m \red m(Y_\sigma m)\), we can also type \(Y_\sigma m\) with
 the same intersection type \(\tau\).\\
 We will start with a very high-level overview of the proof. Having
-assumed, \(\Gamma \Vdash m(Y_\sigma m) : \tau\), we must necessarily
-have the following derivation tree for the intersection typing relation
+assumed \(\Gamma \Vdash m(Y_\sigma m) : \tau\), we must necessarily have
+the following derivation tree for the intersection typing relation
 \(\Vdash\):
 
 \begin{figure}[h]
@@ -4400,12 +4413,12 @@ have the following derivation tree for the intersection typing relation
 \end{figure}
 
 We have two cases, where \(\tau_i\) is an empty intersection
-\(\tau_i \equiv \omega\) or a non-empty list of strict intersection
-types \(\tau_i \equiv [\tau_1,\hdots,\tau_n]\).
+\(\tau_i \equiv \omega\) or a non-empty list of strict intersection-type
+terms \(\tau_i \equiv [\tau_1,\hdots,\tau_n]\).
 
 \subsection{\texorpdfstring{\(\tau_i \equiv \omega\)}{\textbackslash{}tau\_i \textbackslash{}equiv \textbackslash{}omega}}\label{tau_i-equiv-omega}
 
-From \cref{figure:shapemYm} above, we have
+From \cref{figure:shapemYm}, we have
 \((1): \Gamma \Vdash_s m : \omega \leadsto \tau_j\). Then, we can
 construct the following proof tree:
 
@@ -4426,9 +4439,9 @@ construct the following proof tree:
   \vskip 1em
 \end{center}
 
-The only (non-trivial) open branch in the above tree is to show that
-\(\Gamma \Vdash m : \omega \leadsto [\tau]\). In order to do so, we need
-to use the sub-typing lemma for intersection types:
+The only (non-trivial) open branch in the above tree is
+\(\Gamma \Vdash m : \omega \leadsto [\tau]\). In order prove this, we
+need to use the sub-typing lemma for intersection types:
 
 \begin{Lemma}[Sub-typing for $\Vdash/\Vdash_\ell$]
 
@@ -4532,7 +4545,8 @@ We will simplify this notation slightly and just write:
 \end{Remark}
 
 In order to type \(Y_A m\) with \(\tau\), we first have to show that for
-every tree above, we can find a type \(\tau'_k\) s.t.
+every branch \(\Gamma \Vdash Y_A m : \tau_k\) in the tree above, we can
+find a type \(\tau'_k\) s.t.
 \(\Gamma \Vdash m : \tau'_k \leadsto \tau'_k\) and
 \([\tau_k] \subseteq^A_\ell \tau'_k\):
 
@@ -4679,7 +4693,7 @@ relation \(\Vdash\), to allow us to derive the type above:
 Introducing this rule created a host of complications, the chief of
 which was the fact that we lost our ``free'' inversion lemmas, as it is
 now no longer obvious from the shape of the term, which rule was used
-last in the type derivation tree.
+last in the type-derivation tree.
 
 \begin{Example}
 
@@ -4708,15 +4722,26 @@ derivation trees could be valid:
 \end{center}
 
 However, it's easy to see that since these derivation trees must be
-finite, if we apply \((\tocap)\) multiple times, eventually, all of the
-branches will have to have an application of the \((abs)\) rule.
+finite, even if we apply \((\tocap)\) multiple times, eventually, all of
+these branches will have to have an application of the \((abs)\) rule.
+As a result, we can prove an inversion lemma, which is practically
+identical to the original ``free'' inversion lemma:
+
+\begin{Lemma}[Inversion lemma for $(abs)$]
+
+\begin{center}
+$\Gamma \Vdash (\lambda_A. m)_{\{A \to B\}} : \psi_i \leadsto \psi_j \implies \exists L.\ \forall x \not\in L.\ (x : \psi_i ::_\ell A),\Gamma \Vdash_\ell (m^x)_{\{B\}} : \psi_j$
+\end{center}
+
+\end{Lemma}
 
 \end{Example}
 
 Besides having to derive inversion lemmas for the \((abs)\) and \((Y)\)
 rules, another derived rule, namely the sub-typing rule, breaks. In
-order to fix this rule, we also had to add an axiom scheme corresponding
-to the \((\tocap)\) rule, to the definition of the type subset relation:
+order to ``fix'' this rule, we had to add an axiom scheme, corresponding
+to the \((\tocap)\) rule, to the definition of the intersection-type
+subset relation:
 
 \begin{center}
   \vskip 1em
@@ -4731,13 +4756,13 @@ to the \((\tocap)\) rule, to the definition of the type subset relation:
 
 \begin{Remark}
 
-Initially, we tried to simply add \((\tocap_\ell)\) to the type subset
-relation and add the sub-typing rule to \(\Vdash\), instead of having
-the rule \((\tocap)\). However, this made the inversion lemmas, as well
-as some other lemmas too difficult to prove. Finding the right balance
-in the formalization of the \((\tocap)/(\tocap_\ell)\) and the
-sub-typing rules proved to be perhaps the most challenging part of the
-formalization of intersection types.
+Initially, we tried to add \((\tocap_\ell)\) to the type subset relation
+and add the sub-typing rule to \(\Vdash\), instead of having the rule
+\((\tocap)\). However, this made the inversion lemmas, as well as some
+other lemmas too difficult to prove. Finding the right balance in the
+formalization of the \((\tocap)/(\tocap_\ell)\) and the sub-typing rules
+proved to be perhaps the most challenging part of the formalization of
+intersection types.
 
 \end{Remark}
 
@@ -4819,7 +4844,7 @@ We can therefore derive
 
 \(\ \)
 
-\begin{Remark}
+\begin{Note}
 
 In the sub-typing rule, used in the tree above,
 \(\tau'_i \leadsto [\tau] \subseteq^{A \to A} \tau_i \leadsto \tau_j\)
@@ -4841,7 +4866,7 @@ follows by:
   \vskip 1em
 \end{center}
 
-\end{Remark}
+\end{Note}
 
 Finally, putting all the pieces together, we get
 \(\Gamma \Vdash Y_{A} m : \tau\):
@@ -4871,35 +4896,35 @@ reduction:
 
 \begin{Lemma}[Substitution lemma]
 
-Given that \(m\) and \(n\) are both well formed terms and
+Given that \(M\) and \(N\) are both well formed terms and
 \(x \not\in \dom\ \Gamma\), we have:
 
 \begin{center}
-$\Gamma \Vdash m_{\{A\}}[n_{\{B\}}/x] : \tau \iff \exists \tau_i.\ (x : \tau_i ::_\ell B), \Gamma \Vdash m_{\{A\}} : \tau \land \Gamma \Vdash_\ell n_{\{B\}} : \tau_i$
+$\Gamma \Vdash M_{\{A\}}[N_{\{B\}}/x] : \tau \iff \exists \tau_i.\ (x : \tau_i ::_\ell B), \Gamma \Vdash M_{\{A\}} : \tau \land \Gamma \Vdash_\ell N_{\{B\}} : \tau_i$
 \end{center}
 
 \end{Lemma}
 
 In the backwards direction (\(\Leftarrow\)), this proof is fairly
-straight forward and follows much like the homonymous lemma for simple
-types.\\
+straight forward and follows much like the proof of the same lemma for
+simple types.\\
 The other direction (\(\Rightarrow\)), used in the proof of subject
 expansion, turned out to be more complicated in Agda. This part of the
-proof proceeds by induction on the well formed term \(m\), and whilst
-trying to prove the goal, when \(m\) is a \(\lambda\)-term, Agda's
+proof proceeds by induction on the well formed term \(M\), and whilst
+trying to prove the goal when \(M\) is a \(\lambda\)-term, Agda's
 termination checker would fail. To show why this was the case, we first
 examine the definition for the \(\lambda\)-case:
 
 \begin{minted}[escapeinside=||]{agda}
 subst-⊩-2 : ∀ {A B Γ τ x} ->
-  {m : Λ A} {n : Λ B} -> 
-  ΛTerm m -> ΛTerm n ->
-  x ∉ dom Γ -> Γ ⊩ (m Λ[ x ::= n ]) ∶ τ ->
-  ∃(λ τ|$_\texttt{i}$| -> ( ((x , τ|$_\texttt{i}$| , B) ∷ Γ) ⊩ m ∶ τ ) × ( Γ ⊩|$_\ell$| n ∶ τ|$_\texttt{i}$| ))
+  {M : Λ A} {N : Λ B} -> 
+  ΛTerm M -> ΛTerm N ->
+  x ∉ dom Γ -> Γ ⊩ (M Λ[ x ::= N ]) ∶ τ ->
+  ∃(λ τ|$_\texttt{i}$| -> ( ((x , τ|$_\texttt{i}$| , B) ∷ Γ) ⊩ M ∶ τ ) × ( Γ ⊩|$_\ell$| N ∶ τ|$_\texttt{i}$| ))
 |$\texttt{\vdots}$|
 subst-⊩-2 {A ⟶ B} {C} {Γ} {τ ~> τ'} {x} 
-  {lam .A p} {n} 
-  (lam L {.p} cf) trm-n 
+  {lam .A P} {N} 
+  (lam L {.P} cf) trm-N 
   x∉Γ (abs L' cf') = ?
 \end{minted}
 
@@ -4908,27 +4933,27 @@ Informally, the (pieces of) definition above can be read as:
 \begin{itemize}
 \tightlist
 \item
-  \texttt{{lam .A p}} : \(m \equiv \lambda_A.p\)
+  \texttt{{lam .A P}} : \(M \equiv \lambda_A.P\)
 \item
-  \texttt{(lam L {.p} cf)} : \(p\) is a well formed \(\lambda\)-term,
-  s.t. we have \(\forall x' \not\in L.\ \trm(p^{x'})\) for some finite
+  \texttt{(lam L {.P} cf)} : \(P\) is a well formed \(\lambda\)-term,
+  s.t. we have \(\forall x' \not\in L.\ \trm(P^{x'})\) for some finite
   \(L\).\\
   (This is captured by the type of \texttt{cf}, which is
-  \texttt{x₁ ∉ L → ΛTerm (Λ[ 0 >> fv x₁ ] p)}.)
+  \texttt{x₁ ∉ L → ΛTerm (Λ[ 0 >> fv x₁ ] P)}.)
 \item
-  \texttt{trm-n} : \(n\) is a well-formed \(\lamy\) term
+  \texttt{trm-N} : \(N\) is a well-formed \(\lamy\) term
 \item
   \texttt{(abs L' cf')} : the last rule in the derivation tree of
-  \(\Gamma \Vdash \lambda_A.p_{\{B\}}[n_{\{C\}}/x] : \tau \leadsto \tau'\)
+  \(\Gamma \Vdash \lambda_A.P_{\{B\}}[N_{\{C\}}/x] : \tau \leadsto \tau'\)
   was the \((abs)\) rule and therefore we have \texttt{cf'}, which
   encodes the premise, that there is some finite \(L'\) s.t.
-  \(\forall x' \not\in L'.\ (x' : \tau ::_\ell A),\Gamma \Vdash_\ell (p[n/x])^{x'} : \tau\).
+  \(\forall x' \not\in L'.\ (x' : \tau ::_\ell A),\Gamma \Vdash_\ell (P[N/x])^{x'} : \tau\).
 \end{itemize}
 
 The proof proceeds, by first showing that we can obtain a fresh \(x'\)
-s.t. \(\trm(p^{x'})\). By picking a sufficiently fresh \(x'\), we can
+s.t. \(\trm(P^{x'})\). By picking a sufficiently fresh \(x'\), we can
 also derive
-\((x' : \tau ::_\ell A),\Gamma \Vdash_\ell (p^{x'})[n/x] : \tau\),
+\((x' : \tau ::_\ell A),\Gamma \Vdash_\ell (P^{x'})[N/x] : \tau\),
 essentially swapping the substitution and opening from the assumption
 above.\\
 However, when we then try to apply the induction hypothesis, which
@@ -4939,7 +4964,7 @@ instead focus on the implicit arguments:
 
 \begin{minted}[escapeinside=||]{agda}
 ih = subst-⊩|$_\ell$|-2 {A} {C} {(x' , τ , A) ∷ Γ} {τ'} {x} 
-  {Λ[ 0 >> fv x' ] p} {n} ...
+  {Λ[ 0 >> fv x' ] P} {N} ...
 \end{minted}
 
 Agda's termination checking relies on the fact that the data-types,
@@ -4948,11 +4973,11 @@ calls\footnote{The details on how the termination checking algorithm in
   Agda works are sparse, so we are not actually sure about the specifics
   of how the termination check fails.}. Thus, the parameter
 \texttt{Λ[ 0 >> fv x' ] m} in this definition is obviously problematic,
-as Agda doesn't know that \(p^{x'}\) is structurally smaller than \(m\)
-(i.e. \(\lambda_A. p\)), even though we know that is the case, as the
+as Agda doesn't know that \(P^{x'}\) is structurally smaller than \(M\)
+(i.e. \(\lambda_A. P\)), even though we know that is the case, as the
 open operation simply replaces a bound variable with a free one.
-However, whilst \(p^{x'}\) is not ``bigger'' than \(p\), it is not,
-strictly speaking, structurally smaller than \(\lambda_A.p\) and
+However, whilst \(P^{x'}\) is not ``bigger'' than \(P\), it is not,
+strictly speaking, structurally smaller than \(\lambda_A.P\) and
 therefore, structural induction/recursion principles cannot be used in
 this definition.
 
@@ -4965,15 +4990,13 @@ proof terminates, but having little experience in Agda, this looked
 quite complicated.\\
 Instead, we devised a simple ``hack'' to allow Agda to prove termination
 for this (slightly modified) lemma, by first defining ``skeleton'' terms
-\(T\), which capture the structure of \(\lamy\) terms:
+\(\mathfrak{T}\), which capture the structure of \(\lamy\) terms:\\
 
 \begin{Definition}
 
-\(T ::= *\ |\ \circ T\ |\ T\ \amp\ T\)
+\(\mathfrak{T} ::= *\ |\ \circ \mathfrak{T}\ |\ \mathfrak{T}\ \amp\ \mathfrak{T}\)
 
 \end{Definition}
-
-\(\ \)
 
 \begin{Example}
 
@@ -5014,54 +5037,55 @@ Thus, the skeleton term of \(\lambda.0(Y_A x)\) is
 
 \end{Example}
 
-Next, we defined the congruence relation \(\sim_T\) between locally
+Next, we defined the congruence relation \(\trel\) between locally
 nameless \(\lamy\) terms and skeleton terms:
 
-\begin{Definition}[$\sim_T$ relation]
+\begin{Definition}[$\trel$ relation]
 
-In the following definition, \(m,p,q\) range over simply-typed locally
-nameless \(\lamy\) terms and \(s,t\) range over skeleton terms \(T\):
+In the following definition, \(M,P,Q\) range over simply-typed locally
+nameless \(\lamy\) terms and \(S,T\) range over skeleton terms
+\(\mathfrak{T}\):
 
 \begin{center}
   \AxiomC{}
   \LeftLabel{$(bvar)$}
-  \UnaryInfC{$n \sim_T *$}
+  \UnaryInfC{$n \trel *$}
   \DisplayProof
   %------------------------------------
   \hskip 1.5em
   \AxiomC{}
   \LeftLabel{$(fvar)$}
-  \UnaryInfC{$x \sim_T *$}
+  \UnaryInfC{$x \trel *$}
   \DisplayProof
   %------------------------------------
   \hskip 1.5em
   \AxiomC{}
   \LeftLabel{$(Y)$}
-  \UnaryInfC{$Y_A \sim_T *$}
+  \UnaryInfC{$Y_A \trel *$}
   \DisplayProof
   %------------------------------------
   \vskip 1.5em
-  \AxiomC{$m \sim_T t$}
+  \AxiomC{$M \trel T$}
   \LeftLabel{$(un)$}
-  \UnaryInfC{$\lambda_A.m \sim_T \circ t$}
+  \UnaryInfC{$\lambda_A.M \trel \circ T$}
   \DisplayProof
   %------------------------------------
   \hskip 1.5em
-  \AxiomC{$p \sim_T s$}
-  \AxiomC{$q \sim_T t$}
+  \AxiomC{$P \trel S$}
+  \AxiomC{$Q \trel T$}
   \LeftLabel{$(bin)$}
-  \BinaryInfC{$pq \sim_T s\ \amp\ t$}
+  \BinaryInfC{$PQ \trel S\ \amp\ T$}
   \DisplayProof
   \vskip 1.5em
 \end{center}
 
 \end{Definition}
 
-Having defined the \(\sim_T\) relation, we could now augment our
-substitution lemma proof with a skeleton tree corresponding to the LN
-term \(m\), performing (simultaneous) induction on the congruence
-relation \(m \sim_T t\). For the \(\lambda\)-case, we have a skeleton
-tree of the form \(\circ t\) (for \(m \equiv \lambda_A.p\))\$. The
+Once we defined the \(\trel\) relation, we could augment our
+substitution lemma proof with a skeleton tree \(T\), corresponding to
+the LN term \(M\), performing (simultaneous) induction on the congruence
+relation \(M \trel T\). For the \(\lambda\)-case, we have a skeleton
+tree of the form \(\circ T\) (for \(M \equiv \lambda_A.P\)). The
 inductive hypothesis call is now:
 
 \begin{minted}[escapeinside=||]{agda}
@@ -5069,21 +5093,21 @@ ih = subst-⊩|$_\ell$|-2 {A} {C} {(x' , τ , A) ∷ Γ} {τ'} {x}
   {Λ[ 0 >> fv x' ] m} {n} {t} (opn-~T-inv m~t) ...
 \end{minted}
 
-where \(t\) is the skeleton tree corresponding to \(p\), and by
+where \(T\) is the skeleton tree corresponding to \(P\), and by
 \cref{Lemma:openCongInv} (\texttt{opn-\textasciitilde T-inv}), also to
-\(p^{x'}\):
+\(P^{x'}\):
 
 \begin{Lemma}
 
-\label{Lemma:openCongInv} \(m \sim_T t \implies \{k \to x\}m \sim_T t\)
+\label{Lemma:openCongInv} \(M \trel T \implies \{k \to x\}M \trel T\)
 
 \begin{proof}
 
-By induction on the relation \(m \sim_T t\). The only interesting case
-is \((bvar)\). We have two cases, when \(n = k\) or \(n \neq k\). In
-both cases, we have \(n \sim_T *\), thus in case \(n \neq k\), the
-result follows by assumption, otherwise we have
-\(n\{k \to x\} \equiv x\) and thus \(x \sim_T *\) by \((fvar)\).
+By induction on the relation \(M \trel T\). The only interesting case is
+\((bvar)\). We have two cases, when \(n = k\) or \(n \neq k\). In both
+cases, we have \(n \trel *\), thus in case \(n \neq k\), the result
+follows by assumption, otherwise we have \(n\{k \to x\} \equiv x\) and
+thus \(x \trel *\) by \((fvar)\).
 
 \end{proof}
 
@@ -5094,6 +5118,37 @@ terminating, even though this rather complicated inductive/recursive
 definition of the proof now takes a rather long time to compile
 (slowdown by up to a factor of 6 compared to other theories of similar
 length).
+
+\chapter{Conclusion}\label{conclusion}
+
+\label{chap:concl}
+
+This project has achieved two main goals, the first of which was to
+assess viable approaches and available tools for formalizing a typed
+\(\lambda\)-calculus inside a theorem prover. The second aim of this
+project was to create the basis for a full formalization of the HOMC
+theory, by implementing the \(\lamy\) calculus with intersection
+types.\\
+Whilst, these two aims were successful, there is space for improvement
+and further work in both stated aims.
+
+\section{Limitations of the current comparison
+approach}\label{limitations-of-the-current-comparison-approach}
+
+The main limiting factor for doing a comparison, more similar to the
+\(\poplm\) challenge, was obviously the time constraints of this
+project. Due to the limited number of comparisons and theorem provers
+tested, this comparison cannot hope to give a wide overview of the
+current technology and techniques, used for similar mechanizations.
+
+\section{Future work}\label{future-work}
+
+Having a solid basis for the theory of HOMC, underpinned by the
+\(\lamy\) calculus, the next step would be to construct a decision
+procedure for the normalizability of \(\lamy\) terms, which is an
+important result in the HOMC theory.
+
+\textbf{not really sure what else to say??}
 
 \footnotesize
 

@@ -19,13 +19,14 @@ All the code described in this project can be found a the git repository at: \ur
 
 ##Main Achievements
 
-**TODO: Expand on the points eventually....leaving for the end**
+We achieved the following goals in this project:
 
--	Formalization of the simply typed $\lamy$ calculus and proofs of confluence in Isabelle, using both Nominal sets and locally nameless encoding of binders.
--	Formalization of the simply typed $\lamy$ calculus and proofs of confluence in Agda, using a locally nameless encoding of binders
--	Analysis and comparison of binder encodings
--	Comparison of Agda and Isabelle
--	Formalization of an intersection-type system for the $\lamy$ calculus and proof of subject invariance for intersection-types
+1)	Formalized the simply typed $\lamy$ calculus and proofs of confluence in Isabelle, using both nominal sets and locally nameless encoding of binders.
+2)	Formalized the simply typed $\lamy$ calculus and proofs of confluence in Agda, using a locally nameless encoding of binders
+3)	Compared the implementations of the nominal and locally nameless versions of the $\lamy$ calculus along with the proof of confluence, demonstrating the implementation overheads of both approaches.
+4)	Compared Isabelle and Agda, establishing their relative similarities and highlighting their specific feauters in relation to the implementation of the $\lamy$ calculus.
+5)	Formalized the intersection-type system for the $\lamy$ calculus 
+6)	Created a fully formal proof of subject invariance for intersection-types in Agda
 
 
 ##Dissertation Structure
