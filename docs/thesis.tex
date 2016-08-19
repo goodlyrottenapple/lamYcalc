@@ -265,6 +265,8 @@ xetex]{hyperref}
 \renewenvironment{Example}{\begin{OldExample}\begin{mdframed}[style=example, linecolor=yellow]}{\end{mdframed}\end{OldExample}}
 \let\OldRemark\Remark
 \renewenvironment{Remark}{\begin{OldRemark}\begin{mdframed}[style=example, linecolor=black]}{\end{mdframed}\end{OldRemark}}
+\let\OldNote\Note
+\renewenvironment{Note}{\begin{OldNote}\begin{mdframed}[style=example, linecolor=black]}{\end{mdframed}\end{OldNote}}
 \let\OldDefinition\Definition
 \renewenvironment{Definition}{\begin{OldDefinition}\begin{mdframed}[style=example, linecolor=cyan]}{\end{mdframed}\end{OldDefinition}}
 \let\OldLemma\Lemma
@@ -343,8 +345,8 @@ with the proofs of subject invariance.
 
 \section{Motivation}\label{motivation}
 
-Formal verification of software is essential in a lot of safety critical
-systems in the industry and has been a field of active research in
+Formal verification of software has been essential in many safety
+critical systems in the industry and is a field of active research in
 computer science. One of the main approaches to verification is model
 checking, wherein a system specification is checked against certain
 correctness properties, by generating a model of the system, encoding
@@ -383,38 +385,38 @@ theorem prover.
 
 The aim of this project is to make a start of mechanizing the proofs
 underpinning HOMC approaches using type-checking of higher-order
-recursion schemes, by formalizing and formally proving certain key
-properties about the \(\lamy\) calculus with an intersection-type system
-(Clairambault and Murawski
-(\protect\hyperlink{ref-clairambault13}{2013}), Tsukada and Ong
+recursion schemes, by formally proving certain key properties about the
+\(\lamy\) calculus with an intersection-type system (Clairambault and
+Murawski (\protect\hyperlink{ref-clairambault13}{2013}), Tsukada and Ong
 (\protect\hyperlink{ref-tsukada14}{2014})), which can be used to study
 HOMC as an alternative to higher order recursion schemes (HORS).\\
-The first part of this work focuses on the mechanization aspect of the
-simply typed \(\lamy\) calculus in a theorem prover, in a fashion
-similar to the \(\poplm\) challenge, by exploring different encodings of
-binders in a theorem prover and also the use of different theorem
-provers. The reason why we chose to do such a comparison was to evaluate
-and chose the best mechanization approach and implementation language
-for the \(\lamy\) calculus, as there is little information available
-concerning the merits and disadvantages of different implementation
-approaches of \(\lamy\) or indeed just the (simply typed)
+The project is roughly split into two main parts, with the first part
+exploring and evaluating different formalizations of the simply-typed
+\(\lamy\) calculus together with the proof of the Church Rosser
+Theorem.\\
+This part of the project focuses on the mechanization aspect of the
+simply typed \(\lamy\) calculus, using a theorem prover in a fashion
+similar to the \(\poplm\) challenge, namely exploring different theorem
+provers and the possible encodings of binders. The reason why we chose
+to do such a comparison was to evaluate and chose the best mechanization
+approach for the \(\lamy\) calculus, as there is little information
+available concerning the merits and disadvantages of different
+implementation approaches of \(\lamy\) or indeed just the (simply typed)
 \(\lambda\)-calculus. The comparison of different mechanizations focuses
 on the engineering choices and formalization overheads which result from
 translating the informal definitions into a fully-formal setting of a
-theorem prover. The project is roughly split into two main parts, with
-the first part exploring and evaluating the different formalizations of
-the simply-typed \(\lamy\) calculus together with the proof of the
-Church Rosser Theorem. The reason why we chose to formalize the Church
-Rosser theorem was to to test the implementation of a non-trivial, but
-simple enough proof in a fully formal setting.\\
+theorem prover.\\
+The reason why we chose to formalize the Church Rosser theorem was to to
+test the implementation of a non-trivial, but simple enough proof in a
+fully formal setting.\\
 The second part focuses on implementing the intersection-type system for
 the \(\lamy\) calculus and formalizing the proof of subject invariance
 for this type system. The formalization and engineering choices made in
 the implementation of the intersection-type system reflect the survey
-and analysis of the different possible choices of mechanization,
-explored in the first part of the project.\\
-All the code described in this project can be found in the git
-repository at: \url{https://github.com/goodlyrottenapple/lamYcalc}.
+and analysis of the different mechanization choices, explored in the
+first part of the project.\\
+All the code described in this project can be found a the git repository
+at: \url{https://github.com/goodlyrottenapple/lamYcalc}.
 
 \section{Main Achievements}\label{main-achievements}
 
@@ -441,28 +443,26 @@ end}
 
 \section{Dissertation Structure}\label{dissertation-structure}
 
-The dissertation has 7 chapters and is split into three conceptual
-parts. The first part (chapters 1-3) describes the domain and the goals
-of this project, the second part (chapters 4 and 5) is a comparison of
-several mechanizations of the simply typed \(\lamy\) calculus and the
-third part (chapter 6) discusses the intersection typing and associated
-proofs.\\
+The dissertation has 7 chapters. The first part of this document
+(chapters 1-3) describes the domain and the goals of this project, the
+second part (chapters 4 and 5) is a comparison of several mechanizations
+of the simply typed \(\lamy\) calculus, the third part (chapter 6)
+discusses the intersection typing and associated proofs.\\
 \cref{chap:intro} is an overview of the aims and achievements of this
 project.\\
 \cref{chap:background} gives an introduction to the \(\lamy\) calculus,
 together with an overview of the proof of confluence (Church Rosser).
 The chapter also introduces intersection types and discusses an
-important aspect of a fully formal mechanization of a
-\(\lambda\)-calculus, namely the treatment of binders in a fully formal
-setting of a theorem prover.\\
+important aspect of a \(\lambda\)-calculus mechanization, namely the
+treatment of binders in a fully formal setting of a theorem prover.\\
 \cref{chap:method} introduces the methodology used for comparing the
 different mechanizations discussed in later chapters.\\
 \cref{chap:compIsa} compares two mechanizations of the \(\lamy\)
-calculus (nominal and locally nameless), focused around the treatment of
-binders. The comparison looks at the overall length and structure of the
-two formalizations, as well as using specific instances of the same
-definitions/lemmas across the two mechanizations, to illustrate the
-advantages and disadvantages of both mechanizations.\\
+calculus (nominal and locally nameless), which are focused around the
+treatment of binders. The comparison looks at the overall length and
+structure of the two formalizations, as well as using specific instances
+of the same definitions/lemmas across the two mechanizations, to
+illustrate the advantages and disadvantages of both approaches.\\
 \cref{chap:compAgda} details the differences between using Isabelle and
 Agda for formalizing the \(\lamy\) calculus.\\
 \cref{chap:itypes} discusses the implementation details of intersection
@@ -517,13 +517,14 @@ make sense) for \(\alpha\)-equivalent terms.\\
 Conversely, there are informal definitions over \(\alpha\)-equivalent
 terms, which are not straight-forward to define over raw terms. Take the
 usual definition of substitution, defined over \(\alpha\)-equivalent
-terms, which actually relies on this fact in the following case:
+terms, which actually relies on the following fact in the
+\(\lambda\)-case:
 
 \begin{center}
 $(\lambda y'. s')[t/x] \equiv \lambda y'.(s'[t/x]) \text{ assuming } y' \not\equiv x\text{ and }y' \not\in FV(t)$
 \end{center}
 
-Here in the \(\lambda\) case, it is assumed that a given
+In this, the \(\lambda\) case, it is assumed, that a given
 \(\lambda\)-term \(\lambda y. s\) can always be swapped out for an alpha
 equivalent term \(\lambda y'. s'\), such that \(y'\) satisfies the side
 condition. The assumption that a bound variable can be swapped out for a
@@ -542,14 +543,14 @@ Because of this, the usual informal representation of the
 \(\lambda\)-calculus is rarely used in a fully formal setting.
 
 To mitigate the overheads of a fully formal definition of the
-\(\lambda\)-calculus, we want to have an encoding of the
-\(\lambda\)-terms, which includes the notion of \(\alpha\)-equivalence
-whilst being inductively defined, giving us the inductive/recursive
-principles for \(alpha\)-equivalent terms directly. This can be achieved
-in several different ways. In general, there are two main approaches
-taken in a rigorous formalization of the terms of the lambda calculus,
-namely the concrete approaches and the higher-order approaches, both
-described in some detail below.
+\(\lambda\)-calculus, we want to have an encoding of \(\lambda\)-terms,
+which includes the notion of \(\alpha\)-equivalence, whilst being
+inductively defined, giving us the inductive/recursive principles for
+\(alpha\)-equivalent terms directly. This can be achieved in several
+different ways. In general, there are two main approaches taken in a
+rigorous formalization of the terms of the lambda calculus, namely the
+concrete approaches and the higher-order approaches, both described in
+some detail below.
 
 \subsection{Concrete approaches}\label{concrete-approaches}
 
@@ -585,7 +586,7 @@ invariant in name permutation.\\
 The nominal package in Isabelle provides tools to automatically define
 terms with binders, which generate inductive definitions of
 \(\alpha\)-equivalent terms. Using nominal sets in Isabelle results in a
-definition of terms which looks very similar to the informal
+definition of terms, which looks very similar to the informal
 presentation of the lambda calculus:
 
 \begin{minted}[]{isabelle}
@@ -602,23 +603,23 @@ principle with name freshness for terms involving binders.
 
 \subsubsection{Nameless/de Bruijn}\label{namelessde-bruijn}
 
-Using a named representation of the lambda calculus in a fully formal
-setting can be inconvenient when dealing with bound variables. For
-example, substitution, as described in the introduction, with its
+Using a named representation of the \(\lambda\)-calculus in a fully
+formal setting can be inconvenient when dealing with bound variables.
+For example, substitution, as described in the introduction, with its
 side-condition of freshness of \(y\) in \(x\) and \(t\) is not
 structurally recursive on ``raw'' terms, but rather requires
 well-founded recursion over \(\alpha\)-equivalence classes of terms. To
 avoid this problem in the definition of substitution, the terms of the
-lambda calculus can be encoded using de Bruijn indices:
+lambda calculus can be encoded using de Bruijn indices, instead of named
+variables:
 
 \begin{minted}[]{isabelle}
 datatype trm =
-  Var nat
+  I nat
 | App trm trm
 | Lam trm
 \end{minted}
 
-This representation of terms uses indices instead of named variables.
 The indices are natural numbers, which encode an occurrence of a
 variable in a \(\lambda\)-term. For bound variables, the index indicates
 which \(\lambda\) it refers to, by encoding the number of
@@ -638,10 +639,11 @@ the number of \(\lambda\)'s currently in scope, for example,
 \end{Example}
 
 To see that this representation of \(\lambda\)-terms is isomorphic to
-the usual named definition, we can define two function \(f\) and \(g\),
+the usual named definition, we can define two functions \(f\) and \(g\),
 which translate the named representation to de Bruijn notation and vice
 versa. More precisely, since we are dealing with \(\alpha\)-equivalence
-classes, its is an isomorphism between these that we can formalize.
+classes, it is an isomorphism between the equivalence classes of named
+\(\lambda\)-terms and de Bruijn terms.
 
 To make things easier, we consider a representation of named terms,
 where we map named variables, \(x, y, z,...\) to indexed variables
@@ -660,15 +662,15 @@ e_k^m(\lambda x_n.u) &= \lambda\ e_{k+1}^{m \oplus (x_n,k)}(u)
 \end{aligned}$
 \end{center}
 
-Then \(f(t) \equiv e_0^\emptyset(t)\)
+Then \(f(t) = e_0^\emptyset(t)\).
 
 The function \(e\) takes two additional parameters, \(k\) and \(m\).
 \(k\) keeps track of the scope from the root of the term and \(m\) is a
 map from bound variables to the levels they were bound at. In the
 variable case, if \(x_n\) appears in \(m\), it is a bound variable, and
-it's index can be calculated by taking the difference between the
-current index and the index \(m(x_k)\), at which the variable was bound.
-If \(x_n\) is not in \(m\), then the variable is encoded by adding the
+its index can be calculated by taking the difference between the current
+index and the index \(m(x_k)\) (at which the variable was bound). If
+\(x_n\) is not in \(m\), then the variable is encoded by adding the
 current level \(k\) to \(n\).\\
 In the abstraction case, \(x_n\) is added to \(m\) with the current
 level \(k\), possibly overshadowing a previous binding of the same
@@ -677,11 +679,11 @@ variable at a different level (like in
 into the body of the abstraction.
 
 The function \(g\), taking de Bruijn terms to named terms is a little
-more tricky. We need to replace indices encoding free variables (those
-that have a value greater than or equal to \(k\), where \(k\) is the
-number of binders in scope) with named variables, such that for every
-index \(n\), we substitute \(x_m\), where \(m = n-k\), without capturing
-these free variables.
+more tricky. We need to replace the indices encoding free variables
+(those that have a value greater than or equal to \(k\), where \(k\) is
+the number of binders in scope) with named variables, such that for
+every index \(n\), we substitute \(x_m\), where \(m = n-k\), without
+capturing these free variables.
 
 We need two auxiliary functions to define \(g\):
 
@@ -703,18 +705,18 @@ n-k & n \geq k\\
 \end{center}
 
 The function \(g\) is then defined as
-\(g(t) \equiv h_0^{\Diamond_0(t)+1}(t)\). As mentioned above, the
-complicated definition has to do with avoiding free variable capture. A
-term like \(\lambda (\lambda\ 2)\) intuitively represents a named
-\(\lambda\)-term with two bound variables and a free variable \(x_0\)
-according to the definition above. If we started giving the bound
-variables names in a naive way, starting from \(x_0\), we would end up
-with a term \(\lambda x_0.(\lambda x_1.x_0)\), which is obviously not
-the term we had in mind, as \(x_0\) is no longer a free variable. To
-ensure we start naming the bound variables in such a way as to avoid
-this situation, we use \(\Diamond\) to compute the maximal value of any
-free variable in the given term, and then start naming bound variables
-with an index one higher than the value returned by \(\Diamond\).
+\(g(t) = h_0^{\Diamond_0(t)+1}(t)\). As mentioned above, the complicated
+definition has to do with avoiding free variable capture. A term like
+\(\lambda (\lambda\ 2)\) intuitively represents a named \(\lambda\)-term
+with two bound variables and a free variable \(x_0\) according to the
+definition above. If we started giving the bound variables names in a
+naive way, starting from \(x_0\), we would end up with a term
+\(\lambda x_0.(\lambda x_1.x_0)\), which is obviously not the term we
+had in mind, as \(x_0\) is no longer a free variable. To ensure we start
+naming the bound variables in such a way as to avoid this situation, we
+use \(\Diamond\) to compute the maximal value of any free variable in
+the given term, and then start naming bound variables with an index one
+higher than the value returned by \(\Diamond\).
 
 As one quickly notices, a term like \(\lambda x.x\) and \(\lambda y.y\)
 have a single unique representation as a de Bruijn term \(\lambda\ 0\).
@@ -760,11 +762,11 @@ the two types of variables.\\
 Free variables are represented by names, much like in the named version,
 and bound variables are encoded using de Bruijn indices. By using de
 Bruijn indices for bound variables, we again obtain an inductive
-definition of terms which are already \(alpha\)-equivalent.
+definition of terms which are \(\alpha\)-equivalent.
 
 While closed terms, like \(\lambda x.x\) and \(\lambda y.y\) are
 represented as de Bruijn terms, the term \(\lambda x.xz\) and
-\(\lambda x.xz\) are encoded as \(\lambda\ 0z\). The following
+\(\lambda y.yz\) are encoded as \(\lambda\ 0z\). The following
 definition captures the syntax of the locally nameless terms:
 
 \begin{minted}[]{isabelle}
@@ -776,9 +778,10 @@ datatype ptrm =
 \end{minted}
 
 Note however, that this definition doesn't quite fit the notion of
-\(\lambda\)-terms, since a \texttt{pterm} like \texttt{(BVar 1)} does
-not represent a \(\lambda\)-term, since bound variables can only appear
-in the context of a lambda, such as in \texttt{(Lam (BVar 1))}.\\
+\(\lambda\)-terms, since a \texttt{ptrm} like \texttt{(BVar 0)} does not
+represent a valid \(\lambda\)-term, since bound variables can only
+appear in the context of a \(\lambda\), such as in
+\texttt{(Lam (BVar 0))}.\\
 The advantage of using a locally nameless definition of
 \(\lambda\)-terms is a better readability of such terms, compared to
 equivalent de Bruijn terms. Another advantage is the fact that
@@ -787,19 +790,14 @@ is much closer to the informal setting.
 
 \subsection{Higher-Order approaches}\label{higher-order-approaches}
 
-Unlike concrete approaches to formalizing the lambda calculus, where the
-notion of binding and substitution is defined explicitly in the host
-language, higher-order formalizations use the function space of the
-implementation language, which handles binding. HOAS, or higher-order
-abstract syntax (F. Pfenning and Elliott
+Unlike concrete approaches to formalizing the \(\lambda\)-calculus,
+where the notion of binding and substitution is defined explicitly in
+the host language, higher-order formalizations use the function space of
+the implementation language, which handles binding. HOAS, or
+higher-order abstract syntax (Pfenning and Elliott
 \protect\hyperlink{ref-pfenning88}{1988}, Harper, Honsell, and Plotkin
 (\protect\hyperlink{ref-harper93}{1993})), is a framework for defining
-logics based on the simply typed lambda calculus. A form of HOAS,
-introduced by Harper, Honsell, and Plotkin
-(\protect\hyperlink{ref-harper93}{1993}), called the Logical Framework
-(LF) has been implemented as Twelf by Frank Pfenning and Schürmann
-(\protect\hyperlink{ref-pfenning99}{1999}), which has been previously
-used to encode the \(\lambda\)-calculus.\\
+logics based on the simply typed \(\lambda\)-calculus. \\
 Using HOAS for encoding the \(\lambda\)-calculus comes down to encoding
 binders using the meta-language binders. This way, the definitions of
 capture avoiding substitution or notion of \(\alpha\)-equivalence are
@@ -830,9 +828,11 @@ object-language.
 The simple types presented throughout this work (except for
 \cref{chap:itypes}) are often referred to as simple types \emph{a la
 Curry}, where a simply typed \(\lambda\)-term is a triple
-\((\Gamma, M, \sigma)\) s.t. \(\Gamma \vdash M : \sigma\), where
+\((\Gamma, M, \sigma)\) written as \(\Gamma \vdash M : \sigma\), where
 \(\Gamma\) is the typing context, \(M\) is a term of the untyped
-\(\lambda\)-calculus and \(\sigma\) is a simple type.
+\(\lambda\)-calculus and \(\sigma\) is a simple type. A well typed term
+is valid, if one can construct a typing tree from the given type and
+typing context, using the following deduction system:
 
 \begin{Definition}[Simple-type assignment]
 
@@ -866,9 +866,6 @@ Curry}, where a simply typed \(\lambda\)-term is a triple
 
 \end{Definition}
 
-Such a term is deemed valid, if one can construct a typing tree from the
-given type and typing context.
-
 \begin{Example}
 
 Take the following simply typed term
@@ -893,23 +890,23 @@ typing tree:
 
 \end{Example}
 
-In the untyped \(\lambda\)-calculus, simple types and \(\lambda\)-terms
-are completely separate, brought together only through the typing
-relation \(\vdash\) in the case of simple types \emph{a la Curry}. The
-definition of \(\lamy\) terms, however, is dependent on the simple types
-in the case of the \(Y\) constants, which are indexed by simple types.
-When talking about the \(\lamy\) calculus, we tend to conflate the
-``untyped'' \(\lamy\) terms, which are just the terms defined in
-\cref{Definition:lamyTrms}, with the ``typed'' \(\lamy\) terms, which
-are simply-typed terms \emph{a la Curry} of the form
-\(\Gamma \vdash M : \sigma\), where \(M\) is an ``untyped'' \(\lamy\)
-term. Thus, results about the \(\lamy\) calculus in this work are in
-fact results about the ``typed'' \(\lamy\) calculus.\\
+In the simple typing \emph{a la Curry}, simple types and
+\(\lambda\)-terms are completely separate, brought together only through
+the typing relation \(\vdash\). The definition of \(\lamy\) terms,
+however, is dependent on the simple types in the case of the \(Y\)
+constants, which are indexed by simple types. When talking about the
+\(\lamy\) calculus, we tend to conflate the ``untyped'' \(\lamy\) terms,
+which are just the terms defined in \cref{Definition:lamyTrms}, with the
+``typed'' \(\lamy\) terms, which are simply-typed terms \emph{a la
+Curry} of the form \(\Gamma \vdash M : \sigma\), where \(M\) is an
+``untyped'' \(\lamy\) term. Thus, results about the \(\lamy\) calculus
+in this work are in fact results about the ``typed'' \(\lamy\)
+calculus.\\
 However, the proofs of the Church Rosser theorem, as presented in the
 next section, use the untyped definition of \(\beta\)-reduction. Whilst
 it is possible to define a typed version of \(\beta\)-reduction, it
 turned out to be much easier to first prove the Church Rosser theorem
-for the so called ``untyped'' \(\lamy\) calculus and the additionally
+for the so called ``untyped'' \(\lamy\) calculus and then additionally
 restrict this result to only well-types \(\lamy\) terms.\\
 Thus, the definition of the Church Rosser Theorem, formulated for the
 \(\lamy\) calculus, is the following one:
@@ -958,7 +955,7 @@ the simple types are given below:\\
 The set of simple types \(\sigma\) is built up inductively form the
 \(\mathsf{o}\) constant and the arrow type \(\to\).\\
 Let \(Var\) be a countably infinite set of atoms in the definition of
-the set of \(\lambda\)-terms \(M\): \label{Definition:lamyTrms}
+the set of \(\lamy\) terms \(M\): \label{Definition:lamyTrms}
 
 \begin{center}
 $\begin{aligned}
@@ -1019,8 +1016,8 @@ closure of the \(\beta\)-reduction has the \emph{diamond property}, i.e.
 
 \begin{Definition}[$\dip(R)$]
 
-A binary relation \(R\) has the \emph{diamond property}, i.e.
-\(\dip(R)\), iff
+A binary relation \(R\) has the \emph{diamond property}, \(\dip(R)\),
+iff
 
 \begin{center}
 $\forall a, b, c.\ aRb \land aRc \implies \exists d.\ bRd \land cRd$
@@ -1030,8 +1027,8 @@ $\forall a, b, c.\ aRb \land aRc \implies \exists d.\ bRd \land cRd$
 
 The proof of confluence of \(\red\), the \(\beta Y\)-reduction defined
 as the standard \(\beta\)-reduction with the addition of the
-aforementioned \((Y)\) rule, formalized in this project, follows a
-variation of the Tait-Martin-Löf Proof originally described in Takahashi
+aforementioned \((Y)\) rule, follows a variation of the Tait-Martin-Löf
+Proof originally described in Takahashi
 (\protect\hyperlink{ref-takahashi95}{1995}) (specifically using the
 notes by R. Pollack (\protect\hyperlink{ref-pollack95}{1995})). To show
 why following this proof over the traditional proof is beneficial, we
@@ -1115,7 +1112,7 @@ reason for following the Takahashi
 of the major lemmas in more detail.\\
 Firstly, we give the definition of \emph{parallel \(\beta Y\)-reduction}
 \(\gg\) formulated for the terms of the \(\lamy\) calculus, which allows
-simultaneous reduction of multiple parts of a term: \(\ \)
+simultaneous reduction of multiple parts of a term:\\
 
 \begin{Definition}[$\gg$]
 
@@ -1156,22 +1153,23 @@ simultaneous reduction of multiple parts of a term: \(\ \)
 
 \end{Definition}
 
-The most basic difference between the normal \(\beta\)-reduction and
+The first difference between the normal \(\beta\)-reduction and
 \emph{parallel} \(\beta Y\)-reduction is the \((refl)/(refl_Y)\) rule,
 where \(x \gg x\), for example, is a valid reduction, but we have
 \(x \nRightarrow_Y x\) for the normal \(\beta Y\)-reduction
 (\(x \red^* x\) is valid, since \(\red^*\) is the reflexive transitive
-closure of \(\red\)). In the example below, \((refl^*)\) is a derived
-rule \(\forall M.\ M \gg M\) (see \cref{Lemma:reflM}):
+closure of \(\red\)). THe addition of these two rules then allows us to
+derive the general reflexivity rule \((refl^*): \forall M.\ M \gg M\)
+(see \cref{Lemma:reflM}).
 
 \begin{Example}
 
 \label{Example:ggVsGgg} Another example where the two reductions differ
 is the simultaneous reduction of multiple sub-terms. \emph{Parallel}
-reduction, unlike \(\red\), allows the reduction of the term
+\(\beta\)-reduction, unlike \(\red\), allows the reduction of the term
 \(((\lambda xy.x)z)(\lambda x.x)y\) to \((\lambda y.z)y\), by
 simultaneously reducing the two sub-terms \((\lambda xy.x)z\) and
-\((\lambda x.x)y\) to \(\lambda y.z\) and \(y\) respectively:
+\((\lambda x.x)y\) to \(\lambda y.z\) and \(y\) respectively:\\
 
 \begin{center}
   \vskip 1.5em
@@ -1197,17 +1195,17 @@ simultaneously reducing the two sub-terms \((\lambda xy.x)z\) and
   \vskip 1.5em
 \end{center}
 
-When we try to construct a similar tree for \(\beta\)-reduction, we can
-clearly see that the only two rules we can use are \((red_L)\) or
+If we try to construct a similar tree for \(\beta\)-reduction, we
+quickly discover that the only two rules we can use are \((red_L)\) or
 \((red_R)\). We can thus only perform the right-side or the left side
 reduction of the two sub-terms, but not both.
 
 \end{Example}
 
-Having described the intuition behind the \emph{parallel}
-\(\beta\)-reduction, we proceed to define the \emph{maximum parallel
-reduction} \(\ggg\), which contracts all redexes in a given term with a
-single step:
+Now that we have described the intuition behind the \emph{parallel}
+\(\beta\)-reduction, we proceed to define the \emph{maximum parallel}
+\(\beta\)-reduction \(\ggg\), which contracts all redexes in a given
+term with a single step:
 
 \begin{Definition}[$\ggg$]
 
@@ -1253,11 +1251,11 @@ only be applied if \(M\) is not a \(\lambda\) or \(Y\) term.
 \begin{Example}
 
 To demonstrate the difference between \(\gg\) and \(\ggg\), we take a
-look at the term \((\lambda xy.x)((\lambda x.x)z)\).\\
-Whilst \((\lambda xy.x)((\lambda x.x)z) \gg (\lambda xy.x)z\) or
+look at the term \((\lambda xy.x)((\lambda x.x)z)\). Whilst
+\((\lambda xy.x)((\lambda x.x)z) \gg (\lambda xy.x)z\) or
 \((\lambda xy.x)((\lambda x.x)z) \gg \lambda y.z\) (amongst others) are
 valid reductions, the reduction
-\((\lambda xy.x)((\lambda x.x)z) \ggg (\lambda xy.x)z\) is not valid.\\
+\((\lambda xy.x)((\lambda x.x)z) \ggg (\lambda xy.x)z\) is not.\\
 To see why this is the case, we observe that the last rule applied in
 the derivation tree must have been the \((app)\) rule, since we see that
 a reduction on the sub-term \((\lambda x.x)z \ggg z\) occurs:
@@ -1335,10 +1333,10 @@ twice, namely for any term \(M\) there is an \(M_{max}\) s.t.
 
 \label{itypesIntro}
 
-For the formalization of intersection types, we initially chose a strict
-intersection-type system, presented in the Bakel
-(\protect\hyperlink{ref-bakel}{2003}) notes. Intersection types, as
-classically presented in Barendregt, Dekkers, and Statman
+For the formalization of intersection types, we initially chose a
+\emph{strict} intersection-type system, presented in the Bakel
+(\protect\hyperlink{ref-bakel}{2003}) notes. Intersection types,
+classically presented by Barendregt, Dekkers, and Statman
 (\protect\hyperlink{ref-barendregt13}{2013}) as \(\lambda_\cap^{BCD}\),
 extend simple types by adding a conjunction to the definition of types:
 
@@ -1351,7 +1349,7 @@ $\mathcal{T} ::= \phi\ |\ \mathcal{T} \leadsto \mathcal{T}\ |\ \mathcal{T} \cap 
 \end{Definition}
 
 We restrict ourselves to a version of intersection types often called
-\emph{strict intersection types}. \emph{Strict intersection types} are a
+\emph{strict} intersection types. \emph{Strict} intersection types are a
 restriction on \(\lambda_\cap^{BCD}\) types, where an intersection of
 types can only appear on the left side of an ``arrow'' type:
 
@@ -1374,10 +1372,10 @@ The following conventions for intersection types are adopted throughout
 this section; \(\omega\) stands for the empty intersection and we write
 \(\taui\) for the type \(\tau_1 \cap\hdots\cap \tau_n\). We also define
 a subtype relation \(\subseteq\) for intersection types, which
-intuitively capture the idea of one intersection of types being a subset
-of another, where we think of \(\tau_1 \cap \hdots \cap \tau_i\) as a
-finite set \(\{\tau_1, \hdots , \tau_i\}\), wherein \(\subseteq\) for
-intersection types corresponds to subset inclusion e.g.
+intuitively captures the idea of one intersection of types being a
+subset of another, where we think of \(\tau_1 \cap \hdots \cap \tau_i\)
+as a finite set \(\{\tau_1, \hdots , \tau_i\}\), wherein \(\subseteq\)
+for intersection types roughly corresponds to subset inclusion e.g.
 \(\tau \subseteq \tau \cap \psi\) because
 \(\{\tau\} \subseteq \{\tau, \psi\}\).
 
@@ -1412,7 +1410,7 @@ $\begin{aligned}
 
 (This relation is equivalent the \(\leq\) relation, defined in R.
 Pollack (\protect\hyperlink{ref-pollack95}{1995}) notes, i.e.
-\(\tau \leq \psi \equiv \psi \subseteq \tau\).)
+\(\tau \leq \psi = \psi \subseteq \tau\).)
 
 \end{Definition}
 
@@ -1458,16 +1456,10 @@ typing rule for the \(Y\) constants:
   \RightLabel{$(j \in \underline{n})$}
   \UnaryInfC{$\Gamma \Vdash Y_\sigma : (\taui \leadsto \tau_1 \cap\hdots\cap \taui \leadsto \tau_i) \leadsto \tau_j$}
   \DisplayProof
-  \vskip 1.5em
 \end{center}
 
 \end{Definition}
 
-This is the initial definition, used as a basis for the mechanization,
-discussed in \cref{chap:itypes}. Due to different obstacles in the
-formalization of the subject invariance proofs, this definition, along
-with the definition of intersection types was amended several times. The
-reasons for these changes are documented in \cref{chap:itypes}.\\
 The definition above also assumes that the context \(\Gamma\) is
 \emph{well-formed}:
 
@@ -1494,6 +1486,12 @@ Assuming that \(\Gamma\) is a finite list, consisting of pairs of atoms
 
 \end{Definition}
 
+The definitions presented in this section are the initial definitions,
+used as a basis for the mechanization discussed in \cref{chap:itypes}.
+Due to different obstacles in the formalization of the subject
+invariance proofs, these definitions were amended several times. The
+reasons for these changes are also documented in \cref{chap:itypes}.
+
 \chapter{Methodology}\label{methodology}
 
 \label{chap:method}
@@ -1510,9 +1508,9 @@ This paper prompted several formalizations of the benchmark typed
 multiple theorem provers, such as Coq, Isabelle, Matita or Twelf.
 However, to the best of our knowledge, there has been no published
 follow-up work, drawing conclusions about the aptitude of different
-mechanizations, which would be useful in deciding the best mechanization
-approach to take in formalizing the \(\lamy\) calculus.\\
-Whilst this project does not aim to answer the same question as the
+mechanizations, which would be useful in deciding on the best
+mechanization approach to take in formalizing the \(\lamy\) calculus.\\
+This project definitely does not aim to answer the same question as the
 original challenge, namely:
 
 \begin{quote}
@@ -1521,7 +1519,7 @@ is accompanied by an electronic appendix with machine- checked proofs?''
 (B. E. Aydemir et al. (\protect\hyperlink{ref-aydemir05}{2005}))
 \end{quote}
 
-It draws inspiration from the criteria for the ``benchmark
+Instead, it draws inspiration from the criteria for the ``benchmark
 mechanization'', specified by the challenge, to find the best
 mechanization approach as well as the right set of tools for our purpose
 of effectively mechanizing the theory underpinning HOMC.
@@ -1530,17 +1528,18 @@ Our comparison proceeded in two stages of elimination, where the first
 stage was a comparison of the two chosen mechanizations of binders for
 the \(\lamy\) calculus (\cref{chap:compIsa}), namely nominal set and
 locally nameless representations of binders. The main reason for the
-fairly narrow selection of only two binder mechanizations, was the
+fairly narrow selection of only two binder mechanizations was the
 limited time available for this project. In order to at least partially
 achieve the goal of mechanizing the intersection type theory for the
 \(\lamy\) calculus, we decided to cut down the number of comparisons to
 the two (seemingly) most popular binder mechanizations (chosen by word
 of mouth and literature review of the field).\\
-After comparing and choosing the optimal mechanization of binders, the
-\hyperref[chap:compAgda]{next chapter} then goes on to compare this
-mechanization in two different theorem provers, Isabelle and Agda.\\
-The ``winning'' theorem prover from this round was then used to
-formalize intersection-types and prove subject invariance.
+After comparing and choosing the optimal mechanization of binders,
+\cref{chap:compAgda} then goes on to compare this mechanization in two
+different theorem provers, Isabelle and Agda (again, only two choices
+due to limited time).\\
+The ``winning'' theorem prover from this round was finally used to
+formalize intersection-types and the proofs of subject invariance.
 
 \section{Evaluation criteria}\label{evaluation-criteria}
 
@@ -1559,7 +1558,7 @@ submitted mechanizations of the benchmark calculus:
 
 This project focuses mainly on the two criteria of mechanization
 overheads and technology transparency, since the focus of our comparison
-is to chose the best mechanization and theorem prover to use for
+is to choose the best mechanization and theorem prover to use for
 implementing intersection types for the \(\lamy\) calculus, rather than
 asses the viability of theorem provers in general, which was the
 original goal of the \(\poplm\) challenge. These criteria are described
@@ -1571,20 +1570,20 @@ Technology transparency, within the context of this work, is mostly
 concerned with the presentation of the theory inside a proof assistant,
 such as Isabelle or Agda. Whilst there is no direct measure of
 transparency, per se, it is almost always immediately obvious which
-presentation is more transparent, when one is presented with examples.
-This work makes a case for transparency, or the lack thereof, by
-providing side-by-side snippets from different mechanizations of the
+presentation is more transparent, when one is presented with comparative
+examples. This work makes a case for transparency, or the lack thereof,
+by providing side-by-side snippets from different mechanizations of the
 same theory.
 
 \begin{Example}
 
-\label{Example:sqareOdd} As an example, we take the two different
-(though not completely distinct) styles of writing proofs in Isabelle,
-namely using apply-style proofs or the Isar proof language. First, to
-demonstrate the Isar proof language and showcase the technology
-transparency it affords, we take the proof that a square of an odd
-number is itself odd\footnotemark and present the mechanized version in
-Isar:
+\label{Example:sqareOdd} To demonstrate this, we examine the two
+different (though not completely distinct) styles of writing proofs in
+Isabelle, namely using apply-style proofs or the Isar proof language.
+First, to demonstrate the Isar proof language and showcase the
+technology transparency it affords, we examine the proof that a square
+of an odd number is itself odd\footnotemark and then present the
+mechanized version of this proof in Isar.
 
 \begin{Lemma}[The square of an odd number is also odd]
 
@@ -1635,7 +1634,7 @@ qed
 
 Clearly, this mechanized proof reads much like the rigorous paper proof
 that precedes it.\\
-When the same proof is presented using the ``apply'' style proof in
+When the same proof is presented using the apply-style proof in
 Isabelle, it is immediately apparent that it is much less transparent,
 as we obfuscate the natural flow of the informal proof, hiding most of
 the reasoning in automation (the last line \texttt{by simp+}):
@@ -1648,13 +1647,21 @@ apply (rule_tac s="(2 * x + 1) * (2 * x + 1)" in subst)
 by simp+
 \end{minted}
 
-(Note that the whole apply script can in fact just be substituted by the
+While this example might be slightly exaggerated, it clearly
+demonstrates the relative lack of human readability, comapred to the
+Isar proof.\\
+\(\ \)
+
+\begin{Note}
+
+The whole apply-style script can in fact just be substituted by the
 single line command: \texttt{by (auto, presburger)})
+
+\end{Note}
 
 \end{Example}
 
-\footnotetext{The proof was copied from \url{https://en.wikipedia.org/wiki/Direct_proof}}
-
+\footnotetext{The informal proof was copied from \url{https://en.wikipedia.org/wiki/Direct_proof}}
 The example given above demonstrates, that transparency is a comparative
 measure, as it depends directly on some point of reference. As is also
 apparent from the example, transparency can often come at a cost of
@@ -1678,7 +1685,7 @@ overheads}\label{mechanizationimplementation-overheads}
 \label{mechOverheads}
 
 When talking about mechanization overheads, we usually mean the
-additional theory needed to translate the informal theory we reason
+additional theory needed to translate the informal definitions we reason
 about on paper into the fully formal setting of a theorem prover.
 
 \begin{Example}
@@ -1696,14 +1703,15 @@ $\begin{aligned}
 \end{aligned}$
 \end{center}
 
-we translate the strict types \(\mathcal{T}_s\) to Agda in a
-straightforward way, since we only need to translate\(\mathcal{T}_s\)
-into the style of a GADT (generalized algebraic datatype) definition:
+we translate the strict types \(\mathcal{T}_s\) to a definition in Agda
+in a straightforward way, since we only need to
+translate\(\mathcal{T}_s\) into a GADT (generalized algebraic datatype)
+definition:
 
 \begin{minted}[escapeinside=||]{agda}
 data T|$_\texttt{s}$| where
   φ : T|$_\texttt{s}$|
-  _~>_ : (s : T) -> (t : T|$_\texttt{s}$|) -> T|$_\texttt{s}$|
+  _~>_ : (τ : T) -> (ψ : T|$_\texttt{s}$|) -> T|$_\texttt{s}$|
 \end{minted}
 
 \(\ \)
@@ -1748,7 +1756,8 @@ default and its standard library only includes the definition of finite
 sets of natural numbers. We can instead use lists to ``simulate'' finite
 sets, as they are similar in many regards, i.e.~the Agda implementation
 of lists includes the notion of subset inclusion for lists, so that one
-can write a proof of \([1,2] \subseteq [2,2,1]\) easily:
+can write a proof of \([1,2] \subseteq [2,2,1]\) easily. Thus, for
+\(\mathcal{T}\), we get:
 
 \begin{minted}[escapeinside=||]{agda}
 data T where
@@ -1759,14 +1768,14 @@ Whilst this definition is now largely equivalent to the informal
 inductive definition, we have lost quite a bit of transparency as a
 result. Consider the strict type \(\tau \cap \psi \leadsto \tau\), is
 written as \texttt{∩ (τ ∷ ψ ∷ [])  \textasciitilde > τ} in Agda. We can
-improve thigs somewhat by getting rid of the pointless constructor
-\texttt{∩}, by merging the two definitions of \(\mathcal{T}\) and
+improve things somewhat by getting rid of the pointless constructor
+\texttt{∩} and merging the two definitions of \(\mathcal{T}\) and
 \(\mathcal{T}_s\) into a single definition, namely:
 
 \begin{minted}[escapeinside=||]{agda}
 data T|$_\texttt{s}$| where
   φ : T|$_\texttt{s}$|
-  _~>_ : (s : List T|$_\texttt{s}$|) -> (t : T|$_\texttt{s}$|) -> T|$_\texttt{s}$|
+  _~>_ : (τ : List T|$_\texttt{s}$|) -> (ψ : T|$_\texttt{s}$|) -> T|$_\texttt{s}$|
 \end{minted}
 
 \(\ \)
@@ -1795,11 +1804,11 @@ can, however, define some simple sugar notation:
 
 \begin{minted}[escapeinside=||]{agda}
 _∩_ : T|$_\texttt{s}$| -> T|$_\texttt{s}$| -> List T|$_\texttt{s}$|
-A ∩ B = A ∷ B ∷ []
+τ ∩ ψ = τ ∷ ψ ∷ []
 \end{minted}
 
-so that we finally get the Agda term \texttt{τ ∩ ψ \textasciitilde > τ}
-which now clearly corresponds to \(\tau \cap \psi \leadsto \tau\).
+Thus, we finally get the Agda term \texttt{τ ∩ ψ \textasciitilde > τ}
+which now clearly corresponds to \(\tau\ \cap\ \psi \leadsto \tau\).
 
 \end{Example}
 
@@ -1810,9 +1819,10 @@ length of code might provide an indication of the possible level of
 implementation overheads, it is important to keep in mind, that brevity
 of code can often also depend on the level of transparency, as evidenced
 by both \cref{Example:sqareOdd} and the one above, where the shorter
-code turned also the less transparent one. Depending on the priorities,
-we therefore often sacrifice either transparency for brevity or vice
-versa (which can greatly impact his simple metric for overheads).\\
+code turned out to also be the less transparent one. Depending on the
+priorities, we therefore often sacrifice either transparency for brevity
+or vice versa (which can greatly impact this simple metric for
+overheads).\\
 Therefore, instead of simply looking at the length of the produced
 document, we also compare the number of lemmas, disregarding the length
 of each one. Even though this measure also carries disadvantages (one
@@ -1823,11 +1833,13 @@ Another aspect which ties into both transparency and mechanization
 overheads is the level of automation. As was demonstrated by
 \cref{Example:sqareOdd}, wherein the lemma could in fact be proved
 automatically with almost no user input, having low implementation
-overheads is often tied to the level of automation the tool provides.\\
+overheads (in proofs) is often tied to the level of automation the tool
+provides.\\
 More concretely, a tool with good automation will include a standard
 library of common definitions and theorems, so that the user does not
-have to re-prove these basic properties and instead can focus on the
-specific theory she/he wants to prove.\\
+have to re-define and re-prove basic mathematical object and properties
+and instead can focus on the specific theory she/he wants to
+implement.\\
 This is indeed largely the reason why we used Isabelle along with the
 \href{http://www.inf.kcl.ac.uk/staff/urbanc/Nominal/}{nominal sets
 library}, maintained by Christian Urban, where the theory was
@@ -1839,15 +1851,15 @@ On the other hand, the choice of locally nameless encoding, as opposed
 to using pure de Bruijn indices, was motivated by the claim that locally
 nameless encoding largely mitigates the disadvantages of de Bruijn
 indices especially when it comes to technology transparency. The LN
-encoding is also a lot more bare-bones and carries relatively small but
-manageable overheads.\\
-In order to keep our comparison balanced, we didn't leverage Isabelle's
-automation to it's fullest, choosing instead, to keep some lemmas
-(especially in the nominal implementation) deliberately verbose, so as
-to keep them both more transparent and easier to compare with the
-locally nameless versions. Another reason to this was the choice of the
-second implementation language, Agda, which doesn't include as many
-automation features as Isabelle.
+encoding is also a lot more bare-bones than the nominal set theory (if
+there was not library and one had to formalize the theory from scratch),
+carrying relatively manageable overheads.\\
+In order to keep our comparison balanced, we often didn't leverage
+Isabelle's automation to it's fullest, choosing instead to keep some
+lemmas (especially in the nominal implementation) deliberately verbose,
+so as to keep them both more transparent and easier to compare with the
+locally nameless versions. Another reason for this was the comparison
+between Isabelle and Agda, which doesn't include as much automation.
 
 \chapter{Nominal vs.~Locally nameless}\label{comp-isa}
 
@@ -5159,13 +5171,6 @@ Pfenning, F., and C. Elliott. 1988. ``Higher-Order Abstract Syntax.'' In
 Language Design and Implementation}, 199--208. PLDI '88. New York, NY,
 USA: ACM.
 doi:\href{https://doi.org/10.1145/53990.54010}{10.1145/53990.54010}.
-
-\hypertarget{ref-pfenning99}{}
-Pfenning, Frank, and Carsten Schürmann. 1999. ``Automated Deduction ---
-Cade-16: 16th International Conference on Automated Deduction Trento,
-Italy, July 7--10, 1999 Proceedings.'' In, 202--6. Berlin, Heidelberg:
-Springer Berlin Heidelberg.
-doi:\href{https://doi.org/10.1007/3-540-48660-7_14}{10.1007/3-540-48660-7\_14}.
 
 \hypertarget{ref-pollack95}{}
 Pollack, Robert. 1995. ``Polishing up the Tait-Martin-Löf Proof of the

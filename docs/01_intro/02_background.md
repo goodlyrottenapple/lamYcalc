@@ -15,19 +15,19 @@ However, whilst the definition above describes valid terms of the $\lambda$-calc
 
 In an informal setting, reasoning with $\alpha$-equivalence of terms is often very implicit, however in a formal setting of theorem provers, having an inductive definition of "raw" $lambda$-terms, which are not $alpha$-equivalent, yet reasoning about $\alpha$-equivalent $\lambda$-terms poses certain challenges.   
 One of the main problems is the fact that the inductive/recursive definition does not easily lift to $alpha$-equivalent terms. Take a trivial example of a function on raw terms, which checks whether a variable appears bound in a given $\lambda$-term. Clearly, such function is well formed for "raw" terms, but does not work (or even make sense) for $\alpha$-equivalent terms.   
-Conversely, there are informal definitions over $\alpha$-equivalent terms, which are not straight-forward to define over raw terms. Take the usual definition of substitution, defined over $\alpha$-equivalent terms, which actually relies on this fact in the following case:
+Conversely, there are informal definitions over $\alpha$-equivalent terms, which are not straight-forward to define over raw terms. Take the usual definition of substitution, defined over $\alpha$-equivalent terms, which actually relies on the following fact in the $\lambda$-case:
 
 \begin{center}
 $(\lambda y'. s')[t/x] \equiv \lambda y'.(s'[t/x]) \text{ assuming } y' \not\equiv x\text{ and }y' \not\in FV(t)$
 \end{center}
 
 
-Here in the $\lambda$ case, it is assumed that a given $\lambda$-term $\lambda y. s$ can always be swapped out for an alpha equivalent term $\lambda y'. s'$, such that $y'$ satisfies the side condition. The assumption that a bound variable can be swapped out for a "fresh" one to avoid name clashes is often referred to as the Barendregt Variable Convention.
+In this, the $\lambda$ case, it is assumed, that a given $\lambda$-term $\lambda y. s$ can always be swapped out for an alpha equivalent term $\lambda y'. s'$, such that $y'$ satisfies the side condition. The assumption that a bound variable can be swapped out for a "fresh" one to avoid name clashes is often referred to as the Barendregt Variable Convention.
 
 The direct approach of defining "raw" terms and an additional notion of $\alpha$-equivalence introduces a lot of overhead when defining functions, as one either has to use the recursive principles for "raw" terms and then show that the function lifts to the $\alpha$-equivalent terms or define functions on $alpha$-equivalence classes and prove that it is well-founded, without being able to rely on the structurally inductive principles that one gets "for free" with the "raw" terms.    
 Because of this, the usual informal representation of the $\lambda$-calculus is rarely used in a fully formal setting. 
 
-To mitigate the overheads of a fully formal definition of the $\lambda$-calculus, we want to have an encoding of the $\lambda$-terms, which includes the notion of $\alpha$-equivalence whilst being inductively defined, giving us the inductive/recursive principles for $alpha$-equivalent terms directly. This can be achieved in several different ways. In general, there are two main approaches taken in a rigorous formalization of the terms of the lambda calculus, namely the concrete approaches and the higher-order approaches, both described in some detail below.
+To mitigate the overheads of a fully formal definition of the $\lambda$-calculus, we want to have an encoding of $\lambda$-terms, which includes the notion of $\alpha$-equivalence, whilst being inductively defined, giving us the inductive/recursive principles for $alpha$-equivalent terms directly. This can be achieved in several different ways. In general, there are two main approaches taken in a rigorous formalization of the terms of the lambda calculus, namely the concrete approaches and the higher-order approaches, both described in some detail below.
 
 
 ###Concrete approaches
@@ -48,7 +48,7 @@ datatype trm =
 As was mentioned before, defining "raw" terms and the notion of $\alpha$-equivalence of "raw" terms separately carries a lot of overhead in a theorem prover and is therefore not favored. 
 
 To obtain an inductive definition of $\lambda$-terms with a built in notion of $\alpha$-equivalence, one can instead use nominal sets. The theory of nominal sets captures the notion of bound variables and freshness, as it is based around the notion of having properties invariant in name permutation.    
-The nominal package in Isabelle provides tools to automatically define terms with binders, which generate inductive definitions of $\alpha$-equivalent terms. Using nominal sets in Isabelle results in a definition of terms which looks very similar to the informal presentation of the lambda calculus:
+The nominal package in Isabelle provides tools to automatically define terms with binders, which generate inductive definitions of $\alpha$-equivalent terms. Using nominal sets in Isabelle results in a definition of terms, which looks very similar to the informal presentation of the lambda calculus:
 
 ~~~{.isabelle}
 nominal_datatype trm =
@@ -61,22 +61,22 @@ Most importantly, this definition allows one to define functions over $\alpha$-e
 
 ####Nameless/de Bruijn
 
-Using a named representation of the lambda calculus in a fully formal setting can be inconvenient when dealing with bound variables. For example, substitution, as described in the introduction, with its side-condition of freshness of $y$ in $x$ and $t$ is not structurally recursive on "raw" terms, but rather requires well-founded recursion over $\alpha$-equivalence classes of terms. To avoid this problem in the definition of substitution, the terms of the lambda calculus can be encoded using de Bruijn indices:
+Using a named representation of the $\lambda$-calculus in a fully formal setting can be inconvenient when dealing with bound variables. For example, substitution, as described in the introduction, with its side-condition of freshness of $y$ in $x$ and $t$ is not structurally recursive on "raw" terms, but rather requires well-founded recursion over $\alpha$-equivalence classes of terms. To avoid this problem in the definition of substitution, the terms of the lambda calculus can be encoded using de Bruijn indices, instead of named variables:
 
 ~~~{.isabelle}
 datatype trm =
-  Var nat
+  I nat
 | App trm trm
 | Lam trm
 ~~~
 
-This representation of terms uses indices instead of named variables. The indices are natural numbers, which encode an occurrence of a variable in a $\lambda$-term. For bound variables, the index indicates which $\lambda$ it refers to, by encoding the number of $\lambda$-binders that are in the scope between the index and the $\lambda$-binder the variable corresponds to. 
+The indices are natural numbers, which encode an occurrence of a variable in a $\lambda$-term. For bound variables, the index indicates which $\lambda$ it refers to, by encoding the number of $\lambda$-binders that are in the scope between the index and the $\lambda$-binder the variable corresponds to. 
 
 <div class="Example">
 The term $\lambda x.\lambda y. yx$ will be represented as $\lambda\ \lambda\ 0\ 1$. Here, 0 stands for $y$, as there are no binders in scope between itself and the $\lambda$ it corresponds to, and $1$ corresponds to $x$, as there is one $\lambda$-binder in scope. To encode free variables, one simply choses an index greater than the number of $\lambda$'s currently in scope, for example, $\lambda\ 4$.
 </div>
 
-To see that this representation of $\lambda$-terms is isomorphic to the usual named definition, we can define two function $f$ and $g$, which translate the named representation to de Bruijn notation and vice versa. More precisely, since we are dealing with $\alpha$-equivalence classes, its is an isomorphism between these that we can formalize. 
+To see that this representation of $\lambda$-terms is isomorphic to the usual named definition, we can define two functions $f$ and $g$, which translate the named representation to de Bruijn notation and vice versa. More precisely, since we are dealing with $\alpha$-equivalence classes, it is an isomorphism between the equivalence classes of named $\lambda$-terms and de Bruijn terms. 
 
 To make things easier, we consider a representation of named terms, where we map named variables, $x, y, z,...$ to indexed variables $x_1,x_2,x_3,...$. Then, the mapping from named terms to de Bruijn term is given by $f$, which we define in terms of an auxiliary function $e$:
 
@@ -91,13 +91,13 @@ e_k^m(\lambda x_n.u) &= \lambda\ e_{k+1}^{m \oplus (x_n,k)}(u)
 \end{aligned}$
 \end{center}
 
-Then $f(t) \equiv e_0^\emptyset(t)$
+Then $f(t) = e_0^\emptyset(t)$.
 
-The function $e$ takes two additional parameters, $k$ and $m$. $k$ keeps track of the scope from the root of the term and $m$ is a map from bound variables to the levels they were bound at. In the variable case, if $x_n$ appears in $m$, it is a bound variable, and it's index can be calculated by taking the difference between the current index and the index $m(x_k)$, at which the variable was bound. If $x_n$ is not in $m$, then the variable is encoded by adding the current level $k$ to $n$.   
+The function $e$ takes two additional parameters, $k$ and $m$. $k$ keeps track of the scope from the root of the term and $m$ is a map from bound variables to the levels they were bound at. In the variable case, if $x_n$ appears in $m$, it is a bound variable, and its index can be calculated by taking the difference between the current index and the index $m(x_k)$ (at which the variable was bound). If $x_n$ is not in $m$, then the variable is encoded by adding the current level $k$ to $n$.   
 In the abstraction case, $x_n$ is added to $m$ with the current level $k$, possibly overshadowing a previous binding of the same variable at a different level (like in $\lambda x_1. (\lambda x_1. x_1)$) and $k$ is incremented, going into the body of the abstraction. <!--For all closed terms, the choice of $k$ is arbitrary.-->
 
 
-The function $g$, taking de Bruijn terms to named terms is a little more tricky. We need to replace indices encoding free variables (those that have a value greater than or equal to $k$, where $k$ is the number of binders in scope) with named variables, such that for every index $n$, we substitute $x_m$, where $m = n-k$, without capturing these free variables.
+The function $g$, taking de Bruijn terms to named terms is a little more tricky. We need to replace the indices encoding free variables (those that have a value greater than or equal to $k$, where $k$ is the number of binders in scope) with named variables, such that for every index $n$, we substitute $x_m$, where $m = n-k$, without capturing these free variables.
 
 We need two auxiliary functions to define $g$:
 
@@ -118,7 +118,7 @@ n-k & n \geq k\\
 \end{aligned}$
 \end{center}
 
-The function $g$ is then defined as $g(t) \equiv h_0^{\Diamond_0(t)+1}(t)$. As mentioned above, the complicated definition has to do with avoiding free variable capture. A term like $\lambda (\lambda\ 2)$ intuitively represents a named $\lambda$-term with two bound variables and a free variable $x_0$ according to the definition above. If we started giving the bound variables names in a naive way, starting from $x_0$, we would end up with a term $\lambda x_0.(\lambda x_1.x_0)$, which is obviously not the term we had in mind, as $x_0$ is no longer a free variable. To ensure we start naming the bound variables in such a way as to avoid this situation, we use $\Diamond$ to compute the maximal value of any free variable in the given term, and then start naming bound variables with an index one higher than the value returned by $\Diamond$.
+The function $g$ is then defined as $g(t) = h_0^{\Diamond_0(t)+1}(t)$. As mentioned above, the complicated definition has to do with avoiding free variable capture. A term like $\lambda (\lambda\ 2)$ intuitively represents a named $\lambda$-term with two bound variables and a free variable $x_0$ according to the definition above. If we started giving the bound variables names in a naive way, starting from $x_0$, we would end up with a term $\lambda x_0.(\lambda x_1.x_0)$, which is obviously not the term we had in mind, as $x_0$ is no longer a free variable. To ensure we start naming the bound variables in such a way as to avoid this situation, we use $\Diamond$ to compute the maximal value of any free variable in the given term, and then start naming bound variables with an index one higher than the value returned by $\Diamond$.
 
 
 <!--Note that while $f_k^\emptyset \circ g_k = id$ is true, since the de Bruijn terms are invariant under $\alpha$-equivalence, $g_k \circ f_k^\emptyset = id$ is not, since taking the aforementioned term $\lambda x_1. (\lambda x_1. x_1)$, we have $(g_1 \circ f_1^\emptyset)( \lambda x_1. (\lambda x_1. x_1) ) = \lambda x_1. (\lambda x_2. x_2)$.
@@ -146,9 +146,9 @@ Clearly, the first version of this lemma is much more intuitive.
 ####Locally Nameless
 
 The locally nameless approach to binders is a mix of the two previous approaches. Whilst a named representation uses variables for both free and bound variables and the nameless encoding uses de Bruijn indices in both cases as well, a locally nameless encoding distinguishes between the two types of variables.   
-Free variables are represented by names, much like in the named version, and bound variables are encoded using de Bruijn indices. By using de Bruijn indices for bound variables, we again obtain an inductive definition of terms which are already $alpha$-equivalent.
+Free variables are represented by names, much like in the named version, and bound variables are encoded using de Bruijn indices. By using de Bruijn indices for bound variables, we again obtain an inductive definition of terms which are $\alpha$-equivalent.
 
-While closed terms, like $\lambda x.x$ and $\lambda y.y$ are represented as de Bruijn terms, the term $\lambda x.xz$ and $\lambda x.xz$ are encoded as $\lambda\ 0z$. The following definition captures the syntax of the locally nameless terms:
+While closed terms, like $\lambda x.x$ and $\lambda y.y$ are represented as de Bruijn terms, the term $\lambda x.xz$ and $\lambda y.yz$ are encoded as $\lambda\ 0z$. The following definition captures the syntax of the locally nameless terms:
 
 ~~~{.isabelle}
 datatype ptrm =
@@ -158,12 +158,12 @@ datatype ptrm =
 | Lam trm
 ~~~
 
-Note however, that this definition doesn't quite fit the notion of $\lambda$-terms, since a `pterm` like `(BVar 1)` does not represent a $\lambda$-term, since bound variables can only appear in the context of a lambda, such as in `(Lam (BVar 1))`.   
+Note however, that this definition doesn't quite fit the notion of $\lambda$-terms, since a `ptrm` like `(BVar 0)` does not represent a valid $\lambda$-term, since bound variables can only appear in the context of a $\lambda$, such as in `(Lam (BVar 0))`.   
 The advantage of using a locally nameless definition of $\lambda$-terms is a better readability of such terms, compared to equivalent de Bruijn terms. Another advantage is the fact that definitions of functions and reasoning about properties of these terms is much closer to the informal setting.
 
 ###Higher-Order approaches
 
-Unlike concrete approaches to formalizing the lambda calculus, where the notion of binding and substitution is defined explicitly in the host language, higher-order formalizations use the function space of the implementation language, which handles binding. HOAS, or higher-order abstract syntax [@pfenning88, @harper93], is a framework for defining logics based on the simply typed lambda calculus. A form of HOAS, introduced by @harper93, called the Logical Framework (LF) has been implemented as Twelf by @pfenning99, which has been previously used to encode the $\lambda$-calculus.   
+Unlike concrete approaches to formalizing the $\lambda$-calculus, where the notion of binding and substitution is defined explicitly in the host language, higher-order formalizations use the function space of the implementation language, which handles binding. HOAS, or higher-order abstract syntax [@pfenning88, @harper93], is a framework for defining logics based on the simply typed $\lambda$-calculus. <!--A form of HOAS, introduced by @harper93, called the Logical Framework (LF) has been implemented as Twelf by @pfenning99, which has been previously used to encode the $\lambda$-calculus.-->   
 Using HOAS for encoding the $\lambda$-calculus comes down to encoding binders using the meta-language binders. This way, the definitions of capture avoiding substitution or notion of $\alpha$-equivalence are offloaded onto the meta-language. As an example, take the following definition of terms of the $\lambda$-calculus in Haskell:
 
 ~~~{.haskell}
@@ -179,7 +179,7 @@ However, using HOAS only works if the notion of $\alpha$-equivalence and substit
 \newpage
 ##Simple types
 
-The simple types presented throughout this work (except for \cref{chap:itypes}) are often referred to as simple types _a la Curry_, where a simply typed $\lambda$-term is a triple $(\Gamma, M, \sigma)$ s.t. $\Gamma \vdash M : \sigma$, where $\Gamma$ is the typing context, $M$ is a term of the untyped $\lambda$-calculus and $\sigma$ is a simple type. 
+The simple types presented throughout this work (except for \cref{chap:itypes}) are often referred to as simple types _a la Curry_, where a simply typed $\lambda$-term is a triple $(\Gamma, M, \sigma)$ written as $\Gamma \vdash M : \sigma$, where $\Gamma$ is the typing context, $M$ is a term of the untyped $\lambda$-calculus and $\sigma$ is a simple type. A well typed term is valid, if one can construct a typing tree from the given type and typing context, using the following deduction system: 
 
 <div class="Definition" head="Simple-type assignment">
 \begin{center}
@@ -211,7 +211,6 @@ The simple types presented throughout this work (except for \cref{chap:itypes}) 
 \end{center}
 </div>
 
-Such a term is deemed valid, if one can construct a typing tree from the given type and typing context. 
 
 <div class="Example">
 Take the following simply typed term $\{y:\tau\} \vdash \lambda x.xy : (\tau \to \phi) \to \phi$. To show that this is a well-typed $\lambda$-term, we construct the following typing tree:
@@ -232,8 +231,8 @@ Take the following simply typed term $\{y:\tau\} \vdash \lambda x.xy : (\tau \to
 \end{center}
 </div>
 
-In the untyped $\lambda$-calculus, simple types and $\lambda$-terms are completely separate, brought together only through the typing relation $\vdash$ in the case of simple types _a la Curry_. The definition of $\lamy$ terms, however, is dependent on the simple types in the case of the $Y$ constants, which are indexed by simple types. When talking about the $\lamy$ calculus, we tend to conflate the "untyped" $\lamy$ terms, which are just the terms defined in \cref{Definition:lamyTrms}, with the "typed" $\lamy$ terms, which are simply-typed terms _a la Curry_ of the form $\Gamma \vdash M : \sigma$, where $M$ is an "untyped" $\lamy$ term. Thus, results about the $\lamy$ calculus in this work are in fact results about the "typed" $\lamy$ calculus.    
-However, the proofs of the Church Rosser theorem, as presented in the next section, use the untyped definition of $\beta$-reduction. Whilst it is possible to define a typed version of $\beta$-reduction, <!--as was demonstrated by the typed version of the $(Y)$ reduction rule,--> it turned out to be much easier to first prove the Church Rosser theorem for the so called "untyped" $\lamy$ calculus and the additionally restrict this result to only well-types $\lamy$ terms<!-- (see \cref{utypReason} for more details)-->.    
+In the simple typing _a la Curry_, simple types and $\lambda$-terms are completely separate, brought together only through the typing relation $\vdash$. The definition of $\lamy$ terms, however, is dependent on the simple types in the case of the $Y$ constants, which are indexed by simple types. When talking about the $\lamy$ calculus, we tend to conflate the "untyped" $\lamy$ terms, which are just the terms defined in \cref{Definition:lamyTrms}, with the "typed" $\lamy$ terms, which are simply-typed terms _a la Curry_ of the form $\Gamma \vdash M : \sigma$, where $M$ is an "untyped" $\lamy$ term. Thus, results about the $\lamy$ calculus in this work are in fact results about the "typed" $\lamy$ calculus.    
+However, the proofs of the Church Rosser theorem, as presented in the next section, use the untyped definition of $\beta$-reduction. Whilst it is possible to define a typed version of $\beta$-reduction, <!--as was demonstrated by the typed version of the $(Y)$ reduction rule,--> it turned out to be much easier to first prove the Church Rosser theorem for the so called "untyped" $\lamy$ calculus and then additionally restrict this result to only well-types $\lamy$ terms<!-- (see \cref{utypReason} for more details)-->.    
 Thus, the definition of the Church Rosser Theorem, formulated for the $\lamy$ calculus, is the following one:
 
 <div class="Theorem" head="Church Rosser">
@@ -255,7 +254,7 @@ Originally, the field of higher order model checking mainly involved studying hi
 The first part of this project focuses on formalizing the simply typed $\lamy$ calculus and the proof of confluence for this calculus (proof of the Church Rosser Theorem is sometimes also referred to as proof of confluence). The usual/informal definition of the $\lamy$ terms and the simple types are given below:    
 $\ $
 <div class="Definition" head="$\lamy$ types and terms">The set of simple types $\sigma$ is built up inductively form the $\mathsf{o}$ constant and the arrow type $\to$.     
-Let $Var$ be a countably infinite set of atoms in the definition of the set of $\lambda$-terms $M$:
+Let $Var$ be a countably infinite set of atoms in the definition of the set of $\lamy$ terms $M$:
 \label{Definition:lamyTrms}
 
 \begin{center}
@@ -295,14 +294,14 @@ The typed version of the rule illustrates the restricted version of recursion cl
 The Church-Rosser Theorem states that the $\beta$-reduction of the $\lambda$-calculus is confluent, that is, the reflexive-transitive closure of the $\beta$-reduction has the _diamond property_, i.e. $\dip(\red^*)$, where:
 
 <div class="Definition" head="$\dip(R)$">
-A binary relation $R$ has the _diamond property_, i.e. $\dip(R)$, iff
+A binary relation $R$ has the _diamond property_, $\dip(R)$, iff
 
 \begin{center}
 $\forall a, b, c.\ aRb \land aRc \implies \exists d.\ bRd \land cRd$
 \end{center}
 </div>
 
-The proof of confluence of $\red$, the $\beta Y$-reduction defined as the standard $\beta$-reduction with the addition of the aforementioned $(Y)$ rule, formalized in this project, follows a variation of the Tait-Martin-Löf Proof originally described in @takahashi95 (specifically using the notes by @pollack95). To show why following this proof over the traditional proof is beneficial, we first give a high level overview of how the usual proof proceeds.
+The proof of confluence of $\red$, the $\beta Y$-reduction defined as the standard $\beta$-reduction with the addition of the aforementioned $(Y)$ rule, follows a variation of the Tait-Martin-Löf Proof originally described in @takahashi95 (specifically using the notes by @pollack95). To show why following this proof over the traditional proof is beneficial, we first give a high level overview of how the usual proof proceeds.
 
 ####Overview
 
@@ -350,8 +349,7 @@ The @takahashi95 proof simplifies this proof by eliminating the need to do simul
 \newpage
 ####Parallel $\beta Y$-reduction
 Having described the high-level overview of the classical proof and the reason for following the @takahashi95 proof, we now present some of the major lemmas in more detail.   
-Firstly, we give the definition of _parallel $\beta Y$-reduction_ $\gg$ formulated for the terms of the $\lamy$ calculus, which allows simultaneous reduction of multiple parts of a term:
-$\ $
+Firstly, we give the definition of _parallel $\beta Y$-reduction_ $\gg$ formulated for the terms of the $\lamy$ calculus, which allows simultaneous reduction of multiple parts of a term:   
 <div class="Definition" head="$\gg$">
 \begin{center}
   \AxiomC{}
@@ -389,12 +387,11 @@ $\ $
 \end{center}
 </div>
 
-The most basic difference between the normal $\beta$-reduction and _parallel_ $\beta Y$-reduction is the $(refl)/(refl_Y)$ rule, where $x \gg x$, for example, is a valid reduction, but we have $x \nRightarrow_Y x$ for the normal $\beta Y$-reduction ($x \red^* x$ is valid, since $\red^*$ is the reflexive transitive closure of $\red$). In the example below, $(refl^*)$ is a derived rule $\forall M.\ M \gg M$ (see \cref{Lemma:reflM}):
+The first difference between the normal $\beta$-reduction and _parallel_ $\beta Y$-reduction is the $(refl)/(refl_Y)$ rule, where $x \gg x$, for example, is a valid reduction, but we have $x \nRightarrow_Y x$ for the normal $\beta Y$-reduction ($x \red^* x$ is valid, since $\red^*$ is the reflexive transitive closure of $\red$). THe addition of these two rules then allows us to derive the general reflexivity rule $(refl^*): \forall M.\ M \gg M$ (see \cref{Lemma:reflM}).
 
 <div class="Example">
 \label{Example:ggVsGgg}
-Another example where the two reductions differ is the simultaneous reduction of multiple sub-terms. _Parallel_ reduction, unlike $\red$, allows the reduction of the term $((\lambda xy.x)z)(\lambda x.x)y$ to $(\lambda y.z)y$, by simultaneously reducing the two sub-terms $(\lambda xy.x)z$ and $(\lambda x.x)y$ to $\lambda y.z$ and $y$ respectively:
-
+Another example where the two reductions differ is the simultaneous reduction of multiple sub-terms. _Parallel_ $\beta$-reduction, unlike $\red$, allows the reduction of the term $((\lambda xy.x)z)(\lambda x.x)y$ to $(\lambda y.z)y$, by simultaneously reducing the two sub-terms $(\lambda xy.x)z$ and $(\lambda x.x)y$ to $\lambda y.z$ and $y$ respectively:   
 \begin{center}
   \vskip 1.5em
   \AxiomC{}
@@ -419,11 +416,10 @@ Another example where the two reductions differ is the simultaneous reduction of
   \vskip 1.5em
 \end{center}
 
-When we try to construct a similar tree for $\beta$-reduction, we can clearly see that the only two rules we can use are $(red_L)$ or $(red_R)$. We can thus only perform the right-side or the left side reduction of the two sub-terms, but not both<!--(for the rules of normal $\beta$-reduction see \cref{Definition:betaRedNom})-->.
+If we try to construct a similar tree for $\beta$-reduction, we quickly discover that the only two rules we can use are $(red_L)$ or $(red_R)$. We can thus only perform the right-side or the left side reduction of the two sub-terms, but not both<!--(for the rules of normal $\beta$-reduction see \cref{Definition:betaRedNom})-->.
 </div>
 
-Having described the intuition behind the _parallel_ $\beta$-reduction, we proceed to define the _maximum parallel reduction_ $\ggg$, which contracts all redexes in a given term with a single step:
-
+Now that we have described the intuition behind the _parallel_ $\beta$-reduction, we proceed to define the _maximum parallel_ $\beta$-reduction $\ggg$, which contracts all redexes in a given term with a single step:
 
 <div class="Definition" head="$\ggg$">
 \begin{center}
@@ -464,8 +460,7 @@ Having described the intuition behind the _parallel_ $\beta$-reduction, we proce
 This relation only differs from $\gg$ in the $(app)$ rule, which can only be applied if $M$ is not a $\lambda$ or $Y$ term.
 
 <div class="Example">
-To demonstrate the difference between $\gg$ and $\ggg$, we take a look at the term $(\lambda xy.x)((\lambda x.x)z)$.   
-Whilst $(\lambda xy.x)((\lambda x.x)z) \gg (\lambda xy.x)z$ or $(\lambda xy.x)((\lambda x.x)z) \gg \lambda y.z$ (amongst others) are valid reductions, the reduction $(\lambda xy.x)((\lambda x.x)z) \ggg (\lambda xy.x)z$ is not valid.    
+To demonstrate the difference between $\gg$ and $\ggg$, we take a look at the term $(\lambda xy.x)((\lambda x.x)z)$. Whilst $(\lambda xy.x)((\lambda x.x)z) \gg (\lambda xy.x)z$ or $(\lambda xy.x)((\lambda x.x)z) \gg \lambda y.z$ (amongst others) are valid reductions, the reduction $(\lambda xy.x)((\lambda x.x)z) \ggg (\lambda xy.x)z$ is not.    
 To see why this is the case, we observe that the last rule applied in the derivation tree must have been the $(app)$ rule, since we see that a reduction on the sub-term $(\lambda x.x)z \ggg z$ occurs:
 
 \begin{center}
@@ -513,7 +508,7 @@ We can now prove $\dip(\gg)$ by simply applying \cref{Lemma:maxClose} twice, nam
 ##Intersection types
 \label{itypesIntro}
 
-For the formalization of intersection types, we initially chose a strict intersection-type system, presented in the @bakel notes. Intersection types, as classically presented in @barendregt13 as $\lambda_\cap^{BCD}$, extend simple types by adding a conjunction to the definition of types:
+For the formalization of intersection types, we initially chose a _strict_ intersection-type system, presented in the @bakel notes. Intersection types, classically presented by @barendregt13 as $\lambda_\cap^{BCD}$, extend simple types by adding a conjunction to the definition of types:
 
 <div class="Definition" head="$\lambda_\cap^{BCD}$ types">
 \begin{center}
@@ -521,7 +516,7 @@ $\mathcal{T} ::= \phi\ |\ \mathcal{T} \leadsto \mathcal{T}\ |\ \mathcal{T} \cap 
 \end{center}
 </div>
 
-We restrict ourselves to a version of intersection types often called _strict intersection types_. _Strict intersection types_ are a restriction on $\lambda_\cap^{BCD}$ types, where an intersection of types can only appear on the left side of an "arrow" type:
+We restrict ourselves to a version of intersection types often called _strict_ intersection types. _Strict_ intersection types are a restriction on $\lambda_\cap^{BCD}$ types, where an intersection of types can only appear on the left side of an "arrow" type:
 
 <div class="Definition" head="Strict intersection types">
 \label{Definition:itypes}
@@ -536,7 +531,7 @@ $\begin{aligned}
 </div>
 
 The following conventions for intersection types are adopted throughout this section; 
-$\omega$ stands for the empty intersection and we write $\taui$ for the type $\tau_1 \cap\hdots\cap \tau_n$. We also define a subtype relation $\subseteq$ for intersection types, which intuitively capture the idea of one intersection of types being a subset of another, where we think of $\tau_1 \cap \hdots \cap \tau_i$ as a finite set $\{\tau_1, \hdots , \tau_i\}$, wherein $\subseteq$ for intersection types corresponds to subset inclusion e.g. $\tau \subseteq \tau \cap \psi$ because $\{\tau\} \subseteq \{\tau, \psi\}$.   
+$\omega$ stands for the empty intersection and we write $\taui$ for the type $\tau_1 \cap\hdots\cap \tau_n$. We also define a subtype relation $\subseteq$ for intersection types, which intuitively captures the idea of one intersection of types being a subset of another, where we think of $\tau_1 \cap \hdots \cap \tau_i$ as a finite set $\{\tau_1, \hdots , \tau_i\}$, wherein $\subseteq$ for intersection types roughly corresponds to subset inclusion e.g. $\tau \subseteq \tau \cap \psi$ because $\{\tau\} \subseteq \{\tau, \psi\}$.   
 
 $\ $
 <div class="Remark">
@@ -556,7 +551,7 @@ $\begin{aligned}
 \end{aligned}$
 \end{center}
 
-(This relation is equivalent the $\leq$ relation, defined in @pollack95 notes, i.e. $\tau \leq \psi \equiv \psi \subseteq \tau$.)
+(This relation is equivalent the $\leq$ relation, defined in @pollack95 notes, i.e. $\tau \leq \psi = \psi \subseteq \tau$.)
 </div>
 
 
@@ -590,11 +585,9 @@ The definition of the intersection-typing system, like the $\subseteq$ relation,
   \RightLabel{$(j \in \underline{n})$}
   \UnaryInfC{$\Gamma \Vdash Y_\sigma : (\taui \leadsto \tau_1 \cap\hdots\cap \taui \leadsto \tau_i) \leadsto \tau_j$}
   \DisplayProof
-  \vskip 1.5em
 \end{center}
 </div>
 
-This is the initial definition, used as a basis for the mechanization, discussed in \cref{chap:itypes}. Due to different obstacles in the formalization of the subject invariance proofs, this definition, along with the definition of intersection types was amended several times. The reasons for these changes are documented in \cref{chap:itypes}.   
 The definition above also assumes that the context $\Gamma$ is _well-formed_:
 
 <div class="Definition" head="Well-formed intersection-type context">
@@ -614,3 +607,6 @@ Assuming that $\Gamma$ is a finite list, consisting of pairs of atoms $Var$ and 
   \vskip 1.5em
 \end{center}
 </div>
+
+The definitions presented in this section are the initial definitions, used as a basis for the mechanization discussed in \cref{chap:itypes}. Due to different obstacles in the formalization of the subject invariance proofs, these definitions were amended several times. The reasons for these changes are also documented in \cref{chap:itypes}.   
+

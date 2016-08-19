@@ -95,6 +95,8 @@ header-includes: # Things you may want to include in the latex header
 - \renewenvironment{Example}{\begin{OldExample}\begin{mdframed}[style=example, linecolor=yellow]}{\end{mdframed}\end{OldExample}}
 - \let\OldRemark\Remark
 - \renewenvironment{Remark}{\begin{OldRemark}\begin{mdframed}[style=example, linecolor=black]}{\end{mdframed}\end{OldRemark}}
+- \let\OldNote\Note
+- \renewenvironment{Note}{\begin{OldNote}\begin{mdframed}[style=example, linecolor=black]}{\end{mdframed}\end{OldNote}}
 - \let\OldDefinition\Definition
 - \renewenvironment{Definition}{\begin{OldDefinition}\begin{mdframed}[style=example, linecolor=cyan]}{\end{mdframed}\end{OldDefinition}}
 - \let\OldLemma\Lemma
