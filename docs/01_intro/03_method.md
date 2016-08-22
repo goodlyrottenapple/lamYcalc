@@ -79,7 +79,7 @@ Clearly, this mechanized proof reads much like the rigorous paper proof that pre
 When the same proof is presented using the apply-style proof in Isabelle, it is immediately apparent that it is much less transparent, as we obfuscate the natural flow of the informal proof, hiding most of the reasoning in automation (the last line `by simp+`): 
 
 ~~~{.isabelle}
-lemma sq_odd: "⋀ n ::nat. (∃k. n = 2 * k + 1) ⟹ ∃k. n*n = 2 * k + 1"
+lemma sq_odd: "⋀n :: nat. (∃k. n = 2 * k + 1) ⟹ ∃k. n * n = 2 * k + 1"
 apply (erule_tac P="λk. n = 2 * k + 1" in exE)
 apply (rule_tac x="(2 * x * x) + (2 * x)" in exI)
 apply (rule_tac s="(2 * x + 1) * (2 * x + 1)" in subst)

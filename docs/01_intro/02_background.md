@@ -1,6 +1,10 @@
 #Background
 \label{chap:background}
 
+This chapter introduces some of the main concepts, discussed in greater length throughout the thesis. The first section discusses binders in a $\lambda$-calculus, since the treatment of binders is the most involved/problematic part of a fully formal mechanization of a $\lambda$-calculus.    
+The following section introduces the simply-typed $\lamy$ calculus along with a broad overview of the proof of confluence and important associated lemmas, which are discussed further in the following chapters.    
+Lastly, we introduce the theory underpinning HOMC, namely intersection types for the $\lamy$ calculus and present the proofs of subject invariance for intersection types.
+
 ##Binders
 \label{binders}
 
@@ -13,8 +17,8 @@ $t::= x\ |\ tt\ |\ \lambda x.t \text{ where }x \in Var$
 This definition of terms yields an induction/recursion principle, which can be used to define functions over the $\lambda$-terms by structural recursion and prove properties about the $\lambda$-terms using structural induction (recursion and induction being two sides of the same coin).   
 However, whilst the definition above describes valid terms of the $\lambda$-calculus, there are implicit assumptions one makes about the terms, namely, the $x$ in the $\lambda x.t$ case appears bound in $t$. This means that while $x$ and $y$ might be distinct terms of the $\lambda$-calculus (i.e. $x \neq y$), $\lambda x.x$ and $\lambda y.y$ represent the same term, as $x$ and $y$ are bound by the $\lambda$. Without the notion of $\alpha$-equivalence of terms, one cannot prove any properties of terms involving bound variables, such as saying that $\lambda x.x \equiv \lambda y.y$.
 
-In an informal setting, reasoning with $\alpha$-equivalence of terms is often very implicit, however in a formal setting of theorem provers, having an inductive definition of "raw" $lambda$-terms, which are not $alpha$-equivalent, yet reasoning about $\alpha$-equivalent $\lambda$-terms poses certain challenges.   
-One of the main problems is the fact that the inductive/recursive definition does not easily lift to $alpha$-equivalent terms. Take a trivial example of a function on raw terms, which checks whether a variable appears bound in a given $\lambda$-term. Clearly, such function is well formed for "raw" terms, but does not work (or even make sense) for $\alpha$-equivalent terms.   
+In an informal setting, reasoning with $\alpha$-equivalence of terms is often very implicit, however in a formal setting of theorem provers, having an inductive definition of "raw" $\lambda$-terms, which are not $\alpha$-equivalent, yet reasoning about $\alpha$-equivalent $\lambda$-terms poses certain challenges.   
+One of the main problems is the fact that the inductive/recursive definition does not easily lift to $\alpha$-equivalent terms and using induction as a proof technique for such a definition is no longer valid. Take a trivial example of a function on raw terms, which checks whether a variable appears bound in a given $\lambda$-term. Clearly, such function is well formed for "raw" terms, but does not work (or even make sense) for $\alpha$-equivalent terms.   
 Conversely, there are informal definitions over $\alpha$-equivalent terms, which are not straight-forward to define over raw terms. Take the usual definition of substitution, defined over $\alpha$-equivalent terms, which actually relies on the following fact in the $\lambda$-case:
 
 \begin{center}
@@ -47,8 +51,8 @@ datatype trm =
 
 As was mentioned before, defining "raw" terms and the notion of $\alpha$-equivalence of "raw" terms separately carries a lot of overhead in a theorem prover and is therefore not favored. 
 
-To obtain an inductive definition of $\lambda$-terms with a built in notion of $\alpha$-equivalence, one can instead use nominal sets. The theory of nominal sets captures the notion of bound variables and freshness, as it is based around the notion of having properties invariant in name permutation.    
-The nominal package in Isabelle provides tools to automatically define terms with binders, which generate inductive definitions of $\alpha$-equivalent terms. Using nominal sets in Isabelle results in a definition of terms, which looks very similar to the informal presentation of the lambda calculus:
+To obtain an inductive definition of $\lambda$-terms with a built in notion of $\alpha$-equivalence, one can instead use nominal sets. The theory of nominal sets captures the notion of bound variables and freshness, as it is based around the notion of having properties invariant in name permutation (@gabbay02).    
+The nominal package in Isabelle (@urban05) provides tools to automatically define terms with binders, which generate inductive definitions of $\alpha$-equivalent terms. Using nominal sets in Isabelle results in a definition of terms, which looks very similar to the informal presentation of the lambda calculus:
 
 ~~~{.isabelle}
 nominal_datatype trm =
@@ -78,7 +82,7 @@ The term $\lambda x.\lambda y. yx$ will be represented as $\lambda\ \lambda\ 0\ 
 
 To see that this representation of $\lambda$-terms is isomorphic to the usual named definition, we can define two functions $f$ and $g$, which translate the named representation to de Bruijn notation and vice versa. More precisely, since we are dealing with $\alpha$-equivalence classes, it is an isomorphism between the equivalence classes of named $\lambda$-terms and de Bruijn terms. 
 
-To make things easier, we consider a representation of named terms, where we map named variables, $x, y, z,...$ to indexed variables $x_1,x_2,x_3,...$. Then, the mapping from named terms to de Bruijn term is given by $f$, which we define in terms of an auxiliary function $e$:
+We assume that $\lambda$-terms are built over the countable set of variables $x_1,x_2,x_3,...$. Then, the mapping from named terms to de Bruijn term is given by $f$, which we define in terms of an auxiliary function $e$:
 
 \begin{center}
 $\begin{aligned}
@@ -96,7 +100,10 @@ Then $f(t) = e_0^\emptyset(t)$.
 The function $e$ takes two additional parameters, $k$ and $m$. $k$ keeps track of the scope from the root of the term and $m$ is a map from bound variables to the levels they were bound at. In the variable case, if $x_n$ appears in $m$, it is a bound variable, and its index can be calculated by taking the difference between the current index and the index $m(x_k)$ (at which the variable was bound). If $x_n$ is not in $m$, then the variable is encoded by adding the current level $k$ to $n$.   
 In the abstraction case, $x_n$ is added to $m$ with the current level $k$, possibly overshadowing a previous binding of the same variable at a different level (like in $\lambda x_1. (\lambda x_1. x_1)$) and $k$ is incremented, going into the body of the abstraction. <!--For all closed terms, the choice of $k$ is arbitrary.-->
 
+For the opposite direction, we replace indices with the corresponding indexed variables, taking care to chose named variables in such a way as to not capture any free variables.    
+<div class="Example">A term like $\lambda (\lambda\ 2)$ intuitively represents a named $\lambda$-term which contains two bound variables and a free variable $x_0$. If we started giving the bound variables names in a naive way, for example starting from $x_0$, we would end up with a term $\lambda x_0.(\lambda x_1.x_0)$, which is obviously not the term we had in mind, as $x_0$ is no longer a free variable.</div>
 
+<!--
 The function $g$, taking de Bruijn terms to named terms is a little more tricky. We need to replace the indices encoding free variables (those that have a value greater than or equal to $k$, where $k$ is the number of binders in scope) with named variables, such that for every index $n$, we substitute $x_m$, where $m = n-k$, without capturing these free variables.
 
 We need two auxiliary functions to define $g$:
@@ -118,17 +125,11 @@ n-k & n \geq k\\
 \end{aligned}$
 \end{center}
 
-The function $g$ is then defined as $g(t) = h_0^{\Diamond_0(t)+1}(t)$. As mentioned above, the complicated definition has to do with avoiding free variable capture. A term like $\lambda (\lambda\ 2)$ intuitively represents a named $\lambda$-term with two bound variables and a free variable $x_0$ according to the definition above. If we started giving the bound variables names in a naive way, starting from $x_0$, we would end up with a term $\lambda x_0.(\lambda x_1.x_0)$, which is obviously not the term we had in mind, as $x_0$ is no longer a free variable. To ensure we start naming the bound variables in such a way as to avoid this situation, we use $\Diamond$ to compute the maximal value of any free variable in the given term, and then start naming bound variables with an index one higher than the value returned by $\Diamond$.
+The function $g$ is then defined as $g(t) = h_0^{\Diamond_0(t)+1}(t)$. As mentioned above, the complicated definition has to do with avoiding free variable capture. A term like $\lambda (\lambda\ 2)$ intuitively represents a named $\lambda$-term with two bound variables and a free variable $x_0$ according to the definition above. If we started giving the bound variables names in a naive way, starting from $x_0$, we would end up with a term $\lambda x_0.(\lambda x_1.x_0)$, which is obviously not the term we had in mind, as $x_0$ is no longer a free variable. To ensure we start naming the bound variables in such a way as to avoid this situation, we use $\Diamond$ to compute the maximal value of any free variable in the given term, and then start naming bound variables with an index one higher than the value returned by $\Diamond$.-->
 
+As one quickly notices, terms like $\lambda x.x$ and $\lambda y.y$ have a single unique representation as a de Bruijn term $\lambda\ 0$. Indeed, since there are no named variables in a de Bruijn term, there is only one way to represent any $\lambda$-term, and the notion of $\alpha$-equivalence is no longer relevant. We thus get around our problem of having an inductive principle and $\alpha$-equivalent terms, by having a representation of $\lambda$-terms where every $\alpha$-equivalence class of $\lambda$-terms has a single representative term in the de Bruijn notation.
 
-<!--Note that while $f_k^\emptyset \circ g_k = id$ is true, since the de Bruijn terms are invariant under $\alpha$-equivalence, $g_k \circ f_k^\emptyset = id$ is not, since taking the aforementioned term $\lambda x_1. (\lambda x_1. x_1)$, we have $(g_1 \circ f_1^\emptyset)( \lambda x_1. (\lambda x_1. x_1) ) = \lambda x_1. (\lambda x_2. x_2)$.
-However, its easy to see that $\lambda x_1. (\lambda x_1. x_1) \equiv_\alpha \lambda x_1. (\lambda x_2. x_2)$, thus we can say that $\forall t.\ (g_k \circ f_k^\emptyset)(t) \equiv_\alpha t$.
-$\\$-->
-
-As one quickly notices, a term like $\lambda x.x$ and $\lambda y.y$ have a single unique representation as a de Bruijn term $\lambda\ 0$. Indeed, since there are no named variables in a de Bruijn term, there is only one way to represent any $\lambda$-term, and the notion of $\alpha$-equivalence is no longer relevant. We thus get around our problem of having an inductive principle and $\alpha$-equivalent terms, by having a representation of $\lambda$-terms where every $\alpha$-equivalence class of $\lambda$-terms has a single representative term in the de Bruijn notation.
-
-In their comparison between named vs. nameless/de Bruijn representations of $\lambda$-terms, @berghofer06 give details about the definition of substitution, which no longer needs the variable convention and can therefore be defined using primitive structural recursion.   
-The main disadvantage of using de Bruijn indices is the relative unreadability of both the terms and the formulation of properties about these terms. For instance, take the substitution lemma, which in the named setting would be stated as:
+As pointed out by @berghofer06, the definition of substitution no longer needs the variable convention and can therefore be defined using primitive structural recursion. However, the main disadvantage of using de Bruijn indices is the relative unreadability of both the terms and the formulation of properties about these terms. For instance, take the substitution lemma, which in the named setting would be stated as:
 
 \begin{center}
 $\text{If }x \neq y\text{ and }x \not\in FV(L)\text{, then }
@@ -177,9 +178,53 @@ This definition avoids the need for explicitly defining substitution, because it
 However, using HOAS only works if the notion of $\alpha$-equivalence and substitution of the meta-language coincide with these notions in the object-language.
 
 \newpage
-##Simple types
 
-The simple types presented throughout this work (except for \cref{chap:itypes}) are often referred to as simple types _a la Curry_, where a simply typed $\lambda$-term is a triple $(\Gamma, M, \sigma)$ written as $\Gamma \vdash M : \sigma$, where $\Gamma$ is the typing context, $M$ is a term of the untyped $\lambda$-calculus and $\sigma$ is a simple type. A well typed term is valid, if one can construct a typing tree from the given type and typing context, using the following deduction system: 
+##$\lamy$ calculus
+Originally, the field of higher order model checking mainly involved studying higher order recursion schemes (HORS), which are used to model higher-order programs, which are then checked exhaustively for desired properties, encoded as automata or intersection types. More recently, exploring the $\lamy$ calculus (an extension of the simply typed $\lambda$-calculus) as an alternative to using HORS to model programs, has gained traction (@clairambault13). We therefore present the $\lamy$ calculus, along with the proofs of the Church Rosser theorem and the formalization of intersection types for the $\lamy$ calculus, as the basis for formalizing the theory of HOMC.
+
+###Definition of $\lamy$ terms
+
+The first part of this project focuses on formalizing the simply typed $\lamy$ calculus and the proof of confluence for this calculus (proof of the Church Rosser Theorem is sometimes also referred to as proof of confluence). The usual/informal definition of the $\lamy$ terms and the simple types are given below:    
+$\ $
+<div class="Definition" head="$\lamy$ types and terms">The set of simple types $\sigma$ is built up inductively form the $\mathsf{o}$ constant and the arrow type $\to$.     
+Let $Var$ be a countably infinite set of atoms in the definition of the set of $\lamy$ terms $M$:
+\label{Definition:lamyTrms}
+
+\begin{center}
+$\begin{aligned}
+\sigma ::=&\ \mathsf{o}\ |\ \sigma \to \sigma \\
+M ::=&\ x\ |\ MM\ |\ \lambda x.M\ |\ Y_\sigma \text{ where }x \in Var
+\end{aligned}$
+\end{center}
+</div> 
+
+The $\lamy$ calculus differs from the simply typed $\lambda$-calculus only in the addition of the $Y$ constant family, indexed at every simple type $\sigma$, where the (simple) type of a $Y_A$ constant (indexed with the type $A$) is $(A \to A) \to A$. The usual definition of $\beta$-reduction is then augmented with the $(Y)$ rule (this is the typed version of the rule):
+
+\begin{center}
+  \vskip 1em
+  \AxiomC{$\Gamma \vdash M : \sigma \to \sigma$}
+  \LeftLabel{$(Y)$}
+  \UnaryInfC{$\Gamma \vdash Y_\sigma M \red M (Y_\sigma M) : \sigma$}
+  \DisplayProof
+  \vskip 1em
+\end{center}
+
+In essence, the $Y$ rule allows (some) well-typed recursive definitions over simply typed $\lambda$-terms.    
+$\ $
+<div class="Example">
+Take for example the term $\lambda x.x$, commonly referred to as the _identity_. The _identity_ term can be given a type $\sigma \to \sigma$ for any simple type $\sigma$. We can therefore perform the following (well-typed) reduction in the $\lamy$ calculus:
+
+\begin{center}
+$Y_\sigma (\lambda x.x) \red (\lambda x.x)(Y_\sigma (\lambda x.x))$
+\end{center}
+</div>
+
+The typed version of the rule illustrates the restricted version of recursion clearly, since a recursive "$Y$-reduction" will only occur if the term $M$ in $Y_\sigma M$ has the matching type $\sigma \to \sigma$ (to $Y_\sigma$'s type $(\sigma \to \sigma) \to \sigma$), as in the example above. <!--Due to the type restriction on $M$, recursion using the $Y$ constant will be **weakly normalizing (this is right? right?)**, which cannot be said of unrestricted recursion in the untyped $\lambda$-calculus.-->
+
+
+###Simple types
+
+The simple types introduced above and presented throughout this work (except for \cref{chap:itypes}) are often referred to as simple types _a la Curry_, where a simply typed $\lambda$-term is a triple $(\Gamma, M, \sigma)$ written as $\Gamma \vdash M : \sigma$, where $\Gamma$ is the typing context, a finite set of variable and type tuples, $M$ is a term of the untyped $\lambda$-calculus and $\sigma$ is a simple type. A well typed term is valid, if one can construct a typing tree from the given type and typing context, using the following deduction system: 
 
 <div class="Definition" head="Simple-type assignment">
 \begin{center}
@@ -231,62 +276,7 @@ Take the following simply typed term $\{y:\tau\} \vdash \lambda x.xy : (\tau \to
 \end{center}
 </div>
 
-In the simple typing _a la Curry_, simple types and $\lambda$-terms are completely separate, brought together only through the typing relation $\vdash$. The definition of $\lamy$ terms, however, is dependent on the simple types in the case of the $Y$ constants, which are indexed by simple types. When talking about the $\lamy$ calculus, we tend to conflate the "untyped" $\lamy$ terms, which are just the terms defined in \cref{Definition:lamyTrms}, with the "typed" $\lamy$ terms, which are simply-typed terms _a la Curry_ of the form $\Gamma \vdash M : \sigma$, where $M$ is an "untyped" $\lamy$ term. Thus, results about the $\lamy$ calculus in this work are in fact results about the "typed" $\lamy$ calculus.    
-However, the proofs of the Church Rosser theorem, as presented in the next section, use the untyped definition of $\beta$-reduction. Whilst it is possible to define a typed version of $\beta$-reduction, <!--as was demonstrated by the typed version of the $(Y)$ reduction rule,--> it turned out to be much easier to first prove the Church Rosser theorem for the so called "untyped" $\lamy$ calculus and then additionally restrict this result to only well-types $\lamy$ terms<!-- (see \cref{utypReason} for more details)-->.    
-Thus, the definition of the Church Rosser Theorem, formulated for the $\lamy$ calculus, is the following one:
-
-<div class="Theorem" head="Church Rosser">
-$\Gamma \vdash M : \sigma \land M \red^* M' \land M \red^* M'' \implies \exists M'''.\ \ M' \red^* M''' \land M'' \red^* M''' \land \Gamma \vdash M''' : \sigma$
-</div>
-
-In order to prove this typed version of the Church Rosser Theorem, we need to prove an additional result of subject reduction for $\lamy$ calculus, namely:
-
-<div class="Theorem" head="Subject reduction for $\red^*$">
-\label{Theorem:subRedSimp}
-$\Gamma \vdash M : \sigma \land M \red^* M' \implies \Gamma \vdash M' : \sigma$
-</div>
-
-##$\lamy$ calculus
-Originally, the field of higher order model checking mainly involved studying higher order recursion schemes (HORS), but more recently, exploring the $\lamy$ calculus, which is an extension of the simply typed $\lambda$-calculus, in the context of HOMC has gained traction (@clairambault13). We therefore present the $\lamy$ calculus, along with the proofs of the Church Rosser theorem and the formalization of intersection types for the $\lamy$ calculus, as the basis for formalizing the theory of HOMC.
-
-###Definitions
-
-The first part of this project focuses on formalizing the simply typed $\lamy$ calculus and the proof of confluence for this calculus (proof of the Church Rosser Theorem is sometimes also referred to as proof of confluence). The usual/informal definition of the $\lamy$ terms and the simple types are given below:    
-$\ $
-<div class="Definition" head="$\lamy$ types and terms">The set of simple types $\sigma$ is built up inductively form the $\mathsf{o}$ constant and the arrow type $\to$.     
-Let $Var$ be a countably infinite set of atoms in the definition of the set of $\lamy$ terms $M$:
-\label{Definition:lamyTrms}
-
-\begin{center}
-$\begin{aligned}
-\sigma ::=&\ \mathsf{o}\ |\ \sigma \to \sigma \\
-M ::=&\ x\ |\ MM\ |\ \lambda x.M\ |\ Y_\sigma \text{ where }x \in Var
-\end{aligned}$
-\end{center}
-</div> 
-
-The $\lamy$ calculus differs from the simply typed $\lambda$-calculus only in the addition of the $Y$ constant family, indexed at every simple type $\sigma$, where the (simple) type of a $Y_A$ constant (indexed with the type $A$) is $(A \to A) \to A$. The usual definition of $\beta$-reduction is then augmented with the $(Y)$ rule (this is the typed version of the rule):
-
-\begin{center}
-  \vskip 1em
-  \AxiomC{$\Gamma \vdash M : \sigma \to \sigma$}
-  \LeftLabel{$(Y)$}
-  \UnaryInfC{$\Gamma \vdash Y_\sigma M \red M (Y_\sigma M) : \sigma$}
-  \DisplayProof
-  \vskip 1em
-\end{center}
-
-In essence, the $Y$ rule allows (some) well-typed recursive definitions over simply typed $\lambda$-terms.    
-$\ $
-<div class="Example">
-Take for example the term $\lambda x.x$, commonly referred to as the _identity_. The _identity_ term can be given a type $\sigma \to \sigma$ for any simple type $\sigma$. We can therefore perform the following (well-typed) reduction in the $\lamy$ calculus:
-
-\begin{center}
-$Y_\sigma (\lambda x.x) \red (\lambda x.x)(Y_\sigma (\lambda x.x))$
-\end{center}
-</div>
-
-The typed version of the rule illustrates the restricted version of recursion clearly, since a recursive "$Y$-reduction" will only occur if the term $M$ in $Y_\sigma M$ has the matching type $\sigma \to \sigma$ (to $Y_\sigma$'s type $(\sigma \to \sigma) \to \sigma$), as in the example above. <!--Due to the type restriction on $M$, recursion using the $Y$ constant will be **weakly normalizing (this is right? right?)**, which cannot be said of unrestricted recursion in the untyped $\lambda$-calculus.-->
+In the simple typing _a la Curry_, simple types and $\lambda$-terms are completely separate, brought together only through the typing relation $\vdash$. The definition of $\lamy$ terms, however, is dependent on the simple types in the case of the $Y$ constants, which are indexed by simple types. When talking about the $\lamy$ calculus, we tend to conflate the "untyped" $\lamy$ terms, which are just the terms defined in \cref{Definition:lamyTrms}, with the "typed" $\lamy$ terms, which are simply-typed terms _a la Curry_ of the form $\Gamma \vdash M : \sigma$, where $M$ is an "untyped" $\lamy$ term. Thus, results about the $\lamy$ calculus in this work are in fact results about the "typed" $\lamy$ calculus.
 
 ###Church-Rosser Theorem
 \label{cr-def}
@@ -328,7 +318,7 @@ In the traditional proof of the Church Rosser theorem, we define a new reduction
 
 The @takahashi95 proof simplifies this proof by eliminating the need to do simultaneous induction on the $M \gg P$ and $M \gg Q$ reductions. This is done by introducing another reduction, referred to as the _maximal parallel_ $\beta$-reduction ($\ggg$). The idea of using $\ggg$ is to show that for every term $M$ there is a reduct term $M_{max}$ s.t. $M \ggg M_{max}$ and that any $M'$, s.t. $M \gg M'$, also reduces to $M_{max}$. We can then separate the "diamond" diagram above into two instances of the following triangle, where $M'$ from the previous diagram is $M_{max}$:
 
-\begin{figure}
+\begin{figure}[h]
 \begin{center}
 \begin{tikzpicture}[->,>=stealth',shorten >=1pt,auto,node distance=2.8cm,semithick]
   \tikzstyle{every state}=[fill=none,draw=none,text=black]
@@ -346,9 +336,10 @@ The @takahashi95 proof simplifies this proof by eliminating the need to do simul
 \label{figure:gggTriangle}
 \end{figure}
 
-\newpage
+Proving this triangle instead of the original diamond simplifies the overall proof, as there is no longer a need for the complicated double induction form the original proof.
+
 ####Parallel $\beta Y$-reduction
-Having described the high-level overview of the classical proof and the reason for following the @takahashi95 proof, we now present some of the major lemmas in more detail.   
+Having described the high-level overview of the classical proof and the reason for following the @takahashi95 proof, we now present some of the major lemmas in more detail, as they form the core comparison of the $\lamy$ calculus mechanizations, presented in \cref{chap:compIsa}.   
 Firstly, we give the definition of _parallel $\beta Y$-reduction_ $\gg$ formulated for the terms of the $\lamy$ calculus, which allows simultaneous reduction of multiple parts of a term:   
 <div class="Definition" head="$\gg$">
 \begin{center}
@@ -419,7 +410,7 @@ Another example where the two reductions differ is the simultaneous reduction of
 If we try to construct a similar tree for $\beta$-reduction, we quickly discover that the only two rules we can use are $(red_L)$ or $(red_R)$. We can thus only perform the right-side or the left side reduction of the two sub-terms, but not both<!--(for the rules of normal $\beta$-reduction see \cref{Definition:betaRedNom})-->.
 </div>
 
-Now that we have described the intuition behind the _parallel_ $\beta$-reduction, we proceed to define the _maximum parallel_ $\beta$-reduction $\ggg$, which contracts all redexes in a given term with a single step:
+Now that we have described the intuition behind the _parallel_ $\beta$-reduction, following @takahashi95, we proceed to define the _maximum parallel_ $\beta$-reduction $\ggg$, which contracts all redexes in a given term with a single step:
 
 <div class="Definition" head="$\ggg$">
 \begin{center}
@@ -504,6 +495,21 @@ Omitted. Can be found on p. 8 of the @pollack95 notes.
 We can now prove $\dip(\gg)$ by simply applying \cref{Lemma:maxClose} twice, namely for any term $M$ there is an $M_{max}$ s.t. $M \ggg M_{max}$ (by \cref{Lemma:maxEx}) and for any $M', M''$ where $M \gg M'$ and $M \gg M''$, it follows by two applications of \cref{Lemma:maxClose} that $M' \gg M_{max}$ and $M'' \gg M_{max}$.
 </div></div>
 
+###Typed version of Church Rosser
+The proof of the Church Rosser theorem, as presented above, uses the untyped definition of $\beta$-reduction. Whilst it is possible to define a typed version of $\beta$-reduction, it turned out to be much easier to first prove the Church Rosser theorem for the so called "untyped" $\lamy$ calculus and then additionally restrict this result to only well-typed $\lamy$ terms.   
+Thus, the definition of the Church Rosser Theorem, formulated for the $\lamy$ calculus, is the following one:
+
+<div class="Theorem" head="Typed Church Rosser Theorem">
+$\Gamma \vdash M : \sigma \land M \red^* M' \land M \red^* M'' \implies \exists M'''.\ \ M' \red^* M''' \land M'' \red^* M''' \land \Gamma \vdash M''' : \sigma$
+</div>
+
+In order to prove this typed version of the Church Rosser Theorem, we need to prove an additional result of subject reduction for $\lamy$ calculus, which states that if a simply typed term $M$ (with a type $\tau$) $\beta$-reduces to $M'$, $M'$ can also be typed with $\tau$:
+
+<div class="Theorem" head="Subject reduction for $\red^*$">
+\label{Theorem:subRedSimp}
+$\Gamma \vdash M : \sigma \land M \red^* M' \implies \Gamma \vdash M' : \sigma$
+</div>
+
 \newpage
 ##Intersection types
 \label{itypesIntro}
@@ -511,16 +517,17 @@ We can now prove $\dip(\gg)$ by simply applying \cref{Lemma:maxClose} twice, nam
 For the formalization of intersection types, we initially chose a _strict_ intersection-type system, presented in the @bakel notes. Intersection types, classically presented by @barendregt13 as $\lambda_\cap^{BCD}$, extend simple types by adding a conjunction to the definition of types:
 
 <div class="Definition" head="$\lambda_\cap^{BCD}$ types">
+In the definition below, $\phi$ is a constant (analogous to the constant $\mathsf{o}$, introduced for the simple types in \cref{Definition:lamyTrms}). To avoid confusion between simple and intersection types, the usual arrow-type notation $\to$, used in the definition of both type-systems is substituted for the $\leadsto$ arrow.
 \begin{center}
 $\mathcal{T} ::= \phi\ |\ \mathcal{T} \leadsto \mathcal{T}\ |\ \mathcal{T} \cap \mathcal{T}$
 \end{center}
 </div>
 
-We restrict ourselves to a version of intersection types often called _strict_ intersection types. _Strict_ intersection types are a restriction on $\lambda_\cap^{BCD}$ types, where an intersection of types can only appear on the left side of an "arrow" type:
+Following @bakel, we restrict ourselves to a version of intersection types often called _strict_ intersection types. _Strict_ intersection types are a restriction on $\lambda_\cap^{BCD}$ types, where an intersection of types can only appear on the left side of an "arrow" type:
 
 <div class="Definition" head="Strict intersection types">
 \label{Definition:itypes}
-In the definition below, $\phi$ is a constant (analogous to the constant $\mathsf{o}$, introduced for the simple types in \cref{Definition:lamyTrms}).
+As in the definition above, $\phi$ is a constant.
 
 \begin{center}
 $\begin{aligned}
@@ -551,12 +558,12 @@ $\begin{aligned}
 \end{aligned}$
 \end{center}
 
-(This relation is equivalent the $\leq$ relation, defined in @pollack95 notes, i.e. $\tau \leq \psi = \psi \subseteq \tau$.)
+(This relation is equivalent the $\leq$ relation, defined in @bakel notes, i.e. $\tau \leq \psi = \psi \subseteq \tau$.)
 </div>
 
 
 In this presentation, $\lamy$ terms are typed with the strict types $\mathcal{T}_s$ only. Much like the simple types, presented in the previous sections, an intersection-typing judgment is a triple $\Gamma, M, \tau$, written as $\Gamma \vDash M : \tau$, where $\Gamma$ is the intersection-type context, similar in construction to the simple typing context, $M$ is a $\lamy$ term and $\tau$ is a strict intersection type $\mathcal{T}_s$.    
-The definition of the intersection-typing system, like the $\subseteq$ relation, has also been adapted from the typing system found in the @pollack95 notes, by adding the typing rule for the $Y$ constants:
+The definition of the intersection-typing system, like the $\subseteq$ relation, has also been adapted from the typing system found in the @bakel notes, by adding the typing rule for the $Y$ constants:
 
 <div class="Definition" head="Intersection-type assignment">$\ $
 \begin{center}
@@ -608,5 +615,34 @@ Assuming that $\Gamma$ is a finite list, consisting of pairs of atoms $Var$ and 
 \end{center}
 </div>
 
-The definitions presented in this section are the initial definitions, used as a basis for the mechanization discussed in \cref{chap:itypes}. Due to different obstacles in the formalization of the subject invariance proofs, these definitions were amended several times. The reasons for these changes are also documented in \cref{chap:itypes}.   
+###Type refinement
+\label{initTypeRefine}
+
+It is important for the theory underpinning HOMC to be decidable. In order to guarantee this, we introduce a type refinement relation $\tau :: A$ for intersection types, where $\tau$ is an intersection type, refining a simple type $A$. We can guarantee that the search space for an intersection type, which can type a given $\lamy$ term $M$ with the simple type $A$ is finite (and typing such a term is thus decidable), since the set $\{\tau\ |\ \tau :: A\}$ is finite and therefore, enumerating and checking whether $\Gamma \Vdash M : \tau$ for any of the types $\tau$ in this set, will take a finite time.
+
+We present the type refinement relation, presented by @kobayashi09 (amongst others):
+
+<div class="Definition" head="Intersection-type refinement">
+\begin{center}
+  \AxiomC{}
+  \UnaryInfC{$\phi :: \mathsf{o}$}
+  \DisplayProof
+  \hskip 1.5em
+  \AxiomC{$\taui :: A$}
+  \AxiomC{$\tau :: B$}
+  \BinaryInfC{$\taui \leadsto \tau :: A \to B$}
+  \DisplayProof
+  \hskip 1.5em
+  \AxiomC{$\forall i \in \underline{n}.\ \ \tau_i :: A$}
+  \UnaryInfC{$\taui :: A$}
+  \DisplayProof
+\end{center}
+</div>
+
+###Subject invariance
+
+
+
+
+<div class="Remark">The definitions presented in this section are the initial definitions, used as a basis for the mechanization discussed in \cref{chap:itypes}. Due to different obstacles in the formalization of the subject invariance proofs, these definitions were amended several times. The reasons for these changes are also documented in \cref{chap:itypes}.</div>
 

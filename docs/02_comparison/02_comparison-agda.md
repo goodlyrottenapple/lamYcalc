@@ -458,22 +458,3 @@ Doing these steps explicitly was not in fact necessary, as the automatic proof s
 >>>-Term-l (Y t>>>t') = app Y (>>>-Term-l t>>>t')
 ```
 </div>
-
-
-<!--
-
-rewriting in types?
-status of rewrite rules in agda??
-
-automation in agda does not include local lemmas -does too!!!
-
-style of proving in isabelle can differ , i.e. more dependent on automation, not the case here in practise
-
-
-equational reasoning / rewriting
-
-
-subst-fresh, do the example for agda
-
-
- -->

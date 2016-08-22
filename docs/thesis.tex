@@ -289,7 +289,20 @@ xetex]{hyperref}
 
 % - Acknowledgements -----------------------------------------------------------
 \begin{acknowledgements}
-Say thanks to whoever listened to your rants for 2 months
+First and foremost, I would like to thank my supervisors Steven Ramsay,
+Faris Abou-Saleh and Luke Ong for guidance on this project. I want to
+especially thank Steven, whose office I would, on occasion, barge into
+with a non-working proof, which he would always be willing to discuss
+and help me correct.\\
+I also want to thank Alexander Kurz, my past-future supervisor, and Sam
+Jones, my close friend, for persuading me to apply to Oxford. I would
+not have been here, learned all that I had and met the cool people I
+did, without their encouragement.\\
+Lastly, I want to thank my housemate Fiona MacLean for the great evening
+kitchen chats, which made Oxford all the more enjoyable, Zbynek Leobl,
+who was a great squash partner (even though we were both really bad at
+it) and Alberto Sadde, for great chats at the department and over beer,
+in the pub.
 \end{acknowledgements}
 \null\newpage
 
@@ -305,21 +318,28 @@ Kobayashi (\protect\hyperlink{ref-kobayashi13}{2013}), Ramsay,
 Neatherway, and Ong (\protect\hyperlink{ref-ramsay14}{2014}), Tsukada
 and Ong (\protect\hyperlink{ref-tsukada14}{2014})). A common approach to
 studying HOMC is through higher order recursion schemes (HORS).\\
-Recently, it was shown that \(\lamy\) calculus with intersection-types
-can be used as an alternative to HORS, when studying higher order model
-checking. Whilst the theory of HORS and \(\lamy\) has been formalized
-``on paper'', there has been little done in mechanizing this theory in a
-fully formal setting of a theorem prover.\\
-The aim of this project was to start such a formalization, by first
+Recently, it was shown that \(\lamy\) calculus can be used as an
+alternative to HORS, when studying higher order model checking
+(Clairambault and Murawski
+(\protect\hyperlink{ref-clairambault13}{2013})). Whilst the theory of
+HORS and \(\lamy\) has been formalized ``on paper'', there has been
+little done in mechanizing this theory in a fully formal setting of a
+theorem prover.\\
+This project provides a starting point for such a formalization, by
 mechanizing the \(\lamy\) calculus along with the proof of confluence
-for simple types. This served as a benchmark for choosing the
-implementation specifics, such as the binder representation strategy as
-well as the implementation language.\\
-The formalization of the terms of the calculus along with the proof of
-confluence served as a benchmark for comparing the chosen mechanization
-approaches. The best mechanization was then extended with the
-formalization of intersection types for the \(\lamy\) calculus, along
-with the proofs of subject invariance.
+for simple types and mechanizing intersection types for the \(\lamy\)
+calculus together with proofs of subject invariance for intersection
+typing. The mechanization of intersection types, and proofs of subject
+invariance especially, form an important basis of HOMC theory, since
+these results are key to sound and complete higher order model checking.
+The project is split into two parts, with the mechanization of simply
+typed \(\lamy\) calculus and proofs of confluence serving as a benchmark
+for comparing and choosing the best implementation tools and strategy.
+Specifically, the best mechanization approach from the first part of the
+project, which looks at formalizing simply typed \(\lamy\) calculus
+along with the proof of confluence, was extended with the formalization
+of intersection types for the \(\lamy\) calculus, along with the proofs
+of subject invariance, in the second part.
 \end{abstract}
 \null\newpage
 
@@ -373,12 +393,18 @@ type checking/inference usually becomes undecidable, as is the case for
 dependent-type systems. Simpler type systems, where type inference is
 decidable, can instead prove too coarse, i.e.~the required properties
 are difficult if not impossible to capture in such type systems.\\
-In recent years, advances in higher order model checking (HOMC) have
-been made (C.-H. L. Ong (\protect\hyperlink{ref-ong06}{2006}), Kobayashi
+In recent years, advances in higher order model checking (HOMC), the
+previously described theory of model checking transferred to the domain
+of higher-order programs, have been made (C.-H. L. Ong
+(\protect\hyperlink{ref-ong06}{2006}), Kobayashi
 (\protect\hyperlink{ref-kobayashi13}{2013}), Ramsay, Neatherway, and Ong
 (\protect\hyperlink{ref-ramsay14}{2014}), Tsukada and Ong
-(\protect\hyperlink{ref-tsukada14}{2014})), but whilst a lot of theory
-has been developed for HOMC, there has been little done in
+(\protect\hyperlink{ref-tsukada14}{2014})). HOMC is a fully automatic
+method of program verification, where programs are modeled as higher
+order recursion schemes (HORS) or equivalently, terms of the \(\lamy\)
+calculus and properties about these programs are specified as
+automata/intersection types. However, whilst a lot of theory has been
+developed for HOMC, there has been little done in
 implementing/mechanizing these results in a fully formal setting of a
 theorem prover.
 
@@ -390,7 +416,7 @@ recursion schemes, by formally proving certain key properties about the
 \(\lamy\) calculus with an intersection-type system (Clairambault and
 Murawski (\protect\hyperlink{ref-clairambault13}{2013}), Tsukada and Ong
 (\protect\hyperlink{ref-tsukada14}{2014})), which can be used to study
-HOMC as an alternative to higher order recursion schemes (HORS).\\
+HOMC as an alternative to higher order recursion schemes.\\
 The project is roughly split into two main parts, with the first part
 exploring and evaluating different formalizations of the simply-typed
 \(\lamy\) calculus together with the proof of the Church Rosser
@@ -434,13 +460,10 @@ We achieved the following goals in this project:
   Formalized the simply typed \(\lamy\) calculus and proofs of
   confluence in Agda, using a locally nameless encoding of binders
 \item
-  Compared the implementations of the nominal and locally nameless
-  versions of the \(\lamy\) calculus along with the proof of confluence,
-  demonstrating the implementation overheads of both approaches.
-\item
-  Compared Isabelle and Agda, establishing their relative similarities
-  and highlighting their specific feauters in relation to the
-  implementation of the \(\lamy\) calculus.
+  Compared the implementations of nominal and locally nameless versions
+  of the \(\lamy\) calculus, along with the proof of confluence in the
+  Isabelle and Agda theorem provers, focusing on the transparency and
+  implementation overheads of the different formalizations.
 \item
   Formalized the intersection-type system for the \(\lamy\) calculus
 \item
@@ -483,6 +506,19 @@ possible further work.
 
 \label{chap:background}
 
+This chapter introduces some of the main concepts, discussed in greater
+length throughout the thesis. The first section discusses binders in a
+\(\lambda\)-calculus, since the treatment of binders is the most
+involved/problematic part of a fully formal mechanization of a
+\(\lambda\)-calculus.\\
+The following section introduces the simply-typed \(\lamy\) calculus
+along with a broad overview of the proof of confluence and important
+associated lemmas, which are discussed further in the following
+chapters.\\
+Lastly, we introduce the theory underpinning HOMC, namely intersection
+types for the \(\lamy\) calculus and present the proofs of subject
+invariance for intersection types.
+
 \section{Binders}\label{binders}
 
 \label{binders}
@@ -512,13 +548,14 @@ as saying that \(\lambda x.x \equiv \lambda y.y\).
 
 In an informal setting, reasoning with \(\alpha\)-equivalence of terms
 is often very implicit, however in a formal setting of theorem provers,
-having an inductive definition of ``raw'' \(lambda\)-terms, which are
-not \(alpha\)-equivalent, yet reasoning about \(\alpha\)-equivalent
+having an inductive definition of ``raw'' \(\lambda\)-terms, which are
+not \(\alpha\)-equivalent, yet reasoning about \(\alpha\)-equivalent
 \(\lambda\)-terms poses certain challenges.\\
 One of the main problems is the fact that the inductive/recursive
-definition does not easily lift to \(alpha\)-equivalent terms. Take a
-trivial example of a function on raw terms, which checks whether a
-variable appears bound in a given \(\lambda\)-term. Clearly, such
+definition does not easily lift to \(\alpha\)-equivalent terms and using
+induction as a proof technique for such a definition is no longer valid.
+Take a trivial example of a function on raw terms, which checks whether
+a variable appears bound in a given \(\lambda\)-term. Clearly, such
 function is well formed for ``raw'' terms, but does not work (or even
 make sense) for \(\alpha\)-equivalent terms.\\
 Conversely, there are informal definitions over \(\alpha\)-equivalent
@@ -589,9 +626,11 @@ To obtain an inductive definition of \(\lambda\)-terms with a built in
 notion of \(\alpha\)-equivalence, one can instead use nominal sets. The
 theory of nominal sets captures the notion of bound variables and
 freshness, as it is based around the notion of having properties
-invariant in name permutation.\\
-The nominal package in Isabelle provides tools to automatically define
-terms with binders, which generate inductive definitions of
+invariant in name permutation (Gabbay and Pitts
+(\protect\hyperlink{ref-gabbay02}{2002})).\\
+The nominal package in Isabelle (Urban and Tasson
+(\protect\hyperlink{ref-urban05}{2005})) provides tools to automatically
+define terms with binders, which generate inductive definitions of
 \(\alpha\)-equivalent terms. Using nominal sets in Isabelle results in a
 definition of terms, which looks very similar to the informal
 presentation of the lambda calculus:
@@ -652,10 +691,9 @@ versa. More precisely, since we are dealing with \(\alpha\)-equivalence
 classes, it is an isomorphism between the equivalence classes of named
 \(\lambda\)-terms and de Bruijn terms.
 
-To make things easier, we consider a representation of named terms,
-where we map named variables, \(x, y, z,...\) to indexed variables
-\(x_1,x_2,x_3,...\). Then, the mapping from named terms to de Bruijn
-term is given by \(f\), which we define in terms of an auxiliary
+We assume that \(\lambda\)-terms are built over the countable set of
+variables \(x_1,x_2,x_3,...\). Then, the mapping from named terms to de
+Bruijn term is given by \(f\), which we define in terms of an auxiliary
 function \(e\):
 
 \begin{center}
@@ -685,47 +723,22 @@ variable at a different level (like in
 \(\lambda x_1. (\lambda x_1. x_1)\)) and \(k\) is incremented, going
 into the body of the abstraction.
 
-The function \(g\), taking de Bruijn terms to named terms is a little
-more tricky. We need to replace the indices encoding free variables
-(those that have a value greater than or equal to \(k\), where \(k\) is
-the number of binders in scope) with named variables, such that for
-every index \(n\), we substitute \(x_m\), where \(m = n-k\), without
-capturing these free variables.
+For the opposite direction, we replace indices with the corresponding
+indexed variables, taking care to chose named variables in such a way as
+to not capture any free variables.\\
 
-We need two auxiliary functions to define \(g\):
+\begin{Example}
 
-\begin{center}
-$\begin{aligned}
-h_k^b(n) &= \begin{cases}
-x_{n-k} & n \geq k\\
-x_{k+b-n-1} & otherwise
-\end{cases}\\
-h_k^b(uv) &= h_k^b(u)\ h_k^b(v)\\
-h_k^b(\lambda u) &= \lambda x_{k+b}.\ h_{k+1}^b(u)\\[2.5em]
-\Diamond_k(n) &= \begin{cases}
-n-k & n \geq k\\
-0 & otherwise
-\end{cases}\\
-\Diamond_k(uv) &= \max (\Diamond_k(u),\ \Diamond_k(v))\\
-\Diamond_k(\lambda u) &= \Diamond_{k+1}(u)
-\end{aligned}$
-\end{center}
-
-The function \(g\) is then defined as
-\(g(t) = h_0^{\Diamond_0(t)+1}(t)\). As mentioned above, the complicated
-definition has to do with avoiding free variable capture. A term like
-\(\lambda (\lambda\ 2)\) intuitively represents a named \(\lambda\)-term
-with two bound variables and a free variable \(x_0\) according to the
-definition above. If we started giving the bound variables names in a
-naive way, starting from \(x_0\), we would end up with a term
+A term like \(\lambda (\lambda\ 2)\) intuitively represents a named
+\(\lambda\)-term which contains two bound variables and a free variable
+\(x_0\). If we started giving the bound variables names in a naive way,
+for example starting from \(x_0\), we would end up with a term
 \(\lambda x_0.(\lambda x_1.x_0)\), which is obviously not the term we
-had in mind, as \(x_0\) is no longer a free variable. To ensure we start
-naming the bound variables in such a way as to avoid this situation, we
-use \(\Diamond\) to compute the maximal value of any free variable in
-the given term, and then start naming bound variables with an index one
-higher than the value returned by \(\Diamond\).
+had in mind, as \(x_0\) is no longer a free variable.
 
-As one quickly notices, a term like \(\lambda x.x\) and \(\lambda y.y\)
+\end{Example}
+
+As one quickly notices, terms like \(\lambda x.x\) and \(\lambda y.y\)
 have a single unique representation as a de Bruijn term \(\lambda\ 0\).
 Indeed, since there are no named variables in a de Bruijn term, there is
 only one way to represent any \(\lambda\)-term, and the notion of
@@ -735,16 +748,14 @@ terms, by having a representation of \(\lambda\)-terms where every
 \(\alpha\)-equivalence class of \(\lambda\)-terms has a single
 representative term in the de Bruijn notation.
 
-In their comparison between named vs.~nameless/de Bruijn representations
-of \(\lambda\)-terms, Berghofer and Urban
-(\protect\hyperlink{ref-berghofer06}{2006}) give details about the
-definition of substitution, which no longer needs the variable
-convention and can therefore be defined using primitive structural
-recursion.\\
-The main disadvantage of using de Bruijn indices is the relative
-unreadability of both the terms and the formulation of properties about
-these terms. For instance, take the substitution lemma, which in the
-named setting would be stated as:
+As pointed out by Berghofer and Urban
+(\protect\hyperlink{ref-berghofer06}{2006}), the definition of
+substitution no longer needs the variable convention and can therefore
+be defined using primitive structural recursion. However, the main
+disadvantage of using de Bruijn indices is the relative unreadability of
+both the terms and the formulation of properties about these terms. For
+instance, take the substitution lemma, which in the named setting would
+be stated as:
 
 \begin{center}
 $\text{If }x \neq y\text{ and }x \not\in FV(L)\text{, then }
@@ -830,16 +841,97 @@ object-language.
 
 \newpage
 
-\section{Simple types}\label{simple-types}
+\section{\texorpdfstring{\(\lamy\)
+calculus}{\textbackslash{}lamy calculus}}\label{lamy-calculus}
 
-The simple types presented throughout this work (except for
-\cref{chap:itypes}) are often referred to as simple types \emph{a la
-Curry}, where a simply typed \(\lambda\)-term is a triple
+Originally, the field of higher order model checking mainly involved
+studying higher order recursion schemes (HORS), which are used to model
+higher-order programs, which are then checked exhaustively for desired
+properties, encoded as automata or intersection types. More recently,
+exploring the \(\lamy\) calculus (an extension of the simply typed
+\(\lambda\)-calculus) as an alternative to using HORS to model programs,
+has gained traction (Clairambault and Murawski
+(\protect\hyperlink{ref-clairambault13}{2013})). We therefore present
+the \(\lamy\) calculus, along with the proofs of the Church Rosser
+theorem and the formalization of intersection types for the \(\lamy\)
+calculus, as the basis for formalizing the theory of HOMC.
+
+\subsection{\texorpdfstring{Definition of \(\lamy\)
+terms}{Definition of \textbackslash{}lamy terms}}\label{definition-of-lamy-terms}
+
+The first part of this project focuses on formalizing the simply typed
+\(\lamy\) calculus and the proof of confluence for this calculus (proof
+of the Church Rosser Theorem is sometimes also referred to as proof of
+confluence). The usual/informal definition of the \(\lamy\) terms and
+the simple types are given below:\\
+\(\ \)
+
+\begin{Definition}[$\lamy$ types and terms]
+
+The set of simple types \(\sigma\) is built up inductively form the
+\(\mathsf{o}\) constant and the arrow type \(\to\).\\
+Let \(Var\) be a countably infinite set of atoms in the definition of
+the set of \(\lamy\) terms \(M\): \label{Definition:lamyTrms}
+
+\begin{center}
+$\begin{aligned}
+\sigma ::=&\ \mathsf{o}\ |\ \sigma \to \sigma \\
+M ::=&\ x\ |\ MM\ |\ \lambda x.M\ |\ Y_\sigma \text{ where }x \in Var
+\end{aligned}$
+\end{center}
+
+\end{Definition}
+
+The \(\lamy\) calculus differs from the simply typed
+\(\lambda\)-calculus only in the addition of the \(Y\) constant family,
+indexed at every simple type \(\sigma\), where the (simple) type of a
+\(Y_A\) constant (indexed with the type \(A\)) is \((A \to A) \to A\).
+The usual definition of \(\beta\)-reduction is then augmented with the
+\((Y)\) rule (this is the typed version of the rule):
+
+\begin{center}
+  \vskip 1em
+  \AxiomC{$\Gamma \vdash M : \sigma \to \sigma$}
+  \LeftLabel{$(Y)$}
+  \UnaryInfC{$\Gamma \vdash Y_\sigma M \red M (Y_\sigma M) : \sigma$}
+  \DisplayProof
+  \vskip 1em
+\end{center}
+
+In essence, the \(Y\) rule allows (some) well-typed recursive
+definitions over simply typed \(\lambda\)-terms.\\
+\(\ \)
+
+\begin{Example}
+
+Take for example the term \(\lambda x.x\), commonly referred to as the
+\emph{identity}. The \emph{identity} term can be given a type
+\(\sigma \to \sigma\) for any simple type \(\sigma\). We can therefore
+perform the following (well-typed) reduction in the \(\lamy\) calculus:
+
+\begin{center}
+$Y_\sigma (\lambda x.x) \red (\lambda x.x)(Y_\sigma (\lambda x.x))$
+\end{center}
+
+\end{Example}
+
+The typed version of the rule illustrates the restricted version of
+recursion clearly, since a recursive ``\(Y\)-reduction'' will only occur
+if the term \(M\) in \(Y_\sigma M\) has the matching type
+\(\sigma \to \sigma\) (to \(Y_\sigma\)'s type
+\((\sigma \to \sigma) \to \sigma\)), as in the example above.
+
+\subsection{Simple types}\label{simple-types}
+
+The simple types introduced above and presented throughout this work
+(except for \cref{chap:itypes}) are often referred to as simple types
+\emph{a la Curry}, where a simply typed \(\lambda\)-term is a triple
 \((\Gamma, M, \sigma)\) written as \(\Gamma \vdash M : \sigma\), where
-\(\Gamma\) is the typing context, \(M\) is a term of the untyped
-\(\lambda\)-calculus and \(\sigma\) is a simple type. A well typed term
-is valid, if one can construct a typing tree from the given type and
-typing context, using the following deduction system:
+\(\Gamma\) is the typing context, a finite set of variable and type
+tuples, \(M\) is a term of the untyped \(\lambda\)-calculus and
+\(\sigma\) is a simple type. A well typed term is valid, if one can
+construct a typing tree from the given type and typing context, using
+the following deduction system:
 
 \begin{Definition}[Simple-type assignment]
 
@@ -907,110 +999,7 @@ which are just the terms defined in \cref{Definition:lamyTrms}, with the
 ``typed'' \(\lamy\) terms, which are simply-typed terms \emph{a la
 Curry} of the form \(\Gamma \vdash M : \sigma\), where \(M\) is an
 ``untyped'' \(\lamy\) term. Thus, results about the \(\lamy\) calculus
-in this work are in fact results about the ``typed'' \(\lamy\)
-calculus.\\
-However, the proofs of the Church Rosser theorem, as presented in the
-next section, use the untyped definition of \(\beta\)-reduction. Whilst
-it is possible to define a typed version of \(\beta\)-reduction, it
-turned out to be much easier to first prove the Church Rosser theorem
-for the so called ``untyped'' \(\lamy\) calculus and then additionally
-restrict this result to only well-types \(\lamy\) terms.\\
-Thus, the definition of the Church Rosser Theorem, formulated for the
-\(\lamy\) calculus, is the following one:
-
-\begin{Theorem}[Church Rosser]
-
-\(\Gamma \vdash M : \sigma \land M \red^* M' \land M \red^* M'' \implies \exists M'''.\ \ M' \red^* M''' \land M'' \red^* M''' \land \Gamma \vdash M''' : \sigma\)
-
-\end{Theorem}
-
-In order to prove this typed version of the Church Rosser Theorem, we
-need to prove an additional result of subject reduction for \(\lamy\)
-calculus, namely:
-
-\begin{Theorem}[Subject reduction for $\red^*$]
-
-\label{Theorem:subRedSimp}
-\(\Gamma \vdash M : \sigma \land M \red^* M' \implies \Gamma \vdash M' : \sigma\)
-
-\end{Theorem}
-
-\section{\texorpdfstring{\(\lamy\)
-calculus}{\textbackslash{}lamy calculus}}\label{lamy-calculus}
-
-Originally, the field of higher order model checking mainly involved
-studying higher order recursion schemes (HORS), but more recently,
-exploring the \(\lamy\) calculus, which is an extension of the simply
-typed \(\lambda\)-calculus, in the context of HOMC has gained traction
-(Clairambault and Murawski
-(\protect\hyperlink{ref-clairambault13}{2013})). We therefore present
-the \(\lamy\) calculus, along with the proofs of the Church Rosser
-theorem and the formalization of intersection types for the \(\lamy\)
-calculus, as the basis for formalizing the theory of HOMC.
-
-\subsection{Definitions}\label{definitions}
-
-The first part of this project focuses on formalizing the simply typed
-\(\lamy\) calculus and the proof of confluence for this calculus (proof
-of the Church Rosser Theorem is sometimes also referred to as proof of
-confluence). The usual/informal definition of the \(\lamy\) terms and
-the simple types are given below:\\
-\(\ \)
-
-\begin{Definition}[$\lamy$ types and terms]
-
-The set of simple types \(\sigma\) is built up inductively form the
-\(\mathsf{o}\) constant and the arrow type \(\to\).\\
-Let \(Var\) be a countably infinite set of atoms in the definition of
-the set of \(\lamy\) terms \(M\): \label{Definition:lamyTrms}
-
-\begin{center}
-$\begin{aligned}
-\sigma ::=&\ \mathsf{o}\ |\ \sigma \to \sigma \\
-M ::=&\ x\ |\ MM\ |\ \lambda x.M\ |\ Y_\sigma \text{ where }x \in Var
-\end{aligned}$
-\end{center}
-
-\end{Definition}
-
-The \(\lamy\) calculus differs from the simply typed
-\(\lambda\)-calculus only in the addition of the \(Y\) constant family,
-indexed at every simple type \(\sigma\), where the (simple) type of a
-\(Y_A\) constant (indexed with the type \(A\)) is \((A \to A) \to A\).
-The usual definition of \(\beta\)-reduction is then augmented with the
-\((Y)\) rule (this is the typed version of the rule):
-
-\begin{center}
-  \vskip 1em
-  \AxiomC{$\Gamma \vdash M : \sigma \to \sigma$}
-  \LeftLabel{$(Y)$}
-  \UnaryInfC{$\Gamma \vdash Y_\sigma M \red M (Y_\sigma M) : \sigma$}
-  \DisplayProof
-  \vskip 1em
-\end{center}
-
-In essence, the \(Y\) rule allows (some) well-typed recursive
-definitions over simply typed \(\lambda\)-terms.\\
-\(\ \)
-
-\begin{Example}
-
-Take for example the term \(\lambda x.x\), commonly referred to as the
-\emph{identity}. The \emph{identity} term can be given a type
-\(\sigma \to \sigma\) for any simple type \(\sigma\). We can therefore
-perform the following (well-typed) reduction in the \(\lamy\) calculus:
-
-\begin{center}
-$Y_\sigma (\lambda x.x) \red (\lambda x.x)(Y_\sigma (\lambda x.x))$
-\end{center}
-
-\end{Example}
-
-The typed version of the rule illustrates the restricted version of
-recursion clearly, since a recursive ``\(Y\)-reduction'' will only occur
-if the term \(M\) in \(Y_\sigma M\) has the matching type
-\(\sigma \to \sigma\) (to \(Y_\sigma\)'s type
-\((\sigma \to \sigma) \to \sigma\)), as in the example above.
+in this work are in fact results about the ``typed'' \(\lamy\) calculus.
 
 \subsection{Church-Rosser Theorem}\label{church-rosser-theorem}
 
@@ -1090,7 +1079,7 @@ reduces to \(M_{max}\). We can then separate the ``diamond'' diagram
 above into two instances of the following triangle, where \(M'\) from
 the previous diagram is \(M_{max}\):
 
-\begin{figure}
+\begin{figure}[h]
 \begin{center}
 \begin{tikzpicture}[->,>=stealth',shorten >=1pt,auto,node distance=2.8cm,semithick]
   \tikzstyle{every state}=[fill=none,draw=none,text=black]
@@ -1108,7 +1097,9 @@ the previous diagram is \(M_{max}\):
 \label{figure:gggTriangle}
 \end{figure}
 
-\newpage
+Proving this triangle instead of the original diamond simplifies the
+overall proof, as there is no longer a need for the complicated double
+induction form the original proof.
 
 \subsubsection{\texorpdfstring{Parallel
 \(\beta Y\)-reduction}{Parallel \textbackslash{}beta Y-reduction}}\label{parallel-beta-y-reduction}
@@ -1116,7 +1107,9 @@ the previous diagram is \(M_{max}\):
 Having described the high-level overview of the classical proof and the
 reason for following the Takahashi
 (\protect\hyperlink{ref-takahashi95}{1995}) proof, we now present some
-of the major lemmas in more detail.\\
+of the major lemmas in more detail, as they form the core comparison of
+the \(\lamy\) calculus mechanizations, presented in
+\cref{chap:compIsa}.\\
 Firstly, we give the definition of \emph{parallel \(\beta Y\)-reduction}
 \(\gg\) formulated for the terms of the \(\lamy\) calculus, which allows
 simultaneous reduction of multiple parts of a term:\\
@@ -1210,9 +1203,10 @@ reduction of the two sub-terms, but not both.
 \end{Example}
 
 Now that we have described the intuition behind the \emph{parallel}
-\(\beta\)-reduction, we proceed to define the \emph{maximum parallel}
-\(\beta\)-reduction \(\ggg\), which contracts all redexes in a given
-term with a single step:
+\(\beta\)-reduction, following Takahashi
+(\protect\hyperlink{ref-takahashi95}{1995}), we proceed to define the
+\emph{maximum parallel} \(\beta\)-reduction \(\ggg\), which contracts
+all redexes in a given term with a single step:
 
 \begin{Definition}[$\ggg$]
 
@@ -1334,6 +1328,37 @@ twice, namely for any term \(M\) there is an \(M_{max}\) s.t.
 
 \end{Lemma}
 
+\subsection{Typed version of Church
+Rosser}\label{typed-version-of-church-rosser}
+
+The proof of the Church Rosser theorem, as presented above, uses the
+untyped definition of \(\beta\)-reduction. Whilst it is possible to
+define a typed version of \(\beta\)-reduction, it turned out to be much
+easier to first prove the Church Rosser theorem for the so called
+``untyped'' \(\lamy\) calculus and then additionally restrict this
+result to only well-typed \(\lamy\) terms.\\
+Thus, the definition of the Church Rosser Theorem, formulated for the
+\(\lamy\) calculus, is the following one:
+
+\begin{Theorem}[Typed Church Rosser Theorem]
+
+\(\Gamma \vdash M : \sigma \land M \red^* M' \land M \red^* M'' \implies \exists M'''.\ \ M' \red^* M''' \land M'' \red^* M''' \land \Gamma \vdash M''' : \sigma\)
+
+\end{Theorem}
+
+In order to prove this typed version of the Church Rosser Theorem, we
+need to prove an additional result of subject reduction for \(\lamy\)
+calculus, which states that if a simply typed term \(M\) (with a type
+\(\tau\)) \(\beta\)-reduces to \(M'\), \(M'\) can also be typed with
+\(\tau\):
+
+\begin{Theorem}[Subject reduction for $\red^*$]
+
+\label{Theorem:subRedSimp}
+\(\Gamma \vdash M : \sigma \land M \red^* M' \implies \Gamma \vdash M' : \sigma\)
+
+\end{Theorem}
+
 \newpage
 
 \section{Intersection types}\label{intersection-types}
@@ -1349,22 +1374,29 @@ extend simple types by adding a conjunction to the definition of types:
 
 \begin{Definition}[$\lambda_\cap^{BCD}$ types]
 
+In the definition below, \(\phi\) is a constant (analogous to the
+constant \(\mathsf{o}\), introduced for the simple types in
+\cref{Definition:lamyTrms}). To avoid confusion between simple and
+intersection types, the usual arrow-type notation \(\to\), used in the
+definition of both type-systems is substituted for the \(\leadsto\)
+arrow.
+
 \begin{center}
 $\mathcal{T} ::= \phi\ |\ \mathcal{T} \leadsto \mathcal{T}\ |\ \mathcal{T} \cap \mathcal{T}$
 \end{center}
 
 \end{Definition}
 
-We restrict ourselves to a version of intersection types often called
-\emph{strict} intersection types. \emph{Strict} intersection types are a
-restriction on \(\lambda_\cap^{BCD}\) types, where an intersection of
-types can only appear on the left side of an ``arrow'' type:
+Following Bakel (\protect\hyperlink{ref-bakel}{2003}), we restrict
+ourselves to a version of intersection types often called \emph{strict}
+intersection types. \emph{Strict} intersection types are a restriction
+on \(\lambda_\cap^{BCD}\) types, where an intersection of types can only
+appear on the left side of an ``arrow'' type:
 
 \begin{Definition}[Strict intersection types]
 
-\label{Definition:itypes} In the definition below, \(\phi\) is a
-constant (analogous to the constant \(\mathsf{o}\), introduced for the
-simple types in \cref{Definition:lamyTrms}).
+\label{Definition:itypes} As in the definition above, \(\phi\) is a
+constant.
 
 \begin{center}
 $\begin{aligned}
@@ -1415,8 +1447,8 @@ $\begin{aligned}
 \end{aligned}$
 \end{center}
 
-(This relation is equivalent the \(\leq\) relation, defined in R.
-Pollack (\protect\hyperlink{ref-pollack95}{1995}) notes, i.e.
+(This relation is equivalent the \(\leq\) relation, defined in Bakel
+(\protect\hyperlink{ref-bakel}{2003}) notes, i.e.
 \(\tau \leq \psi = \psi \subseteq \tau\).)
 
 \end{Definition}
@@ -1429,9 +1461,9 @@ previous sections, an intersection-typing judgment is a triple
 the simple typing context, \(M\) is a \(\lamy\) term and \(\tau\) is a
 strict intersection type \(\mathcal{T}_s\).\\
 The definition of the intersection-typing system, like the \(\subseteq\)
-relation, has also been adapted from the typing system found in the R.
-Pollack (\protect\hyperlink{ref-pollack95}{1995}) notes, by adding the
-typing rule for the \(Y\) constants:
+relation, has also been adapted from the typing system found in the
+Bakel (\protect\hyperlink{ref-bakel}{2003}) notes, by adding the typing
+rule for the \(Y\) constants:
 
 \begin{Definition}[Intersection-type assignment]
 
@@ -1493,11 +1525,53 @@ Assuming that \(\Gamma\) is a finite list, consisting of pairs of atoms
 
 \end{Definition}
 
+\subsection{Type refinement}\label{type-refinement}
+
+\label{initTypeRefine}
+
+It is important for the theory underpinning HOMC to be decidable. In
+order to guarantee this, we introduce a type refinement relation
+\(\tau :: A\) for intersection types, where \(\tau\) is an intersection
+type, refining a simple type \(A\). We can guarantee that the search
+space for an intersection type, which can type a given \(\lamy\) term
+\(M\) with the simple type \(A\) is finite (and typing such a term is
+thus decidable), since the set \(\{\tau\ |\ \tau :: A\}\) is finite and
+therefore, enumerating and checking whether \(\Gamma \Vdash M : \tau\)
+for any of the types \(\tau\) in this set, will take a finite time.
+
+We present the type refinement relation, presented by Kobayashi
+(\protect\hyperlink{ref-kobayashi09}{2009}) (amongst others):
+
+\begin{Definition}[Intersection-type refinement]
+
+\begin{center}
+  \AxiomC{}
+  \UnaryInfC{$\phi :: \mathsf{o}$}
+  \DisplayProof
+  \hskip 1.5em
+  \AxiomC{$\taui :: A$}
+  \AxiomC{$\tau :: B$}
+  \BinaryInfC{$\taui \leadsto \tau :: A \to B$}
+  \DisplayProof
+  \hskip 1.5em
+  \AxiomC{$\forall i \in \underline{n}.\ \ \tau_i :: A$}
+  \UnaryInfC{$\taui :: A$}
+  \DisplayProof
+\end{center}
+
+\end{Definition}
+
+\subsection{Subject invariance}\label{subject-invariance}
+
+\begin{Remark}
+
 The definitions presented in this section are the initial definitions,
 used as a basis for the mechanization discussed in \cref{chap:itypes}.
 Due to different obstacles in the formalization of the subject
 invariance proofs, these definitions were amended several times. The
 reasons for these changes are also documented in \cref{chap:itypes}.
+
+\end{Remark}
 
 \chapter{Methodology}\label{methodology}
 
@@ -1647,7 +1721,7 @@ as we obfuscate the natural flow of the informal proof, hiding most of
 the reasoning in automation (the last line \texttt{by simp+}):
 
 \begin{minted}[]{isabelle}
-lemma sq_odd: "⋀ n ::nat. (∃k. n = 2 * k + 1) ⟹ ∃k. n*n = 2 * k + 1"
+lemma sq_odd: "⋀n :: nat. (∃k. n = 2 * k + 1) ⟹ ∃k. n * n = 2 * k + 1"
 apply (erule_tac P="λk. n = 2 * k + 1" in exE)
 apply (rule_tac x="(2 * x * x) + (2 * x)" in exI)
 apply (rule_tac s="(2 * x + 1) * (2 * x + 1)" in subst)
@@ -2023,7 +2097,7 @@ implementation using the nominal library proved to be more difficult to
 use at certain points, due to the more complex nominal sets theory that
 implicitly underpinned the mechanization.
 
-\section{Definitions}\label{definitions-1}
+\section{Definitions}\label{definitions}
 
 We give a brief overview of the basic definitions of well-typed terms
 and \(\beta\)-reduction, specific to both mechanizations.
@@ -3747,18 +3821,16 @@ data IType : Set where
   _~>_ : List IType -> IType -> IType
 \end{minted}
 
-\section{Type refinement}\label{type-refinement}
+\section{Type refinement}\label{type-refinement-1}
 
 One of the first things we needed to add to the notion of
-intersection-type assignment (and as a result also to the \(\subseteq\)
-relation on intersection types) was the notion of simple-type
-refinement. The main idea of intersection types for \(\lamy\) terms is
-for the intersection types to ``refine'' the simple types. Intuitively,
-this notion should capture the relationship between the ``shape'' of the
-intersection and simple types.
-
-To demonstrate the reason for introducing type refinement, we look at
-the initial formulation of the (intersection) typing rule \((Y)\):
+intersection-type assignment and the \(\subseteq\) relation on
+intersection types was the notion of simple-type refinement.
+Intuitively, this notion should capture the relationship between the
+``shape'' of the intersection and simple types.\\
+To illustrate why we might want to incorporate type refinement into
+these definitions, we look at the initial formulation of the
+(intersection) typing rule \((Y)\):
 
 \begin{center}
   \vskip 1em
@@ -3787,11 +3859,11 @@ type \(\sigma\):
   \vskip 1.5em
 \end{center}
 
-The refinement relation has been defined by Kobayashi
-(\protect\hyperlink{ref-kobayashi09}{2009}) (amongst others) and is
-presented below:
+The refinement relation, defined in \cref{initTypeRefine} has been
+adapted for the Agda definition of intersection types and is presented
+below:
 
-\begin{Definition}[Intersection-type refinement]
+\begin{Definition}[Intersection-type refinement in Agda]
 
 Since intersection types are defined in terms of strict
 (\(\mathcal{T}_s\)) and non-strict (\(\mathcal{T}\)) intersection types,
@@ -5195,6 +5267,12 @@ Foundations of Software Technology and Theoretical Computer Science,
 FSTTCS 2013, December 12-14, 2013, Guwahati, India}, 91--102.
 doi:\href{https://doi.org/10.4230/LIPIcs.FSTTCS.2013.91}{10.4230/LIPIcs.FSTTCS.2013.91}.
 
+\hypertarget{ref-gabbay02}{}
+Gabbay, J. Murdoch, and M. Andrew Pitts. 2002. ``A New Approach to
+Abstract Syntax with Variable Binding.'' \emph{Formal Aspects of
+Computing} 13 (3): 341--63.
+doi:\href{https://doi.org/10.1007/s001650200016}{10.1007/s001650200016}.
+
 \hypertarget{ref-harper93}{}
 Harper, Robert, Furio Honsell, and Gordon Plotkin. 1993. ``A Framework
 for Defining Logics.'' \emph{J. ACM} 40 (1). New York, NY, USA: ACM:
@@ -5250,6 +5328,14 @@ Conference on Computer Science Logic (Csl) and the Twenty-Ninth Annual
 Acm/Ieee Symposium on Logic in Computer Science (Lics)}, 78:1--78:10.
 CSL-Lics '14. New York, NY, USA: ACM.
 doi:\href{https://doi.org/10.1145/2603088.2603133}{10.1145/2603088.2603133}.
+
+\hypertarget{ref-urban05}{}
+Urban, Christian, and Christine Tasson. 2005. ``Nominal Techniques in
+Isabelle/Hol.'' In \emph{Automated Deduction -- Cade-20: 20th
+International Conference on Automated Deduction, Tallinn, Estonia, July
+22-27, 2005. Proceedings}, edited by Robert Nieuwenhuis, 38--53. Berlin,
+Heidelberg: Springer Berlin Heidelberg.
+doi:\href{https://doi.org/10.1007/11532231_4}{10.1007/11532231\_4}.
 
 % - Back matter ----------------------------------------------------------------
 

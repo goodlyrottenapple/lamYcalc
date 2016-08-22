@@ -36,9 +36,8 @@ data IType : Set where
 
 ##Type refinement
 
-One of the first things we needed to add to the notion of intersection-type assignment (and as a result also to the $\subseteq$ relation on intersection types) was the notion of simple-type refinement. The main idea of intersection types for $\lamy$ terms is for the intersection types to "refine" the simple types. Intuitively, this notion should capture the relationship between the "shape" of the intersection and simple types. 
-
-To demonstrate the reason for introducing type refinement, we look at the initial formulation of the (intersection) typing rule $(Y)$:
+One of the first things we needed to add to the notion of intersection-type assignment and the $\subseteq$ relation on intersection types was the notion of simple-type refinement. Intuitively, this notion should capture the relationship between the "shape" of the intersection and simple types.   
+To illustrate why we might want to incorporate type refinement into these definitions, we look at the initial formulation of the (intersection) typing rule $(Y)$:
 
 \begin{center}
   \vskip 1em
@@ -63,9 +62,9 @@ The lack of connection between simple and intersection types in the typing relat
 \end{center}
 
 
-The refinement relation has been defined by @kobayashi09 (amongst others) and is presented below:
+The refinement relation, defined in \cref{initTypeRefine} has been adapted for the Agda definition of intersection types and is presented below:
 
-<div class="Definition" head="Intersection-type refinement">
+<div class="Definition" head="Intersection-type refinement in Agda">
 Since intersection types are defined in terms of strict ($\mathcal{T}_s$) and non-strict ($\mathcal{T}$) intersection types, the definition of refinement ($::$) is split into two versions, one for strict and another for non-strict types. In the definition below, $\tau$ ranges over strict intersection types $\mathcal{T}_s$, with $\tau_i, \tau_j$ ranging over non-strict intersection types $\mathcal{T}$, and $A, B$ range over simple types $\sigma$:
 
 \begin{center}

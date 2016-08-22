@@ -18,16 +18,18 @@ degreedate: Trinity 2016
 # -----------------------------------------------------------------------------
 abstract: |
   Higher order model checking (HOMC), has been intensively studied in recent years (@ong06, @kobayashi13, @ramsay14, @tsukada14). A common approach to studying HOMC is through higher order recursion schemes (HORS).   
-  Recently, it was shown that $\lamy$ calculus with intersection-types can be used as an alternative to HORS, when studying higher order model checking. Whilst the theory of HORS and $\lamy$ has been formalized "on paper", there has been little done in mechanizing this theory in a fully formal setting of a theorem prover.    
-  The aim of this project was to start such a formalization, by first mechanizing the $\lamy$ calculus along with the proof of confluence for simple types. This served as a benchmark for choosing the implementation specifics, such as the binder representation strategy as well as the implementation language.   
-  The formalization of the terms of the calculus along with the proof of confluence served as a benchmark for comparing the chosen mechanization approaches. The best mechanization was then extended with the formalization of intersection types for the $\lamy$ calculus, along with the proofs of subject invariance.
+  Recently, it was shown that $\lamy$ calculus can be used as an alternative to HORS, when studying higher order model checking (@clairambault13). Whilst the theory of HORS and $\lamy$ has been formalized "on paper", there has been little done in mechanizing this theory in a fully formal setting of a theorem prover.    
+  This project provides a starting point for such a formalization, by mechanizing the $\lamy$ calculus along with the proof of confluence for simple types and mechanizing intersection types for the $\lamy$ calculus together with proofs of subject invariance for intersection typing. The mechanization of intersection types, and proofs of subject invariance especially, form an important basis of HOMC theory, since these results are key to sound and complete higher order model checking.
+  The project is split into two parts, with the mechanization of simply typed $\lamy$ calculus and proofs of confluence serving as a benchmark for comparing and choosing the best implementation tools and strategy. Specifically, the best mechanization approach from the first part of the project, which looks at formalizing simply typed $\lamy$ calculus along with the proof of confluence, was extended with the formalization of intersection types for the $\lamy$ calculus, along with the proofs of subject invariance, in the second part.
   
 
 # dedication: |
 #   This is a dedication...
 
 acknowledgements: |
-  Say thanks to whoever listened to your rants for 2 months
+  First and foremost, I would like to thank my supervisors Steven Ramsay, Faris Abou-Saleh and Luke Ong for guidance on this project. I want to especially thank Steven, whose office I would, on occasion, barge into with a non-working proof, which he would always be willing to discuss and help me correct.    
+  I also want to thank Alexander Kurz, my past-future supervisor, and Sam Jones, my close friend, for persuading me to apply to Oxford. I would not have been here, learned all that I had and met the cool people I did, without their encouragement.    
+  Lastly, I want to thank my housemate Fiona MacLean for the great evening kitchen chats, which made Oxford all the more enjoyable, Zbynek Leobl, who was a great squash partner (even though we were both really bad at it) and Alberto Sadde, for great chats at the department and over beer, in the pub.
 
 # originality: |
 #   This is the statement of originality
