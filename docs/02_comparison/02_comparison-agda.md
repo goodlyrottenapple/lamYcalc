@@ -109,7 +109,7 @@ where the goal now has the following shape:
 ```
 
 From this point, the simplifier rewrites `xa = x` to `False` and `(if False then u else FVar xa)` to `FVar xa` in the goal.    
-The use of tactics and automated tools is heavily ingrained in Isabelle and it is actually impossible (i.e. impossible for me) to not use `simp` at this point in the proof, partly because one gets so used to discharging such trivial goals automatically and partly because it becomes nearly impossible to do the last two steps explicitly without having a detailed knowledge of the available commands and tactics in Isabelle (i.e. I don't).   
+The use of tactics and automated tools is heavily ingrained in Isabelle and it is extremely natural to use `simp` at this point in the proof, partly because one gets so used to discharging such trivial goals automatically and partly because it becomes nearly impossible to do the last two steps explicitly without having a detailed knowledge of the available commands and tactics in Isabelle.   
 Doing these steps explicitly quickly becomes cumbersome, as one needs to constantly look up the names of basic lemmas, such as `Set.empty\_iff`, which is a simple rewrite rule `(?c ∈ \{\}) = False`.
 </div>
 
@@ -157,8 +157,8 @@ As was already mentioned, Agda treats proofs as programs, and therefore provides
 lemma x: "assm-1 ⟹ ... ⟹ assm-n ⟹ concl"
 ```
 
-Using the 'apply-style' reasoning in Isabelle can become burdensome, if one needs to modify or reason with the assumptions, as was seen in \cref{Example:substFresh}. In this example, the `drule` tactic, which is used to apply rules to the premises rather than the conclusion, was applied repeatedly. Other times, we might have to use structural rules for exchange or weakening, which are necessary purely for `organizational` purposes of the proof.   
-In Agda, such rules are not necessary, since the example above looks like a function definition:
+Using the 'apply-style' reasoning in Isabelle can become burdensome, if one needs to modify or reason with the assumptions, as was seen in \cref{Example:substFresh}. In this example, the `drule` tactic, which is used to apply rules to the premises rather than the conclusion, was applied repeatedly. Other times, we might have to use structural rules for exchange or weakening, which are necessary purely for organizational purposes of the proof.   
+In Agda, such rules are not necessary, since the example above is a function definition:
 
 ```{.idris}
 x assm-1 ... assm-n = ?
@@ -458,3 +458,8 @@ Doing these steps explicitly was not in fact necessary, as the automatic proof s
 >>>-Term-l (Y t>>>t') = app Y (>>>-Term-l t>>>t')
 ```
 </div>
+
+##Verdict
+
+Much like in the case of comparing nominal and locally nameless versions of the $\lamy$ calculus, the differences between Agda and Isabelle turned out to me fairly minor. Whilst Isabelle provides better automation, evidenced by a shorter formalization, the powerful type system of Agda achieves similar results, as was demonstrated throughout this chapter. Even though the mechanization in Isabelle turned out to be shorter, we chose to continue using Agda for the next phase of the mechanization of intersection types and proofs of subject invariance.   
+This decision was mainly based on the proofs-as-programs nature of Agda. Since proofs are programs in Agda, it was felt that the mechanization of further theory of HOMC would be much more easily extended with not only proofs, but also programs, such as the decision procedure for the normalizability of $\lamy$ terms, which is an important result in HOMC. Such a decision procedure would not only be executable, but would be tied directly to the proof of its correctness (such a mechanization is of course also achievable in Isabelle).

@@ -160,7 +160,12 @@ datatype ptrm =
 ~~~
 
 Note however, that this definition doesn't quite fit the notion of $\lambda$-terms, since a `ptrm` like `(BVar 0)` does not represent a valid $\lambda$-term, since bound variables can only appear in the context of a $\lambda$, such as in `(Lam (BVar 0))`.   
-The advantage of using a locally nameless definition of $\lambda$-terms is a better readability of such terms, compared to equivalent de Bruijn terms. Another advantage is the fact that definitions of functions and reasoning about properties of these terms is much closer to the informal setting.
+
+The locally nameless approach is championed by @aydemir08, who claim several benefits:
+
+> "First, our \[locally nameless\] presentation is transparent: the proofs closely follow their informal equivalents. Second the overheads of the approach are low: we do not need manual proofs of freshness side-conditions nor reasoning about alpha-equivalence ... At the same time, there is no need for external tools, and the style works in any general purpose theorem prover (although we found Coq to be well-suited to the task)."
+
+Another advantage of using a locally nameless definition of $\lambda$-terms is a better readability of such terms, compared to equivalent de Bruijn terms. We therefore chose the locally nameless approach for one of our mechanizations and put these claims to test in \cref{chap:compIsa}.
 
 ###Higher-Order approaches
 
@@ -553,7 +558,7 @@ This relation is the least pre-order on intersection types s.t.:
 \begin{center}
 $\begin{aligned}
 \forall\ i \in \underline{n}.\ \ \tau_i \subseteq& \taui \\ 
-\forall\ i \in \underline{n}.\ \ \tau_i \subseteq \tau \implies& \taui \subseteq \tau \\
+\forall\ i \in \underline{n}.\ \ \tau_i \subseteq \psi \implies& \taui \subseteq \psi \\
 \rho \subseteq \psi \land \tau \subseteq \mu \implies& \psi \leadsto \tau \subseteq \rho \leadsto \mu\\
 \end{aligned}$
 \end{center}
@@ -563,8 +568,7 @@ $\begin{aligned}
 
 
 In this presentation, $\lamy$ terms are typed with the strict types $\mathcal{T}_s$ only. Much like the simple types, presented in the previous sections, an intersection-typing judgment is a triple $\Gamma, M, \tau$, written as $\Gamma \vDash M : \tau$, where $\Gamma$ is the intersection-type context, similar in construction to the simple typing context, $M$ is a $\lamy$ term and $\tau$ is a strict intersection type $\mathcal{T}_s$.    
-The definition of the intersection-typing system, like the $\subseteq$ relation, has also been adapted from the typing system found in the @bakel notes, by adding the typing rule for the $Y$ constants:
-
+The definition of the intersection-typing system, like the $\subseteq$ relation, has also been adapted from the typing system found in the @bakel notes, by adding the typing rule for the $Y$ constants:   
 <div class="Definition" head="Intersection-type assignment">$\ $
 \begin{center}
   \AxiomC{$x: \taui \in \Gamma$}
@@ -595,8 +599,7 @@ The definition of the intersection-typing system, like the $\subseteq$ relation,
 \end{center}
 </div>
 
-The definition above also assumes that the context $\Gamma$ is _well-formed_:
-
+The definition above also assumes that the context $\Gamma$ is _well-formed_:   
 <div class="Definition" head="Well-formed intersection-type context">
 Assuming that $\Gamma$ is a finite list, consisting of pairs of atoms $Var$ and intersection types $\mathcal{T}$, $\Gamma$ is a _well-formed_ context iff:$\\$
 \begin{center}
@@ -618,10 +621,9 @@ Assuming that $\Gamma$ is a finite list, consisting of pairs of atoms $Var$ and 
 ###Type refinement
 \label{initTypeRefine}
 
-It is important for the theory underpinning HOMC to be decidable. In order to guarantee this, we introduce a type refinement relation $\tau :: A$ for intersection types, where $\tau$ is an intersection type, refining a simple type $A$. We can guarantee that the search space for an intersection type, which can type a given $\lamy$ term $M$ with the simple type $A$ is finite (and typing such a term is thus decidable), since the set $\{\tau\ |\ \tau :: A\}$ is finite and therefore, enumerating and checking whether $\Gamma \Vdash M : \tau$ for any of the types $\tau$ in this set, will take a finite time.
+It is important for the theory underpinning HOMC to be decidable. In order to guarantee this, we introduce a type refinement relation $\tau :: A$ for intersection types, where $\tau$ is an intersection type, refining a simple type $A$. Intuitively, the notion of refinement restricts the intersection types to those which correspond in "shape" to the simple type they refine. By restricting intersection types to only those that refine a given simple type, we can guarantee that the search space for an intersection type, which can type a given $\lamy$ term $M$ with the simple type $A$ is finite (and typing such a term is thus decidable), since the set $\{\tau\ |\ \tau :: A\}$ is finite. Therefore, enumerating and checking whether $\Gamma \Vdash M : \tau$ for any of the types $\tau$ in this set will take finite time.
 
-We present the type refinement relation, presented by @kobayashi09 (amongst others):
-
+We present the type refinement relation, presented by @kobayashi09 (amongst others):   
 <div class="Definition" head="Intersection-type refinement">
 \begin{center}
   \AxiomC{}
@@ -640,9 +642,16 @@ We present the type refinement relation, presented by @kobayashi09 (amongst othe
 </div>
 
 ###Subject invariance
+\label{initSubjectInv}
 
+An interesting property of intersection-type systems is the fact that they admit both subject expansion and subject reduction, namely $\Vdash$ is closed under $\beta$-equality. This means that given a term $M$ with intersection type $\tau$ and $N$ s.t. $M =_\beta N$, $N$ can be typed at $\tau$:
 
+<div class="Theorem" head="Subject invariance for $\Vdash$">
 
+i)    Subject reduction: $\Gamma \Vdash m : \tau \implies m \red m' \implies \Gamma \Vdash m' : \tau$
+ii)   Subject expansion: $\Gamma \Vdash m' : \tau \implies m \red m' \implies \Gamma \Vdash m : \tau$
+</div>   
 
+$\ $
 <div class="Remark">The definitions presented in this section are the initial definitions, used as a basis for the mechanization discussed in \cref{chap:itypes}. Due to different obstacles in the formalization of the subject invariance proofs, these definitions were amended several times. The reasons for these changes are also documented in \cref{chap:itypes}.</div>
 

@@ -2,7 +2,7 @@
 \label{chap:itypes}
 
 Having compared different mechanizations and implementation languages for the simply typed $\lamy$ calculus in the previous two chapters, we arrived at the "winning" combination of a locally nameless mechanization using Agda. Carrying on in this setting, we present the formalization of intersection types for the $\lamy$ calculus along with the proof of subject invariance for intersection types.   
-Whilst the theory formalized so far "only"  includes the basic definitions of intersection type assignment and the proof of subject invariance, these proofs turned out to be significantly more difficult than their simply typed counterparts (e.g. in case of sub-tying and subject reduction lemmas). Indeed the whole formalization of simple types, along with the proof of the Church Rosser theorem, is roughly only 1350 lines of code in Agda, in comparison to about 1890 lines, for the intersection typing together with proofs of subject invariance.   
+These proofs turned out to be significantly more difficult than their simply typed counterparts (e.g. in case of sub-tying and subject reduction lemmas). Indeed the whole formalization of simple types, along with the proof of the Church Rosser theorem, is roughly only 1350 lines of code in Agda, in comparison to about 1890 lines, for the intersection typing together with proofs of subject invariance.   
 Even though the proof is not novel, there is, to our knowledge, no known fully formal version of it for the $\lamy$ calculus. The chapter mainly focuses on the engineering choices that were made in order to simplify the proofs as much as possible, as well as the necessary implementation overheads and compromises that were made.    
 The chapter is presented in sections, each explaining implementation details for a specific lemma or definition (some of which were introduced in \cref{itypesIntro}). Some of the definitions presented early on in this chapter undergo several revisions, as we discuss the necessities for these changes in a (mostly) chronological manner, in which they arose during the implementation stage of this project.
 
@@ -23,7 +23,7 @@ data IType|$_\ell$| where
   ∩ : List IType -> IType|$_\ell$|
 ~~~
 
-The reason why the intersection `IType`$_\ell$ is defined as a list of strict types `IType` in line 9, is due to the (usually) implicit requirement that the types in $\mathcal{T}$ be finite. The decision to use lists as an implementation of fine sets was taken, because the Agda standard library includes a definition of lists with definitions of list membership $\in$ and other associated lemmas, which proved to be useful for definitions of the $\subseteq$ relation on types. 
+The reason why the intersection `IType`$_\ell$ is defined as a list of strict types `IType` in line 9, is due to the (usually) implicit requirement that the types in $\mathcal{T}$ be finite. The decision to use lists as an implementation of finite sets was taken, because the Agda standard library includes a definition of lists with definitions of list membership $\in$ and other associated lemmas, which proved to be useful for definitions of the $\subseteq$ relation on types. 
 
 
 From the above definition, it is obvious that the split definitions of `IType` and `IType`$_\ell$ are somewhat redundant, in that `IType`$_\ell$ only has one constructor `∩` and therefore, any instance of `IType`$_\ell$ in the definition of `IType` can simply be replaced by `List IType`:
@@ -34,10 +34,17 @@ data IType : Set where
   _~>_ : List IType -> IType -> IType
 ~~~
 
+##Notation
+\label{notation}
+
+Since we have defined the arrow type $\leadsto$ as having list of `IType`-s on the left of the arrow, we will adopt the following convention throughout the chapter.    
+Unless stated otherwise, types with a subscript, $\tau_i, \tau_j, \hdots, \psi_i, \psi_j, \hdots$ denote lists of types, previously written as $\taui$ or $\bigcap\nolimits_{\underline{n}} \psi_i$, whereas $\tau, \tau', \psi, \hdots$ represent strict intersection types.    
+Further, we write '$\tau, \tau_i$' to mean the cons operation on lists, usually written as '$\tau : \tau_i$' in Haskell and $\tau_i \concat \tau_j$ to mean list concatenation. We also use $\omega$ to denote the empty `Itype` list and write $[\tau]$ or $[\tau_1, \hdots, \tau_n]$ to denote `IType` lists, which can also be written as '$\tau, \omega$' and '$\tau_1, \hdots, \tau_n, \omega$'' respectively.
+
 ##Type refinement
 
-One of the first things we needed to add to the notion of intersection-type assignment and the $\subseteq$ relation on intersection types was the notion of simple-type refinement. Intuitively, this notion should capture the relationship between the "shape" of the intersection and simple types.   
-To illustrate why we might want to incorporate type refinement into these definitions, we look at the initial formulation of the (intersection) typing rule $(Y)$:
+One of the first things we needed to integrate into the notion of intersection-type assignment and the $\subseteq$ relation on intersection types was the notion of simple-type refinement. As mentioned in \cref{initTypeRefine}, intuitively, this notion should capture the relationship between the "shape" of the intersection and simple types.   
+To illustrate why we might want to incorporate type refinement into these definitions, we look at the initial formulation of the (intersection) typing rule $(Y)$, using the original notation:
 
 \begin{center}
   \vskip 1em
@@ -65,7 +72,7 @@ The lack of connection between simple and intersection types in the typing relat
 The refinement relation, defined in \cref{initTypeRefine} has been adapted for the Agda definition of intersection types and is presented below:
 
 <div class="Definition" head="Intersection-type refinement in Agda">
-Since intersection types are defined in terms of strict ($\mathcal{T}_s$) and non-strict ($\mathcal{T}$) intersection types, the definition of refinement ($::$) is split into two versions, one for strict and another for non-strict types. In the definition below, $\tau$ ranges over strict intersection types $\mathcal{T}_s$, with $\tau_i, \tau_j$ ranging over non-strict intersection types $\mathcal{T}$, and $A, B$ range over simple types $\sigma$:
+Since intersection types are defined in terms of strict ($\mathcal{T}_s$) and non-strict ($\mathcal{T}$) intersection types, the definition of refinement ($::$) is split into two versions, one for strict and another for non-strict types. In the definition below, $A, B$ range over simple types $\sigma$:
 
 \begin{center}
   \AxiomC{}
@@ -74,9 +81,9 @@ Since intersection types are defined in terms of strict ($\mathcal{T}_s$) and no
   \DisplayProof
   \hskip 1.5em
   \AxiomC{$\tau_i ::_\ell A$}
-  \AxiomC{$\tau_j ::_\ell B$}
+  \AxiomC{$\tau :: B$}
   \LeftLabel{$(arr)$}
-  \BinaryInfC{$\tau_i \leadsto \tau_j :: A \to B$}
+  \BinaryInfC{$\tau_i \leadsto \tau :: A \to B$}
   \DisplayProof
   \vskip 1.5em
   \AxiomC{}
@@ -105,9 +112,9 @@ In the definition below, $\tau, \tau'$ range over $\mathcal{T}_s$, $\tau_i, \hdo
   \DisplayProof
   \hskip 1.5em
   \AxiomC{$\tau_i \subseteq^A_\ell \tau_j$}
-  \AxiomC{$\tau_m \subseteq^B \tau_n$}
+  \AxiomC{$\tau \subseteq^B \tau'$}
   \LeftLabel{$(arr)$}
-  \BinaryInfC{$\tau_j \leadsto \tau_m \subseteq^{A \to B} \tau_i \leadsto \tau_n$}
+  \BinaryInfC{$\tau_j \leadsto \tau \subseteq^{A \to B} \tau_i \leadsto \tau'$}
   \DisplayProof
   \vskip 1.5em
   \AxiomC{$\tau_i ::_\ell A$}
@@ -126,40 +133,31 @@ In the definition below, $\tau, \tau'$ range over $\mathcal{T}_s$, $\tau_i, \hdo
 
 ##Well typed $\subseteq$
 
-The presentation of the $\subseteq$ relation in \cref{Definition:subseteqOrig} differs quite significantly from the one presented above. The main difference is obviously the addition of type refinement, but the definition now also includes the $(base)$ rule, which allows one to derive the previously implicitly stated reflexivity and transitivity rules.
-<!--\vspace{1.5em}
-<div class="Remark">
-From $(base)$, one can prove the general $(refl_S)$ and $(refl)$ rules: 
-
-<div class="Lemma">
-The following rules are admissible in $\subseteq^A_s/\subseteq^A$:
-
-\begin{center}
-  \AxiomC{$\tau ::_s A$}
-  \LeftLabel{$(refl_s)$}
-  \UnaryInfC{$\tau \subseteq^A_s \tau$}
-  \DisplayProof
-  \hskip 1.5em
-  \AxiomC{$\tau_i :: A$}
-  \LeftLabel{$(refl)$}
-  \UnaryInfC{$\tau_i \subseteq^A \tau_i$}
-  \DisplayProof
-\end{center}
-
-</div>
-</div>-->   
-Another departure from the original definition is the formulation of the following two properties as the $(nil)$ and $(cons)$ rules:
+The presentation of the $\subseteq$ relation in \cref{Definition:subseteqOrig} differs quite significantly from the one presented above. The main difference is obviously the addition of type refinement, but the definition now also includes the $(base)$ rule, which allows one to derive the previously implicitly stated reflexivity and transitivity rules.    
+Another departure from the original definition is the formulation of the following two clauses, stated in \cref{Definition:subseteqOrig}, as the $(nil)$ and $(cons)$ rules:
 
 \begin{center}
 $\begin{aligned}
 \forall\ i \in \underline{n}.\ \ \tau_i \subseteq& \taui \\ 
-\forall\ i \in \underline{n}.\ \ \tau_i \subseteq \tau \implies& \taui \subseteq \tau \\
+\forall\ i \in \underline{n}.\ \ \tau_i \subseteq \psi \implies& \taui \subseteq \psi \\
 \end{aligned}$
 \end{center}
+$\ $
+
+<div class="Remark">
+The formulation above uses the original notation. In order to avoid confusion, we present the two clauses using the list notation, defined in \cref{notation}:
+
+\begin{center}
+$\begin{aligned}
+\forall\ \tau \in \tau_i.\ \ \tau \subseteq\ &\tau_i \\ 
+\forall\ \tau \in \tau_i.\ \ \tau \subseteq \psi \implies& \tau_i \subseteq \psi \\
+\end{aligned}$
+\end{center}
+</div>
 
 To give a motivation as to why we chose a different formulation of these properties, we first examine the original definition and show why it's not rigorous enough for a well typed Agda definition.   
 As we've shown in \cref{itypesAgda}, the definition of intersection types is implicitly split into strict `IType`-s and intersections, encoded as `List IType`-s. All the preceding definitions follow this split with the strict and non strict versions of the type refinement ($::$ and $::_\ell$ respectively) and sub-typing relations ($\subseteq$ and $\subseteq_\ell$ respectively).    
-If we tried to turn the first property above into a rule, such as:
+If we tried to turn the first property above into a rule naively, such as:
 
 \begin{center}
   \AxiomC{$\tau \in \tau_i$}
@@ -186,14 +184,13 @@ In order to get a well typed version of this rule, we would have to write someth
 Similarly for the second property, the well typed version might be formulated as:
 
 \begin{center}
-  \AxiomC{$\forall \tau' \in \tau_i.\ [\tau'] \subseteq_\ell \tau$}
+  \AxiomC{$\forall \tau \in \tau_i.\ [\tau] \subseteq_\ell \psi$}
   \LeftLabel{$(prop'\ 2)$}
-  \UnaryInfC{$\tau_i \subseteq_\ell \tau$}
+  \UnaryInfC{$\tau_i \subseteq_\ell \psi$}
   \DisplayProof
 \end{center}
 
-However, in the rule above, we assumed/forced $\tau$ to be an intersection, yet the property does not enforce this, and thus the two rules above do not actually capture the two properties from \cref{Definition:subseteqOrig}. 
-
+However, in the rule above, we assumed/forced $\psi$ to be an intersection (i.e. a list of `Itype`-s), yet the property does not enforce this, and thus the two rules above do not actually capture the two properties from \cref{Definition:subseteqOrig}.    
 <div class="Example">
 To demonstrate this, take the two intersection types $((\psi \cap \tau) \to \psi) \cap ((\psi \cap \tau \cap \rho) \to \psi)$ and $(\psi \cap \tau) \to \psi$. According to the original definition, we will have: 
 
@@ -276,12 +273,12 @@ Using this rule, we can now complete the previously open branch in the example a
   \DisplayProof
 \end{center}
 
-Also, since the only rules that can proceed $(prop'\ 2)$ in the derivation tree are $(refl)$ or $(prop''\ 1)$, and it's easy to see that in case of $(refl)$ preceding, we can always apply $(prop''\ 1)$ before $(refl)$, we can in fact merge $(prop''\ 1)$ and $(prop'\ 2)$ into the single rule:
+Also, since the only rules that can proceed $(prop'\ 2)$ in the derivation tree are $(refl)$ or $(prop''\ 1)$, and it's easy to see that in case of $(refl)$ preceding, we can always apply $(prop''\ 1)$ before $(refl)$, we can in fact merge $(prop''\ 1)$ and $(prop'\ 2)$ into the single rule (we break our naming convention again, since $\psi$ is a list of strict types):
 
 \begin{center}
-  \AxiomC{$\forall \tau' \in \tau_i.\ \exists \tau'' \in \tau.\ \tau' \subseteq \tau''$}
+  \AxiomC{$\forall \tau' \in \tau_i.\ \exists \tau'' \in \psi.\ \tau' \subseteq \tau''$}
   \LeftLabel{$(prop'\ 12)$}
-  \UnaryInfC{$\tau_i \subseteq_\ell \tau$}
+  \UnaryInfC{$\tau_i \subseteq_\ell \psi$}
   \DisplayProof
 \end{center}
 
@@ -331,7 +328,7 @@ For comparison, the same proof in Agda reads much the same as the "paper" one, g
 
 After we modified the initial definition of sub-typing and added the notion of type refinement, we will now take a look at the definition of intersection-type assignment and the modifications that were needed to be made for the mechanization.
 
-While before, intersection typing consisted of the triple $\Gamma \Vdash M : \tau)$, where $\Gamma$ was the intersection type context, $M$ was an untyped $\lamy$ term and $\tau$ was an intersection type, this information is not actually sufficient when we introduce type refinement. As we've shown with the $(Y)$ rule, the refinement relation $::$ provides a connection between intersection and simple types. We therefore want $M$ in the triple to be a simply typed $\lamy$ term.   
+While before, intersection typing consisted of the triple $\Gamma \Vdash M : \tau$, where $\Gamma$ was the intersection type context, $M$ was an untyped $\lamy$ term and $\tau$ was an intersection type, this information is not actually sufficient when we introduce type refinement. As we've shown with the $(Y)$ rule, the refinement relation $::$ provides a connection between intersection and simple types. We therefore want $M$ in the triple to be a simply typed $\lamy$ term.   
 Even though we could use the definition of simple types from the previous chapters, this notation would be rather cumbersome. 
 
 <div class="Example">Consider the simply typed term $\{\} \vdash \lambda x.x : A \to A$ being substituted for the untyped $\lambda x.x$ in $\{\} \Vdash \lambda x.x : (\tau \cap \phi) \leadsto \phi$ (where $\tau :: A$ and $\phi :: A$):
@@ -380,7 +377,7 @@ For every simple type $A, B$, the set of simply typed pre-terms $\Lambda_A$ is i
 
 It's easy to see that the definition of _Church_-style simply typed $\lamy$ pre-terms differs form the untyped pre-terms only in the $\lambda$ case, with the addition of the extra typing information, much like in the case of $Y$. We also adopt a typing convention, where we write $M_{\{A\}}$ to mean $M \in \Lambda_A$.    
 
-The next hurdle we faced in defining the intersection typing relation was the formulation of the $(Y)$ rule. The intuition behind this rule is to type a $Y_A$ constant with a type $\tau$ s.t. $\tau :: (A \to A) \to A$. If we used the $\lambda_\cap^{BCD}$ types (introduced in \cref{itypesIntro}), we could easily have $\tau \equiv (\taui \leadsto \taui) \leadsto \taui$, where $\taui :: A$. However, as we have restricted ourselves to strict-intersection types, the initial definition for the $(Y)$ rule was the somewhat cumbersome:
+The next hurdle we faced in defining the intersection typing relation was the formulation of the $(Y)$ rule. The intuition behind this rule is to type a $Y_A$ constant with a type $\tau$ s.t. $\tau :: (A \to A) \to A$. If we used the $\lambda_\cap^{BCD}$ types (introduced in \cref{itypesIntro}), we could easily have $\tau \equiv (\taui \leadsto \taui) \leadsto \taui$, where $\taui :: A$. However, as we have restricted ourselves to strict-intersection types (see the following \hyperref[whyStrictTypes]{remark}), the initial definition for the $(Y)$ rule was the somewhat cumbersome:
 
 \begin{center}
   \vskip 1.5em
@@ -401,7 +398,7 @@ Y :    ∀ {Γ A τ|$_\texttt{i}$| τ} -> (τ|$_\texttt{i}$|∷A : τ|$_\texttt{
 ~~~
 
 Even though Agda's main strength is its the powerful pattern matching, it was quickly realized that pattern matching on the type `(∩ (Data.List.map (λ τ\textsubscript{k} -> (∩ τ\textsubscript{i} \textasciitilde > τ\textsubscript{k})) τ\textsubscript{i}) \textasciitilde > τ)` is difficult due to the map function, which appears inside the definition.    
-Several modifications were made to the rule, until we arrived at it's current form. To create a compromise between the unrestricted intersection-types of $\lambda_\cap^{BCD}$, which made expressing the $(Y)$ rule much simpler, and the strict typing, which provided a restricted version of type derivation over the $\lambda_\cap^{BCD}$ system, we modified strict types to have intersections as both the left and right sub-terms of a strict type:
+Several modifications were made to the rule, until we arrived at it's current form. To create a compromise between the unrestricted intersection-types of $\lambda_\cap^{BCD}$, which made expressing the $(Y)$ rule much simpler, and the strict typing, which provided a restricted version of type derivation over the $\lambda_\cap^{BCD}$ system (see the \hyperref[whyStrictTypes]{remark} below), we modified strict types to have intersections as both the left and right sub-terms of a strict type:
 
 <div class="Definition" head="Semi-strict intersection types">
 \begin{center}
@@ -412,7 +409,9 @@ $\begin{aligned}
 </div>
  
 $\ $
-<div class="Remark">Using strict intersection types and having two intersection typing relations $\Vdash$ and $\Vdash_\ell$ makes proving lemmas about the system much easier. The clearest example of this is the nice property of _inversion_, one gets "for free" with strict types. Take, for example, the term $\Gamma \Vdash uv : \tau$ (where for the puproses of this example, $uv$ is a term of the simply-typed $\lambda$-calculus and not a $\lamy$ term). Since for the $\Vdash$ relation, $uv$ can only be given a strict intersection type, we can easily prove the following inversion lemma:
+<div class="Remark">
+\label{whyStrictTypes}
+Using strict intersection types and having two intersection typing relations $\Vdash$ and $\Vdash_\ell$ makes proving lemmas about the system much easier. The clearest example of this is the nice property of _inversion_, one gets "for free" with strict types. Take, for example, the term $\Gamma \Vdash uv : \tau$ (where for the purposes of this example, $uv$ is a term of the simply-typed $\lambda$-calculus and not a $\lamy$ term). Since for the $\Vdash$ relation, $uv$ can only be given a strict intersection type, we can easily prove the following inversion lemma:
 
 <div class="Lemma" head="Inversion Lemma for $(app)$">
 \label{Lemma:invApp}
@@ -451,10 +450,10 @@ The semi-strict typing loses some of the advantages of the strict types, as we w
 
 The final version of the $(Y)$ rule, along with the other modified rules of the typing relation are presented below:
 
-<div class="Definition" head="Intersection-type assignment">This definition assumes that the typing context $\Gamma$, which is a list of triples $(x, \tau_i, A)$, is well formed. For each triple, written as $x : \tau_i ::_\ell A$, this means that the free variable $x$ does not appear elsewhere in the domain of $\Gamma$. Each intersection type $\tau_i$, associated with a variable $x$, also refines a simple type $A$. In the definition below, we also assume the following convention $\bigcap \tau \equiv [\tau]$:
+<div class="Definition" head="Intersection-type assignment">This definition assumes that the typing context $\Gamma$, which is a list of triples $(x, \tau_i, A)$, is well formed. For each triple, written as $x : \tau_i ::_\ell A$, this means that the free variable $x$ does not appear elsewhere in the domain of $\Gamma$. Each intersection type $\tau_i$, associated with a variable $x$, also refines a simple type $A$.
 \label{Definition:itypAssignment}
 \begin{center}
-  \AxiomC{$\exists (x : \tau_i ::_\ell A) \in \Gamma.\ \bigcap \tau \subseteq^A_\ell \tau_i$}
+  \AxiomC{$\exists (x : \tau_i ::_\ell A) \in \Gamma.\ [\tau] \subseteq^A_\ell \tau_i$}
   \LeftLabel{$(var)$}
   \UnaryInfC{$\Gamma \Vdash x_{\{A\}} : \tau$}
   \DisplayProof
@@ -463,7 +462,7 @@ The final version of the $(Y)$ rule, along with the other modified rules of the 
   \AxiomC{$\Gamma \Vdash u_{\{A \to B\}} : \tau_i \leadsto \tau_j$}
   \AxiomC{$\Gamma \Vdash_\ell v_{\{A\}} : \tau_i$}
   \LeftLabel{$(app)$}
-  \RightLabel{$(\bigcap \tau \subseteq^B_\ell \tau_j)$}
+  \RightLabel{$( [\tau] \subseteq^B_\ell \tau_j)$}
   \BinaryInfC{$\Gamma \Vdash uv : \tau$}
   \DisplayProof
   %------------------------------------
@@ -474,9 +473,9 @@ The final version of the $(Y)$ rule, along with the other modified rules of the 
   \DisplayProof
   %------------------------------------
   \hskip 1.5em
-  \AxiomC{$\exists \tau_x.\ \bigcap (\tau_x \leadsto \tau_x) \subseteq^{A \to A}_\ell \tau_i \land \tau_j \subseteq^A_\ell \tau_x$}
+  \AxiomC{$\exists \tau_x.\ [\tau_x \leadsto \tau_x] \subseteq^{A \to A}_\ell \tau_i \land \tau_j \subseteq^A_\ell \tau_x$}
   \LeftLabel{$(Y)$}
-  \UnaryInfC{$\Gamma \Vdash_s Y_{A} : \tau_i \leadsto \tau_j$}
+  \UnaryInfC{$\Gamma \Vdash Y_{A} : \tau_i \leadsto \tau_j$}
   \DisplayProof
   %------------------------------------
   \vskip 1.5em
@@ -495,9 +494,18 @@ The final version of the $(Y)$ rule, along with the other modified rules of the 
 \end{center}
 </div>
 
+The formulation of the $(Y)$ rule above, was introduced mostly due to the derived sub-typing rule $(\subseteq)$, defined in the following section. This is a stronger version of the the following initial formulation of the $(Y)$ for the semi-strict types (which was not general enough to admit $(\subseteq)$ and other lemmas):
+
+\begin{center}
+\AxiomC{$\tau_x ::_\ell A$}
+  \LeftLabel{$(Y)$}
+  \UnaryInfC{$\Gamma \Vdash Y_{A} : [\tau_x \leadsto \tau_x] \leadsto \tau_x$}
+  \DisplayProof
+\end{center}
+
 ##Proof of subject expansion
 
-An interesting property of the intersection types is the fact that they admit both subject expansion and subject reduction, namely $\Vdash$ is closed under $\beta$-equality. In this section, we will focus on the subject expansion lemma:
+We described the subject invariance property of intersection types in \cref{initSubjectInv}. In this section, we will focus on the subject expansion lemma:
 
 <div class="Theorem" head="Subject expansion for $\Vdash/\Vdash_\ell$">
 
@@ -783,7 +791,8 @@ Consider a term $\lambda_A. m$ s.t. $\Gamma \Vdash \lambda_A. m : \tau$. Since $
   \vskip 1em
 \end{center}
 
-However, it's easy to see that since these derivation trees must be finite, even if we apply $(\tocap)$ multiple times, eventually, all of these branches will have to have an application of the $(abs)$ rule. As a result, we can prove an inversion lemma, which is practically identical to the original "free" inversion lemma:
+However, it's easy to see that since these derivation trees must be finite, even if we apply $(\tocap)$ multiple times, eventually, all of these branches will have to have an application of the $(abs)$ rule.    
+As a result, we can prove an inversion lemma, which is practically identical to the original "free" inversion lemma, but not as complicated to prove as an equivalent inversion lemma in the $\lambda_\cap^{BCD}$ system:
 
 <div class="Lemma" head="Inversion lemma for $(abs)$">
 \begin{center}
@@ -982,7 +991,7 @@ Agda's termination checking relies on the fact that the data-types, being patter
 [^6]: The details on how the termination checking algorithm in Agda works are sparse, so we are not actually sure about the specifics of how the termination check fails.
 
 Whilst one can suppress termination checking for a specific definition/lemma in Agda, by adding the `\{-\# TERMINATING \#-\}` pragma in front of the definition, it is generally not a good idea to do this, even though we know that the definition is actually terminating. We initially contemplated using well-founded recursion to prove that the proof terminates, but having little experience in Agda, this looked quite complicated.   
-Instead, we devised a simple "hack" to allow Agda to prove termination for this (slightly modified) lemma, by first defining "skeleton" terms $\mathfrak{T}$, which capture the structure of $\lamy$ terms:   
+Instead, we devised a simple technique to allow Agda to prove termination for this (slightly modified) lemma, by first defining "skeleton" terms $\mathfrak{T}$, which capture the structure of $\lamy$ terms:   
 <div class="Definition">
 $\mathfrak{T} ::= *\ |\ \circ \mathfrak{T}\ |\ \mathfrak{T}\ \amp\ \mathfrak{T}$
 </div>

@@ -120,26 +120,12 @@ where
 ~~~
 
 The usual **`fun`** declaration of a recursive function in Isabelle automatically checks the definition for pattern completeness and overlap (for the term being pattern matched on). The **`fun`** definition also automatically checks/proves termination of such recursive functions and generates simplification rules, which can be used for equational reasoning involving the function.   
-Unfortunately, this isn't the case for the **`nominal\_function`** declaration, where there are several goals (13 in the case of the `subst` definition) which the user has to manually prove about the function definition, including proving termination, and pattern disjointness and completeness. This turned out to be a bit problematic, as the goals involved proving properties like:
-
-~~~{.idris}
-⋀x t xa ya sa ta.
-  eqvt_at subst_sumC (t, ya, sa) ⟹
-  eqvt_at subst_sumC (ta, ya, sa) ⟹
-  atom x ♯ (ya, sa) ⟹ atom xa ♯ (ya, sa) ⟹ 
-  [[atom x]]lst. t = [[atom xa]]lst. ta ⟹ 
-  [[atom x]]lst. subst_sumC (t, ya, sa) = 
-  	[[atom xa]]lst. subst_sumC (ta, ya, sa)
-~~~
-
-<!--**do i need to explain what this property is? or is it ok for illustrative purposes?**-->
-
-Whilst most of the goals were trivial, proving cases involving $\lambda$-terms involved a substantial understanding of the internal workings of Isabelle and the Nominal package early on into the mechanization, and as a novice to using Nominal Isabelle, understanding and proving these properties proved challenging.    
-Whilst our formalization required only a handful of other recursive function definitions, in a different theory with significantly more function definitions, proving such goals from scratch would be a challenge to a Nominal Isabelle newcomer, as well as a tedious implementation overhead.
+Unfortunately, this isn't the case for the **`nominal\_function`** declaration, where there are several goals (13 in the case of the `subst` definition) which the user has to manually prove about the function definition, including proving termination, and pattern disjointness and completeness.    
+Whilst most of the goals were trivial, proving cases involving $\lambda$-terms required a substantial understanding of the internal workings of Isabelle and the Nominal package early on into the mechanization, and as a novice to using Nominal Isabelle, understanding and proving these properties proved challenging. Therefore, even though our formalization required only a handful of other recursive function definitions, in a different theory with significantly more function definitions, proving such goals from scratch would be a challenge to a Nominal Isabelle newcomer, as well as a tedious implementation overhead.
 
 ###Locally nameless representation
 
-As we have seen, on paper at least, the definitions of terms and capture-avoiding substitution, using nominal sets, are unchanged from the usual informal definitions. The situation is somewhat different for the locally nameless mechanization. Since the LN approach combines the named and de Bruijn representations, there are two different constructors for free and bound variables:
+As we have seen, on paper at least, the definitions of terms and capture-avoiding substitution using nominal sets are very transparent, as they appear unchanged from the usual informal definitions. The situation is somewhat different for the locally nameless mechanization. Since the LN approach combines the named and de Bruijn representations, there are two different constructors for free and bound variables:
 
 ####Pre-terms
 <div class="Definition" head="LN pre-terms">
@@ -186,7 +172,7 @@ Since we don't want to work with terms that do not correspond to $\lamy$ terms, 
 Already, we see that this formalization introduces some overheads with respect to the informal/nominal encoding of the $\lamy$ calculus.    
 The upside of this definition of $\lamy$ terms becomes apparent when we start thinking about $\alpha$-equivalence and capture-avoiding substitution. Since the LN terms use de Bruijn levels for bound variables, there is only one way to write the term $\lambda x.x$ or $\lambda y.y$ as a LN term, namely $\lambda 0$. As the $\alpha$-equivalence classes of named $\lamy$ terms also collapse into a singleton $\alpha$-equivalence class in a LN representation, the notion of $\alpha$-equivalence becomes trivial.
 
-As a result of using LN representation of binders, the notion of substitution is split into two distinct operations. One operation is the substitution of bound variables, called _opening_. The other is substitution, defined only for free variables.
+As a result of using LN representation of binders, the notion of substitution is split into two distinct operations. One operation is the substitution of bound variables, called _opening_. The other is substitution, defined only for free variables. Whereas substitution replaces a free variable (in a named $\lambda$-term) by a given term, the _open_ operation does the same thing, except it substitutes the term for a bound variable/index:
 
 <div class="Definition" head="Opening and substitution">We will usually assume that $S$ is a well-formed LN term when proving properties about substitution and opening. The abbreviation $M^N \equiv \{0 \to N\}M$ is used throughout this chapter.
 
@@ -221,7 +207,7 @@ Y_\sigma[S/y] &= Y_\sigma
 
 Having defined the _open_ operation, we turn back to the definition of well formed terms, specifically to the $(lam)$ rule, which has the precondition $\trm (M^x)$. Intuitively, for the given term $\lambda M$, the term $M^x$ is obtained by replacing all indices bound to the outermost $\lambda$ by $x$. Then, if $M^x$ is well formed, so is $\lambda M$.
 
-<div class="Example">For example, taking the term $\lambda\lambda 0(z\ 1)$, we can construct the following proof-tree, showing that the term is well formed: 
+<div class="Example">For example, taking the term $\lambda\lambda 0(z\ 1)$, which represents the named term $\lambda x.\lambda y.y(zx)$, we can construct the following proof-tree, showing that the term is well formed: 
 
 \begin{center}
     \vskip 1.5em
@@ -328,7 +314,7 @@ For an example, where using _cofinite quantification_ was necessary, see \cref{L
 
 ##Proofs
 
-Having described the implementations of the two binder representations along with the definitions of capture-avoiding substitution using nominal sets and the corresponding substitution and _open_ operations in the LN mechanization, we come the the main part of the comparison, namely the proof of the Church Rosser theorem. This section examines specific instances of some of the major lemmas, which form parts of this bigger result. The general outline of the proof has been described in \cref{cr-def}.
+Having described the implementations of the two binder representations along with the definitions of capture-avoiding substitution using nominal sets and the corresponding substitution and _open_ operations in the LN mechanization, we come the the main part of the comparison, namely the proof of the Church Rosser theorem. This section examines specific instances of some of the major lemmas, which form parts of this bigger result and highlight the important differences between the two mechanizations. The general outline of the proof has been described in \cref{cr-def}.
 
 ###\cref{Lemma:maxEx}
 
@@ -448,7 +434,7 @@ qed
 As one can immediately see, this proof proceeds exactly in the same fashion, as the nominal one, up to line 20. However, unlike in the nominal version of the proof, in the LN proof, the `auto` call at line 8 could not automatically prove the case where $M$ is a $\lambda$-term.    
 This is perhaps not too surprising, since the LN encoding is a lot more "bare bones", and thus there is little that would aid Isabelle's automation. The nominal package, on the other hand, was designed to make reasoning with binders as painless as possible, which definitely shows in this example.
 
-When we compare the two goals for the $\lambda$-case in both versions of the proof, we clearly see the differences in the treatment of binders:
+When we compare the two goals for the $\lambda$-case in both versions of the proof (going back to line 4 in both proofs), we clearly see the differences in the treatment of binders:
 
 \begin{center}
 $\begin{aligned}
@@ -457,18 +443,6 @@ $\begin{aligned}
 &\implies \exists M'.\ \lambda.M \ggg M'
 \end{aligned}$
 \end{center}
-
-<!--
-**Nominal:**
-
-⋀x M. ∃M'. M >>> M' ⟹ ∃M'. Lam [x]. M >>> M'
-
-**Locally nameless:**
-
-⋀L M. finite L ⟹
-       (⋀x. x ∉ L ⟹ trm M^FVar x) ⟹
-       (⋀x. x ∉ L ⟹ ∃M''. M^FVar x >>> M'') ⟹ ∃M'. Lam M >>> M'
--->
 
 Unlike in the nominal proof, where we get $\lambda x.M \ggg \lambda x.M'$ from $M \ggg M'$ by $(abs)$ immediately, the proof of $\exists M'.\ \lambda.M \ggg M'$ in the LN mechanization is not as trivial.    
 The difficulty in the LN version arises from the precondition of the $(abs)$ rule:
@@ -509,30 +483,8 @@ y & otherwise
 
 <div class="Example">To demonstrate the close operation, take the term $\lambda xy$. Applying the close operation with the free variable $x$, we get $\cls (\lambda xy) = \lambda 0y$. Whilst the original term might have been well formed, the closed term, as is the case here, may not be.</div>
 
-Intuitively, it is easy to see that closing a well formed term and then opening it with the same free variable produces the original term, namely $(\cls M)^x \equiv M$. This can be made even more general with the following lemma about the relationship between the _open_, _close_ and substitution operations:
-
-<div class="Lemma">$\trm(M) \implies \{k \to y\}\{k \leftarrow x\} M = M[y/x]$
-\label{Lemma:opnClsSubst}
-<div class="proof">
-By induction on the relation $\trm(M)$. The rough outline of the $(lam)$ case, which is the only non-trivial case, is shown below:
-
-By _IH_, we have $\forall z \not\in L.\ \{k+1 \to y\} \{k+1 \leftarrow x\} M^z = (M^z)[y/x]$. Then:
-\begin{align}
-\{k \to y\} \{k \leftarrow x\} (\lambda M) = (\lambda M)[y/x] &\iff\\
-\lambda(\{k+1 \to y\} \{k+1 \leftarrow x\} M) = \lambda (M[y/x])&\iff\\
-\{k+1 \to y\} \{k+1 \leftarrow x\} M = M[y/x]&\iff\\
-\{0 \to z\} \{k+1 \to y\} \{k+1 \leftarrow x\} M = \{0 \to z\} (M[y/x])&\iff\\
-\{k+1 \to y\} \{k+1 \leftarrow x\} \{0 \to z\} M = \{0 \to z\} (M[y/x])&\iff\\
-\{k+1 \to y\} \{k+1 \leftarrow x\} \{0 \to z\} M = (\{0 \to z\} M)[y/x]&
-\end{align}
-
-Starting from the goal (4.1), we expand the definitions of _open_, _close_ and substitution for the $\lambda$-case in (4.2). (4.3) holds by injectivity of $\lambda$. Then, by choosing a sufficiently fresh $z$ that does not appear in the given context $L$ as well as in neither $\fv(M)$ nor $\{x, y\}$, we have (4.4). We can reorder the _open_ and _close_ operations in (4.5) because it can never be the case that $k+1 = 0$ and $z$ is different from both $x$ and $y$. Finally, (4.6) follows from the fact that we have chosen a $z$ that does not appear in $M$ and is different from $y$.   
-We can now see that $\{k+1 \to y\} \{k+1 \leftarrow x\} \{0 \to z\} M = (\{0 \to z\} M)[y/x]$ is in fact the _IH_ $\{k+1 \to y\} \{k+1 \leftarrow x\} M^z = (M^z)[y/x]$.
-</div></div>
-
-Having defined the _close_ operation and shown that it satisfies certain properties with respect to the _open_ operation and substitution, we can now "close" the term $M'$, with respect to the $x$ we fixed earlier and thus show that $\forall y \not\in L.\ M^y \ggg (\cls M')^y$.
-
-<!--**Should I go into more detail here or just wrap it up by saying how much more code was necessary over the nominal version??**-->
+Having defined the _close_ operation, we can "close" the term $M'$, with respect to the $x$ we fixed earlier and show that for some $L'$, we have $\forall y \not\in L'.\ M^y \ggg (\cls M')^y$ (lines 26), by proving certain properties about the interplay between the _open_, _close_ and substitution operations.     
+As a result, the LN proof of this case (lines 22 - 36) is significantly longer and more involved than the nominal counterpart, which was easily proved by the `auto` prover.
 
 ###\cref{Lemma:maxClose}
 

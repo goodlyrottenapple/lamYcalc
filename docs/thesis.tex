@@ -799,12 +799,26 @@ Note however, that this definition doesn't quite fit the notion of
 \(\lambda\)-terms, since a \texttt{ptrm} like \texttt{(BVar 0)} does not
 represent a valid \(\lambda\)-term, since bound variables can only
 appear in the context of a \(\lambda\), such as in
-\texttt{(Lam (BVar 0))}.\\
-The advantage of using a locally nameless definition of
+\texttt{(Lam (BVar 0))}.
+
+The locally nameless approach is championed by B. Aydemir et al.
+(\protect\hyperlink{ref-aydemir08}{2008}), who claim several benefits:
+
+\begin{quote}
+``First, our {[}locally nameless{]} presentation is transparent: the
+proofs closely follow their informal equivalents. Second the overheads
+of the approach are low: we do not need manual proofs of freshness
+side-conditions nor reasoning about alpha-equivalence \ldots{} At the
+same time, there is no need for external tools, and the style works in
+any general purpose theorem prover (although we found Coq to be
+well-suited to the task).''
+\end{quote}
+
+Another advantage of using a locally nameless definition of
 \(\lambda\)-terms is a better readability of such terms, compared to
-equivalent de Bruijn terms. Another advantage is the fact that
-definitions of functions and reasoning about properties of these terms
-is much closer to the informal setting.
+equivalent de Bruijn terms. We therefore chose the locally nameless
+approach for one of our mechanizations and put these claims to test in
+\cref{chap:compIsa}.
 
 \subsection{Higher-Order approaches}\label{higher-order-approaches}
 
@@ -1442,7 +1456,7 @@ intersection types s.t.:
 \begin{center}
 $\begin{aligned}
 \forall\ i \in \underline{n}.\ \ \tau_i \subseteq& \taui \\ 
-\forall\ i \in \underline{n}.\ \ \tau_i \subseteq \tau \implies& \taui \subseteq \tau \\
+\forall\ i \in \underline{n}.\ \ \tau_i \subseteq \psi \implies& \taui \subseteq \psi \\
 \rho \subseteq \psi \land \tau \subseteq \mu \implies& \psi \leadsto \tau \subseteq \rho \leadsto \mu\\
 \end{aligned}$
 \end{center}
@@ -1463,7 +1477,7 @@ strict intersection type \(\mathcal{T}_s\).\\
 The definition of the intersection-typing system, like the \(\subseteq\)
 relation, has also been adapted from the typing system found in the
 Bakel (\protect\hyperlink{ref-bakel}{2003}) notes, by adding the typing
-rule for the \(Y\) constants:
+rule for the \(Y\) constants:\\
 
 \begin{Definition}[Intersection-type assignment]
 
@@ -1500,7 +1514,7 @@ rule for the \(Y\) constants:
 \end{Definition}
 
 The definition above also assumes that the context \(\Gamma\) is
-\emph{well-formed}:
+\emph{well-formed}:\\
 
 \begin{Definition}[Well-formed intersection-type context]
 
@@ -1532,15 +1546,19 @@ Assuming that \(\Gamma\) is a finite list, consisting of pairs of atoms
 It is important for the theory underpinning HOMC to be decidable. In
 order to guarantee this, we introduce a type refinement relation
 \(\tau :: A\) for intersection types, where \(\tau\) is an intersection
-type, refining a simple type \(A\). We can guarantee that the search
-space for an intersection type, which can type a given \(\lamy\) term
-\(M\) with the simple type \(A\) is finite (and typing such a term is
-thus decidable), since the set \(\{\tau\ |\ \tau :: A\}\) is finite and
-therefore, enumerating and checking whether \(\Gamma \Vdash M : \tau\)
-for any of the types \(\tau\) in this set, will take a finite time.
+type, refining a simple type \(A\). Intuitively, the notion of
+refinement restricts the intersection types to those which correspond in
+``shape'' to the simple type they refine. By restricting intersection
+types to only those that refine a given simple type, we can guarantee
+that the search space for an intersection type, which can type a given
+\(\lamy\) term \(M\) with the simple type \(A\) is finite (and typing
+such a term is thus decidable), since the set \(\{\tau\ |\ \tau :: A\}\)
+is finite. Therefore, enumerating and checking whether
+\(\Gamma \Vdash M : \tau\) for any of the types \(\tau\) in this set
+will take finite time.
 
 We present the type refinement relation, presented by Kobayashi
-(\protect\hyperlink{ref-kobayashi09}{2009}) (amongst others):
+(\protect\hyperlink{ref-kobayashi09}{2009}) (amongst others):\\
 
 \begin{Definition}[Intersection-type refinement]
 
@@ -1562,6 +1580,31 @@ We present the type refinement relation, presented by Kobayashi
 \end{Definition}
 
 \subsection{Subject invariance}\label{subject-invariance}
+
+\label{initSubjectInv}
+
+An interesting property of intersection-type systems is the fact that
+they admit both subject expansion and subject reduction, namely
+\(\Vdash\) is closed under \(\beta\)-equality. This means that given a
+term \(M\) with intersection type \(\tau\) and \(N\) s.t.
+\(M =_\beta N\), \(N\) can be typed at \(\tau\):
+
+\begin{Theorem}[Subject invariance for $\Vdash$]
+
+\begin{enumerate}
+\def\labelenumi{\roman{enumi})}
+\tightlist
+\item
+  Subject reduction:
+  \(\Gamma \Vdash m : \tau \implies m \red m' \implies \Gamma \Vdash m' : \tau\)
+\item
+  Subject expansion:
+  \(\Gamma \Vdash m' : \tau \implies m \red m' \implies \Gamma \Vdash m : \tau\)
+\end{enumerate}
+
+\end{Theorem}
+
+\(\ \)
 
 \begin{Remark}
 
@@ -1649,12 +1692,16 @@ in greater detail below:
 
 Technology transparency, within the context of this work, is mostly
 concerned with the presentation of the theory inside a proof assistant,
-such as Isabelle or Agda. Whilst there is no direct measure of
-transparency, per se, it is almost always immediately obvious which
-presentation is more transparent, when one is presented with comparative
-examples. This work makes a case for transparency, or the lack thereof,
-by providing side-by-side snippets from different mechanizations of the
-same theory.
+such as Isabelle or Agda. When we talk about transparency, we are
+concerned with how close the informal presentation is to the
+implementation, i.e.~how difficult is it for someone with no
+knowledge/experience with the prover, to read and understand the
+definitions.\\
+Whilst there is no direct measure of transparency, per se, it is almost
+always immediately obvious which presentation is more transparent, when
+one is presented with comparative examples. This work makes a case for
+transparency, or the lack thereof, by providing side-by-side snippets
+from different mechanizations of the same theory.
 
 \begin{Example}
 
@@ -1935,12 +1982,13 @@ indices especially when it comes to technology transparency. The LN
 encoding is also a lot more bare-bones than the nominal set theory (if
 there was not library and one had to formalize the theory from scratch),
 carrying relatively manageable overheads.\\
-In order to keep our comparison balanced, we often didn't leverage
-Isabelle's automation to it's fullest, choosing instead to keep some
-lemmas (especially in the nominal implementation) deliberately verbose,
-so as to keep them both more transparent and easier to compare with the
-locally nameless versions. Another reason for this was the comparison
-between Isabelle and Agda, which doesn't include as much automation.
+Where automation/mechanization overheads and transparency clashed, we
+sided with a more transparent mechanization, often choosing to keep some
+lemmas (especially in the nominal implementation) deliberately verbose.
+The reason for this was out aim, to make this formalization more
+accessible to the HOMC community, by trying to make these theory files
+useful/readable even to people with little prior knowledge of theorem
+provers.
 
 \chapter{Nominal vs.~Locally nameless}\label{comp-isa}
 
@@ -2213,39 +2261,26 @@ Unfortunately, this isn't the case for the
 \textbf{\texttt{nominal\_function}} declaration, where there are several
 goals (13 in the case of the \texttt{subst} definition) which the user
 has to manually prove about the function definition, including proving
-termination, and pattern disjointness and completeness. This turned out
-to be a bit problematic, as the goals involved proving properties like:
-
-\begin{minted}[]{idris}
-⋀x t xa ya sa ta.
-  eqvt_at subst_sumC (t, ya, sa) ⟹
-  eqvt_at subst_sumC (ta, ya, sa) ⟹
-  atom x ♯ (ya, sa) ⟹ atom xa ♯ (ya, sa) ⟹ 
-  [[atom x]]lst. t = [[atom xa]]lst. ta ⟹ 
-  [[atom x]]lst. subst_sumC (t, ya, sa) = 
-    [[atom xa]]lst. subst_sumC (ta, ya, sa)
-\end{minted}
-
+termination, and pattern disjointness and completeness.\\
 Whilst most of the goals were trivial, proving cases involving
-\(\lambda\)-terms involved a substantial understanding of the internal
+\(\lambda\)-terms required a substantial understanding of the internal
 workings of Isabelle and the Nominal package early on into the
 mechanization, and as a novice to using Nominal Isabelle, understanding
-and proving these properties proved challenging.\\
-Whilst our formalization required only a handful of other recursive
-function definitions, in a different theory with significantly more
-function definitions, proving such goals from scratch would be a
-challenge to a Nominal Isabelle newcomer, as well as a tedious
-implementation overhead.
+and proving these properties proved challenging. Therefore, even though
+our formalization required only a handful of other recursive function
+definitions, in a different theory with significantly more function
+definitions, proving such goals from scratch would be a challenge to a
+Nominal Isabelle newcomer, as well as a tedious implementation overhead.
 
 \subsection{Locally nameless
 representation}\label{locally-nameless-representation}
 
 As we have seen, on paper at least, the definitions of terms and
-capture-avoiding substitution, using nominal sets, are unchanged from
-the usual informal definitions. The situation is somewhat different for
-the locally nameless mechanization. Since the LN approach combines the
-named and de Bruijn representations, there are two different
-constructors for free and bound variables:
+capture-avoiding substitution using nominal sets are very transparent,
+as they appear unchanged from the usual informal definitions. The
+situation is somewhat different for the locally nameless mechanization.
+Since the LN approach combines the named and de Bruijn representations,
+there are two different constructors for free and bound variables:
 
 \subsubsection{Pre-terms}\label{pre-terms}
 
@@ -2323,7 +2358,10 @@ the notion of \(\alpha\)-equivalence becomes trivial.
 As a result of using LN representation of binders, the notion of
 substitution is split into two distinct operations. One operation is the
 substitution of bound variables, called \emph{opening}. The other is
-substitution, defined only for free variables.
+substitution, defined only for free variables. Whereas substitution
+replaces a free variable (in a named \(\lambda\)-term) by a given term,
+the \emph{open} operation does the same thing, except it substitutes the
+term for a bound variable/index:
 
 \begin{Definition}[Opening and substitution]
 
@@ -2377,7 +2415,8 @@ formed, so is \(\lambda M\).
 
 \begin{Example}
 
-For example, taking the term \(\lambda\lambda 0(z\ 1)\), we can
+For example, taking the term \(\lambda\lambda 0(z\ 1)\), which
+represents the named term \(\lambda x.\lambda y.y(zx)\), we can
 construct the following proof-tree, showing that the term is well
 formed:
 
@@ -2528,8 +2567,9 @@ nominal sets and the corresponding substitution and \emph{open}
 operations in the LN mechanization, we come the the main part of the
 comparison, namely the proof of the Church Rosser theorem. This section
 examines specific instances of some of the major lemmas, which form
-parts of this bigger result. The general outline of the proof has been
-described in \cref{cr-def}.
+parts of this bigger result and highlight the important differences
+between the two mechanizations. The general outline of the proof has
+been described in \cref{cr-def}.
 
 \subsection{\texorpdfstring{\cref{Lemma:maxEx}}{}}\label{section}
 
@@ -2691,8 +2731,8 @@ reasoning with binders as painless as possible, which definitely shows
 in this example.
 
 When we compare the two goals for the \(\lambda\)-case in both versions
-of the proof, we clearly see the differences in the treatment of
-binders:
+of the proof (going back to line 4 in both proofs), we clearly see the
+differences in the treatment of binders:
 
 \begin{center}
 $\begin{aligned}
@@ -2770,59 +2810,14 @@ been well formed, the closed term, as is the case here, may not be.
 
 \end{Example}
 
-Intuitively, it is easy to see that closing a well formed term and then
-opening it with the same free variable produces the original term,
-namely \((\cls M)^x \equiv M\). This can be made even more general with
-the following lemma about the relationship between the \emph{open},
-\emph{close} and substitution operations:
-
-\begin{Lemma}
-
-\(\trm(M) \implies \{k \to y\}\{k \leftarrow x\} M = M[y/x]\)
-\label{Lemma:opnClsSubst}
-
-\begin{proof}
-
-By induction on the relation \(\trm(M)\). The rough outline of the
-\((lam)\) case, which is the only non-trivial case, is shown below:
-
-By \emph{IH}, we have
-\(\forall z \not\in L.\ \{k+1 \to y\} \{k+1 \leftarrow x\} M^z = (M^z)[y/x]\).
-Then:
-
-\begin{align}
-\{k \to y\} \{k \leftarrow x\} (\lambda M) = (\lambda M)[y/x] &\iff\\
-\lambda(\{k+1 \to y\} \{k+1 \leftarrow x\} M) = \lambda (M[y/x])&\iff\\
-\{k+1 \to y\} \{k+1 \leftarrow x\} M = M[y/x]&\iff\\
-\{0 \to z\} \{k+1 \to y\} \{k+1 \leftarrow x\} M = \{0 \to z\} (M[y/x])&\iff\\
-\{k+1 \to y\} \{k+1 \leftarrow x\} \{0 \to z\} M = \{0 \to z\} (M[y/x])&\iff\\
-\{k+1 \to y\} \{k+1 \leftarrow x\} \{0 \to z\} M = (\{0 \to z\} M)[y/x]&
-\end{align}
-
-Starting from the goal (4.1), we expand the definitions of \emph{open},
-\emph{close} and substitution for the \(\lambda\)-case in (4.2). (4.3)
-holds by injectivity of \(\lambda\). Then, by choosing a sufficiently
-fresh \(z\) that does not appear in the given context \(L\) as well as
-in neither \(\fv(M)\) nor \(\{x, y\}\), we have (4.4). We can reorder
-the \emph{open} and \emph{close} operations in (4.5) because it can
-never be the case that \(k+1 = 0\) and \(z\) is different from both
-\(x\) and \(y\). Finally, (4.6) follows from the fact that we have
-chosen a \(z\) that does not appear in \(M\) and is different from
-\(y\).\\
-We can now see that
-\(\{k+1 \to y\} \{k+1 \leftarrow x\} \{0 \to z\} M = (\{0 \to z\} M)[y/x]\)
-is in fact the \emph{IH}
-\(\{k+1 \to y\} \{k+1 \leftarrow x\} M^z = (M^z)[y/x]\).
-
-\end{proof}
-
-\end{Lemma}
-
-Having defined the \emph{close} operation and shown that it satisfies
-certain properties with respect to the \emph{open} operation and
-substitution, we can now ``close'' the term \(M'\), with respect to the
-\(x\) we fixed earlier and thus show that
-\(\forall y \not\in L.\ M^y \ggg (\cls M')^y\).
+Having defined the \emph{close} operation, we can ``close'' the term
+\(M'\), with respect to the \(x\) we fixed earlier and show that for
+some \(L'\), we have \(\forall y \not\in L'.\ M^y \ggg (\cls M')^y\)
+(lines 26), by proving certain properties about the interplay between
+the \emph{open}, \emph{close} and substitution operations.\\
+As a result, the LN proof of this case (lines 22 - 36) is significantly
+longer and more involved than the nominal counterpart, which was easily
+proved by the \texttt{auto} prover.
 
 \subsection{\texorpdfstring{\cref{Lemma:maxClose}}{}}\label{section-1}
 
@@ -3220,12 +3215,11 @@ From this point, the simplifier rewrites \texttt{xa = x} to
 \texttt{False} and \texttt{(if False then u else FVar xa)} to
 \texttt{FVar xa} in the goal.\\
 The use of tactics and automated tools is heavily ingrained in Isabelle
-and it is actually impossible (i.e.~impossible for me) to not use
-\texttt{simp} at this point in the proof, partly because one gets so
-used to discharging such trivial goals automatically and partly because
-it becomes nearly impossible to do the last two steps explicitly without
-having a detailed knowledge of the available commands and tactics in
-Isabelle (i.e.~I don't).\\
+and it is extremely natural to use \texttt{simp} at this point in the
+proof, partly because one gets so used to discharging such trivial goals
+automatically and partly because it becomes nearly impossible to do the
+last two steps explicitly without having a detailed knowledge of the
+available commands and tactics in Isabelle.\\
 Doing these steps explicitly quickly becomes cumbersome, as one needs to
 constantly look up the names of basic lemmas, such as
 \texttt{Set.empty\_iff}, which is a simple rewrite rule
@@ -3305,9 +3299,9 @@ one needs to modify or reason with the assumptions, as was seen in
 which is used to apply rules to the premises rather than the conclusion,
 was applied repeatedly. Other times, we might have to use structural
 rules for exchange or weakening, which are necessary purely for
-\texttt{organizational} purposes of the proof.\\
-In Agda, such rules are not necessary, since the example above looks
-like a function definition:
+organizational purposes of the proof.\\
+In Agda, such rules are not necessary, since the example above is a
+function definition:
 
 \begin{minted}[]{idris}
 x assm-1 ... assm-n = ?
@@ -3747,6 +3741,25 @@ cases, the completed proof is given below:
 
 \end{Example}
 
+\section{Verdict}\label{verdict}
+
+Much like in the case of comparing nominal and locally nameless versions
+of the \(\lamy\) calculus, the differences between Agda and Isabelle
+turned out to me fairly minor. Whilst Isabelle provides better
+automation, evidenced by a shorter formalization, the powerful type
+system of Agda achieves similar results, as was demonstrated throughout
+this chapter. Even though the mechanization in Isabelle turned out to be
+shorter, we chose to continue using Agda for the next phase of the
+mechanization of intersection types and proofs of subject invariance.\\
+This decision was mainly based on the proofs-as-programs nature of Agda.
+Since proofs are programs in Agda, it was felt that the mechanization of
+further theory of HOMC would be much more easily extended with not only
+proofs, but also programs, such as the decision procedure for the
+normalizability of \(\lamy\) terms, which is an important result in
+HOMC. Such a decision procedure would not only be executable, but would
+be tied directly to the proof of its correctness (such a mechanization
+is of course also achievable in Isabelle).
+
 \chapter{Intersection types}\label{intersection-types-1}
 
 \label{chap:itypes}
@@ -3757,14 +3770,12 @@ arrived at the ``winning'' combination of a locally nameless
 mechanization using Agda. Carrying on in this setting, we present the
 formalization of intersection types for the \(\lamy\) calculus along
 with the proof of subject invariance for intersection types.\\
-Whilst the theory formalized so far ``only'' includes the basic
-definitions of intersection type assignment and the proof of subject
-invariance, these proofs turned out to be significantly more difficult
-than their simply typed counterparts (e.g.~in case of sub-tying and
-subject reduction lemmas). Indeed the whole formalization of simple
-types, along with the proof of the Church Rosser theorem, is roughly
-only 1350 lines of code in Agda, in comparison to about 1890 lines, for
-the intersection typing together with proofs of subject invariance.\\
+These proofs turned out to be significantly more difficult than their
+simply typed counterparts (e.g.~in case of sub-tying and subject
+reduction lemmas). Indeed the whole formalization of simple types, along
+with the proof of the Church Rosser theorem, is roughly only 1350 lines
+of code in Agda, in comparison to about 1890 lines, for the intersection
+typing together with proofs of subject invariance.\\
 Even though the proof is not novel, there is, to our knowledge, no known
 fully formal version of it for the \(\lamy\) calculus. The chapter
 mainly focuses on the engineering choices that were made in order to
@@ -3803,7 +3814,7 @@ data IType|$_\ell$| where
 The reason why the intersection \texttt{IType}\(_\ell\) is defined as a
 list of strict types \texttt{IType} in line 9, is due to the (usually)
 implicit requirement that the types in \(\mathcal{T}\) be finite. The
-decision to use lists as an implementation of fine sets was taken,
+decision to use lists as an implementation of finite sets was taken,
 because the Agda standard library includes a definition of lists with
 definitions of list membership \(\in\) and other associated lemmas,
 which proved to be useful for definitions of the \(\subseteq\) relation
@@ -3821,16 +3832,37 @@ data IType : Set where
   _~>_ : List IType -> IType -> IType
 \end{minted}
 
+\section{Notation}\label{notation}
+
+\label{notation}
+
+Since we have defined the arrow type \(\leadsto\) as having list of
+\texttt{IType}-s on the left of the arrow, we will adopt the following
+convention throughout the chapter.\\
+Unless stated otherwise, types with a subscript,
+\(\tau_i, \tau_j, \hdots, \psi_i, \psi_j, \hdots\) denote lists of
+types, previously written as \(\taui\) or
+\(\bigcap\nolimits_{\underline{n}} \psi_i\), whereas
+\(\tau, \tau', \psi, \hdots\) represent strict intersection types.\\
+Further, we write `\(\tau, \tau_i\)' to mean the cons operation on
+lists, usually written as `\(\tau : \tau_i\)' in Haskell and
+\(\tau_i \concat \tau_j\) to mean list concatenation. We also use
+\(\omega\) to denote the empty \texttt{Itype} list and write \([\tau]\)
+or \([\tau_1, \hdots, \tau_n]\) to denote \texttt{IType} lists, which
+can also be written as `\(\tau, \omega\)' and
+`\(\tau_1, \hdots, \tau_n, \omega\)'' respectively.
+
 \section{Type refinement}\label{type-refinement-1}
 
-One of the first things we needed to add to the notion of
+One of the first things we needed to integrate into the notion of
 intersection-type assignment and the \(\subseteq\) relation on
-intersection types was the notion of simple-type refinement.
-Intuitively, this notion should capture the relationship between the
-``shape'' of the intersection and simple types.\\
+intersection types was the notion of simple-type refinement. As
+mentioned in \cref{initTypeRefine}, intuitively, this notion should
+capture the relationship between the ``shape'' of the intersection and
+simple types.\\
 To illustrate why we might want to incorporate type refinement into
 these definitions, we look at the initial formulation of the
-(intersection) typing rule \((Y)\):
+(intersection) typing rule \((Y)\), using the original notation:
 
 \begin{center}
   \vskip 1em
@@ -3869,9 +3901,7 @@ Since intersection types are defined in terms of strict
 (\(\mathcal{T}_s\)) and non-strict (\(\mathcal{T}\)) intersection types,
 the definition of refinement (\(::\)) is split into two versions, one
 for strict and another for non-strict types. In the definition below,
-\(\tau\) ranges over strict intersection types \(\mathcal{T}_s\), with
-\(\tau_i, \tau_j\) ranging over non-strict intersection types
-\(\mathcal{T}\), and \(A, B\) range over simple types \(\sigma\):
+\(A, B\) range over simple types \(\sigma\):
 
 \begin{center}
   \AxiomC{}
@@ -3880,9 +3910,9 @@ for strict and another for non-strict types. In the definition below,
   \DisplayProof
   \hskip 1.5em
   \AxiomC{$\tau_i ::_\ell A$}
-  \AxiomC{$\tau_j ::_\ell B$}
+  \AxiomC{$\tau :: B$}
   \LeftLabel{$(arr)$}
-  \BinaryInfC{$\tau_i \leadsto \tau_j :: A \to B$}
+  \BinaryInfC{$\tau_i \leadsto \tau :: A \to B$}
   \DisplayProof
   \vskip 1.5em
   \AxiomC{}
@@ -3916,9 +3946,9 @@ range over \(\mathcal{T}_s\), \(\tau_i, \hdots, \tau_n\) range over
   \DisplayProof
   \hskip 1.5em
   \AxiomC{$\tau_i \subseteq^A_\ell \tau_j$}
-  \AxiomC{$\tau_m \subseteq^B \tau_n$}
+  \AxiomC{$\tau \subseteq^B \tau'$}
   \LeftLabel{$(arr)$}
-  \BinaryInfC{$\tau_j \leadsto \tau_m \subseteq^{A \to B} \tau_i \leadsto \tau_n$}
+  \BinaryInfC{$\tau_j \leadsto \tau \subseteq^{A \to B} \tau_i \leadsto \tau'$}
   \DisplayProof
   \vskip 1.5em
   \AxiomC{$\tau_i ::_\ell A$}
@@ -3944,16 +3974,34 @@ The presentation of the \(\subseteq\) relation in
 presented above. The main difference is obviously the addition of type
 refinement, but the definition now also includes the \((base)\) rule,
 which allows one to derive the previously implicitly stated reflexivity
-and transitivity rules. \\
+and transitivity rules.\\
 Another departure from the original definition is the formulation of the
-following two properties as the \((nil)\) and \((cons)\) rules:
+following two clauses, stated in \cref{Definition:subseteqOrig}, as the
+\((nil)\) and \((cons)\) rules:
 
 \begin{center}
 $\begin{aligned}
 \forall\ i \in \underline{n}.\ \ \tau_i \subseteq& \taui \\ 
-\forall\ i \in \underline{n}.\ \ \tau_i \subseteq \tau \implies& \taui \subseteq \tau \\
+\forall\ i \in \underline{n}.\ \ \tau_i \subseteq \psi \implies& \taui \subseteq \psi \\
 \end{aligned}$
 \end{center}
+
+\(\ \)
+
+\begin{Remark}
+
+The formulation above uses the original notation. In order to avoid
+confusion, we present the two clauses using the list notation, defined
+in \cref{notation}:
+
+\begin{center}
+$\begin{aligned}
+\forall\ \tau \in \tau_i.\ \ \tau \subseteq\ &\tau_i \\ 
+\forall\ \tau \in \tau_i.\ \ \tau \subseteq \psi \implies& \tau_i \subseteq \psi \\
+\end{aligned}$
+\end{center}
+
+\end{Remark}
 
 To give a motivation as to why we chose a different formulation of these
 properties, we first examine the original definition and show why it's
@@ -3964,7 +4012,8 @@ intersections, encoded as \texttt{List IType}-s. All the preceding
 definitions follow this split with the strict and non strict versions of
 the type refinement (\(::\) and \(::_\ell\) respectively) and sub-typing
 relations (\(\subseteq\) and \(\subseteq_\ell\) respectively).\\
-If we tried to turn the first property above into a rule, such as:
+If we tried to turn the first property above into a rule naively, such
+as:
 
 \begin{center}
   \AxiomC{$\tau \in \tau_i$}
@@ -3996,16 +4045,16 @@ Similarly for the second property, the well typed version might be
 formulated as:
 
 \begin{center}
-  \AxiomC{$\forall \tau' \in \tau_i.\ [\tau'] \subseteq_\ell \tau$}
+  \AxiomC{$\forall \tau \in \tau_i.\ [\tau] \subseteq_\ell \psi$}
   \LeftLabel{$(prop'\ 2)$}
-  \UnaryInfC{$\tau_i \subseteq_\ell \tau$}
+  \UnaryInfC{$\tau_i \subseteq_\ell \psi$}
   \DisplayProof
 \end{center}
 
-However, in the rule above, we assumed/forced \(\tau\) to be an
-intersection, yet the property does not enforce this, and thus the two
-rules above do not actually capture the two properties from
-\cref{Definition:subseteqOrig}.
+However, in the rule above, we assumed/forced \(\psi\) to be an
+intersection (i.e.~a list of \texttt{Itype}-s), yet the property does
+not enforce this, and thus the two rules above do not actually capture
+the two properties from \cref{Definition:subseteqOrig}.\\
 
 \begin{Example}
 
@@ -4105,12 +4154,13 @@ Also, since the only rules that can proceed \((prop'\ 2)\) in the
 derivation tree are \((refl)\) or \((prop''\ 1)\), and it's easy to see
 that in case of \((refl)\) preceding, we can always apply
 \((prop''\ 1)\) before \((refl)\), we can in fact merge \((prop''\ 1)\)
-and \((prop'\ 2)\) into the single rule:
+and \((prop'\ 2)\) into the single rule (we break our naming convention
+again, since \(\psi\) is a list of strict types):
 
 \begin{center}
-  \AxiomC{$\forall \tau' \in \tau_i.\ \exists \tau'' \in \tau.\ \tau' \subseteq \tau''$}
+  \AxiomC{$\forall \tau' \in \tau_i.\ \exists \tau'' \in \psi.\ \tau' \subseteq \tau''$}
   \LeftLabel{$(prop'\ 12)$}
-  \UnaryInfC{$\tau_i \subseteq_\ell \tau$}
+  \UnaryInfC{$\tau_i \subseteq_\ell \psi$}
   \DisplayProof
 \end{center}
 
@@ -4192,7 +4242,7 @@ intersection-type assignment and the modifications that were needed to
 be made for the mechanization.
 
 While before, intersection typing consisted of the triple
-\(\Gamma \Vdash M : \tau)\), where \(\Gamma\) was the intersection type
+\(\Gamma \Vdash M : \tau\), where \(\Gamma\) was the intersection type
 context, \(M\) was an untyped \(\lamy\) term and \(\tau\) was an
 intersection type, this information is not actually sufficient when we
 introduce type refinement. As we've shown with the \((Y)\) rule, the
@@ -4273,8 +4323,9 @@ is to type a \(Y_A\) constant with a type \(\tau\) s.t.
 (introduced in \cref{itypesIntro}), we could easily have
 \(\tau \equiv (\taui \leadsto \taui) \leadsto \taui\), where
 \(\taui :: A\). However, as we have restricted ourselves to
-strict-intersection types, the initial definition for the \((Y)\) rule
-was the somewhat cumbersome:
+strict-intersection types (see the following
+\hyperref[whyStrictTypes]{remark}), the initial definition for the
+\((Y)\) rule was the somewhat cumbersome:
 
 \begin{center}
   \vskip 1.5em
@@ -4305,8 +4356,9 @@ current form. To create a compromise between the unrestricted
 intersection-types of \(\lambda_\cap^{BCD}\), which made expressing the
 \((Y)\) rule much simpler, and the strict typing, which provided a
 restricted version of type derivation over the \(\lambda_\cap^{BCD}\)
-system, we modified strict types to have intersections as both the left
-and right sub-terms of a strict type:
+system (see the \hyperref[whyStrictTypes]{remark} below), we modified
+strict types to have intersections as both the left and right sub-terms
+of a strict type:
 
 \begin{Definition}[Semi-strict intersection types]
 
@@ -4322,15 +4374,16 @@ $\begin{aligned}
 
 \begin{Remark}
 
-Using strict intersection types and having two intersection typing
-relations \(\Vdash\) and \(\Vdash_\ell\) makes proving lemmas about the
-system much easier. The clearest example of this is the nice property of
-\emph{inversion}, one gets ``for free'' with strict types. Take, for
-example, the term \(\Gamma \Vdash uv : \tau\) (where for the puproses of
-this example, \(uv\) is a term of the simply-typed \(\lambda\)-calculus
-and not a \(\lamy\) term). Since for the \(\Vdash\) relation, \(uv\) can
-only be given a strict intersection type, we can easily prove the
-following inversion lemma:
+\label{whyStrictTypes} Using strict intersection types and having two
+intersection typing relations \(\Vdash\) and \(\Vdash_\ell\) makes
+proving lemmas about the system much easier. The clearest example of
+this is the nice property of \emph{inversion}, one gets ``for free''
+with strict types. Take, for example, the term
+\(\Gamma \Vdash uv : \tau\) (where for the purposes of this example,
+\(uv\) is a term of the simply-typed \(\lambda\)-calculus and not a
+\(\lamy\) term). Since for the \(\Vdash\) relation, \(uv\) can only be
+given a strict intersection type, we can easily prove the following
+inversion lemma:
 
 \begin{Lemma}[Inversion Lemma for $(app)$]
 
@@ -4389,12 +4442,10 @@ list of triples \((x, \tau_i, A)\), is well formed. For each triple,
 written as \(x : \tau_i ::_\ell A\), this means that the free variable
 \(x\) does not appear elsewhere in the domain of \(\Gamma\). Each
 intersection type \(\tau_i\), associated with a variable \(x\), also
-refines a simple type \(A\). In the definition below, we also assume the
-following convention \(\bigcap \tau \equiv [\tau]\):
-\label{Definition:itypAssignment}
+refines a simple type \(A\). \label{Definition:itypAssignment}
 
 \begin{center}
-  \AxiomC{$\exists (x : \tau_i ::_\ell A) \in \Gamma.\ \bigcap \tau \subseteq^A_\ell \tau_i$}
+  \AxiomC{$\exists (x : \tau_i ::_\ell A) \in \Gamma.\ [\tau] \subseteq^A_\ell \tau_i$}
   \LeftLabel{$(var)$}
   \UnaryInfC{$\Gamma \Vdash x_{\{A\}} : \tau$}
   \DisplayProof
@@ -4403,7 +4454,7 @@ following convention \(\bigcap \tau \equiv [\tau]\):
   \AxiomC{$\Gamma \Vdash u_{\{A \to B\}} : \tau_i \leadsto \tau_j$}
   \AxiomC{$\Gamma \Vdash_\ell v_{\{A\}} : \tau_i$}
   \LeftLabel{$(app)$}
-  \RightLabel{$(\bigcap \tau \subseteq^B_\ell \tau_j)$}
+  \RightLabel{$( [\tau] \subseteq^B_\ell \tau_j)$}
   \BinaryInfC{$\Gamma \Vdash uv : \tau$}
   \DisplayProof
   %------------------------------------
@@ -4414,9 +4465,9 @@ following convention \(\bigcap \tau \equiv [\tau]\):
   \DisplayProof
   %------------------------------------
   \hskip 1.5em
-  \AxiomC{$\exists \tau_x.\ \bigcap (\tau_x \leadsto \tau_x) \subseteq^{A \to A}_\ell \tau_i \land \tau_j \subseteq^A_\ell \tau_x$}
+  \AxiomC{$\exists \tau_x.\ [\tau_x \leadsto \tau_x] \subseteq^{A \to A}_\ell \tau_i \land \tau_j \subseteq^A_\ell \tau_x$}
   \LeftLabel{$(Y)$}
-  \UnaryInfC{$\Gamma \Vdash_s Y_{A} : \tau_i \leadsto \tau_j$}
+  \UnaryInfC{$\Gamma \Vdash Y_{A} : \tau_i \leadsto \tau_j$}
   \DisplayProof
   %------------------------------------
   \vskip 1.5em
@@ -4436,12 +4487,24 @@ following convention \(\bigcap \tau \equiv [\tau]\):
 
 \end{Definition}
 
+The formulation of the \((Y)\) rule above, was introduced mostly due to
+the derived sub-typing rule \((\subseteq)\), defined in the following
+section. This is a stronger version of the the following initial
+formulation of the \((Y)\) for the semi-strict types (which was not
+general enough to admit \((\subseteq)\) and other lemmas):
+
+\begin{center}
+\AxiomC{$\tau_x ::_\ell A$}
+  \LeftLabel{$(Y)$}
+  \UnaryInfC{$\Gamma \Vdash Y_{A} : [\tau_x \leadsto \tau_x] \leadsto \tau_x$}
+  \DisplayProof
+\end{center}
+
 \section{Proof of subject expansion}\label{proof-of-subject-expansion}
 
-An interesting property of the intersection types is the fact that they
-admit both subject expansion and subject reduction, namely \(\Vdash\) is
-closed under \(\beta\)-equality. In this section, we will focus on the
-subject expansion lemma:
+We described the subject invariance property of intersection types in
+\cref{initSubjectInv}. In this section, we will focus on the subject
+expansion lemma:
 
 \begin{Theorem}[Subject expansion for $\Vdash/\Vdash_\ell$]
 
@@ -4795,9 +4858,11 @@ derivation trees could be valid:
 
 However, it's easy to see that since these derivation trees must be
 finite, even if we apply \((\tocap)\) multiple times, eventually, all of
-these branches will have to have an application of the \((abs)\) rule.
+these branches will have to have an application of the \((abs)\) rule.\\
 As a result, we can prove an inversion lemma, which is practically
-identical to the original ``free'' inversion lemma:
+identical to the original ``free'' inversion lemma, but not as
+complicated to prove as an equivalent inversion lemma in the
+\(\lambda_\cap^{BCD}\) system:
 
 \begin{Lemma}[Inversion lemma for $(abs)$]
 
@@ -5060,9 +5125,10 @@ this, even though we know that the definition is actually terminating.
 We initially contemplated using well-founded recursion to prove that the
 proof terminates, but having little experience in Agda, this looked
 quite complicated.\\
-Instead, we devised a simple ``hack'' to allow Agda to prove termination
-for this (slightly modified) lemma, by first defining ``skeleton'' terms
-\(\mathfrak{T}\), which capture the structure of \(\lamy\) terms:\\
+Instead, we devised a simple technique to allow Agda to prove
+termination for this (slightly modified) lemma, by first defining
+``skeleton'' terms \(\mathfrak{T}\), which capture the structure of
+\(\lamy\) terms:\\
 
 \begin{Definition}
 
@@ -5204,23 +5270,46 @@ types.\\
 Whilst, these two aims were successful, there is space for improvement
 and further work in both stated aims.
 
-\section{Limitations of the current comparison
-approach}\label{limitations-of-the-current-comparison-approach}
+\section{Limitations of the current
+approach}\label{limitations-of-the-current-approach}
 
-The main limiting factor for doing a comparison, more similar to the
-\(\poplm\) challenge, was obviously the time constraints of this
-project. Due to the limited number of comparisons and theorem provers
-tested, this comparison cannot hope to give a wide overview of the
-current technology and techniques, used for similar mechanizations.
+A major limiting factor for doing a comparison more similar to the
+\(\poplm\) challenge, was obviously the time constraint of this project.
+Due to the limited number of comparisons and theorem provers tested,
+this comparison cannot hope to give a wide overview of the current
+technology and techniques, used for similar mechanizations.\\
+Whilst the comparisons focus on transparency of definitions, there is
+less of a discussion of transparency of proofs. Even though
+\cref{chap:compAgda} describes the different approaches to mechanizing
+proofs in Isabelle and Agda, the question of which of these approaches
+is more transparent has not been explored to a great extent. This
+question is perhaps a slightly philosophical one, as it touches on what
+constitutes a proof, as well as what a proof should look like.\\
+Another point of concern is the previously discussed ``porting'' of the
+proofs from the nominal to the locally nameless version of the calculus.
+Whilst we chose to ``port'' the theory over, keeping as much structure
+identical as possible, this might have inadvertently created overheads
+in the locally nameless mechanization, which were not necessary (like
+having two versions of lemmas, one defined for substitution and one for
+the \emph{open} operation).\\
+However, the main drawback, in our view, is the relatively fragile
+implementation of intersection types and the proofs of subject
+invariance. Whilst this was not discussed at length, the mechanization
+at this stage proved to be a lot more difficult to formalize than the
+previously implemented proof of confluence, since the definitions of the
+intersection types and typing rules changed several times, breaking most
+of the proofs each time.
 
 \section{Future work}\label{future-work}
 
 Having a solid basis for the theory of HOMC, underpinned by the
-\(\lamy\) calculus, the next step would be to construct a decision
-procedure for the normalizability of \(\lamy\) terms, which is an
-important result in the HOMC theory.
-
-\textbf{not really sure what else to say??}
+\(\lamy\) calculus, the wider scope of this mechanization would include
+the implementation of a decision procedure for the normalizability of
+\(\lamy\) terms, which is an important result in the HOMC theory. As was
+mentioned in \cref{chap:compAgda}, the choice of Agda for the
+mechanization of intersection types and proofs of subject invariance was
+in fact motivated (in part) by the extension of the mechanization to
+this result.
 
 \footnotesize
 
