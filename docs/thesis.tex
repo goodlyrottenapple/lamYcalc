@@ -816,9 +816,9 @@ well-suited to the task).''
 
 Another advantage of using a locally nameless definition of
 \(\lambda\)-terms is a better readability of such terms, compared to
-equivalent de Bruijn terms. We therefore chose the locally nameless
-approach for one of our mechanizations and put these claims to test in
-\cref{chap:compIsa}.
+equivalent de Bruijn terms. We decided to put these claims to test in
+\cref{chap:compIsa} of this thesis and therefore chose the locally
+nameless approach for one of our mechanizations.
 
 \subsection{Higher-Order approaches}\label{higher-order-approaches}
 
@@ -829,7 +829,7 @@ the implementation language, which handles binding. HOAS, or
 higher-order abstract syntax (Pfenning and Elliott
 \protect\hyperlink{ref-pfenning88}{1988}, Harper, Honsell, and Plotkin
 (\protect\hyperlink{ref-harper93}{1993})), is a framework for defining
-logics based on the simply typed \(\lambda\)-calculus. \\
+logics based on the simply typed \(\lambda\)-calculus.\\
 Using HOAS for encoding the \(\lambda\)-calculus comes down to encoding
 binders using the meta-language binders. This way, the definitions of
 capture avoiding substitution or notion of \(\alpha\)-equivalence are
@@ -878,7 +878,6 @@ The first part of this project focuses on formalizing the simply typed
 of the Church Rosser Theorem is sometimes also referred to as proof of
 confluence). The usual/informal definition of the \(\lamy\) terms and
 the simple types are given below:\\
-\(\ \)
 
 \begin{Definition}[$\lamy$ types and terms]
 
@@ -900,7 +899,7 @@ The \(\lamy\) calculus differs from the simply typed
 \(\lambda\)-calculus only in the addition of the \(Y\) constant family,
 indexed at every simple type \(\sigma\), where the (simple) type of a
 \(Y_A\) constant (indexed with the type \(A\)) is \((A \to A) \to A\).
-The usual definition of \(\beta\)-reduction is then augmented with the
+The usual definition of \(\beta Y\)-reduction is then augmented with the
 \((Y)\) rule (this is the typed version of the rule):
 
 \begin{center}
@@ -914,7 +913,6 @@ The usual definition of \(\beta\)-reduction is then augmented with the
 
 In essence, the \(Y\) rule allows (some) well-typed recursive
 definitions over simply typed \(\lambda\)-terms.\\
-\(\ \)
 
 \begin{Example}
 
@@ -1019,10 +1017,10 @@ in this work are in fact results about the ``typed'' \(\lamy\) calculus.
 
 \label{cr-def}
 
-The Church-Rosser Theorem states that the \(\beta\)-reduction of the
+The Church-Rosser Theorem states that the \(\beta Y\)-reduction of the
 \(\lambda\)-calculus is confluent, that is, the reflexive-transitive
-closure of the \(\beta\)-reduction has the \emph{diamond property}, i.e.
-\(\dip(\red^*)\), where:
+closure of the \(\beta Y\)-reduction has the \emph{diamond property},
+i.e. \(\dip(\red^*)\), where:
 
 \begin{Definition}[$\dip(R)$]
 
@@ -1036,7 +1034,7 @@ $\forall a, b, c.\ aRb \land aRc \implies \exists d.\ bRd \land cRd$
 \end{Definition}
 
 The proof of confluence of \(\red\), the \(\beta Y\)-reduction defined
-as the standard \(\beta\)-reduction with the addition of the
+as the standard \(\beta Y\)-reduction with the addition of the
 aforementioned \((Y)\) rule, follows a variation of the Tait-Martin-Löf
 Proof originally described in Takahashi
 (\protect\hyperlink{ref-takahashi95}{1995}) (specifically using the
@@ -1047,10 +1045,10 @@ first give a high level overview of how the usual proof proceeds.
 \subsubsection{Overview}\label{overview}
 
 In the traditional proof of the Church Rosser theorem, we define a new
-reduction relation, called the \emph{parallel} \(\beta\)-reduction
-(\(\gg\)), which, unlike the ``plain'' \(\beta\)-reduction satisfies the
-\emph{diamond property} (note that we are talking about the ``single
-step'' \(\beta\)-reduction and not the reflexive transitive closure).
+reduction relation, called the \emph{parallel} \(\beta Y\)-reduction
+(\(\gg\)), which, unlike the ``plain'' \(\beta Y\)-reduction satisfies
+the \emph{diamond property} (note that we are talking about the ``single
+step'' \(\beta Y\)-reduction and not the reflexive transitive closure).
 Once we prove the \emph{diamond property} for \(\gg\), the proof of
 \(\dip(\gg^*)\) follows easily. The reason why we prove \(\dip(\gg)\) in
 the first place is because the reflexive-transitive closure of \(\gg\)
@@ -1058,10 +1056,10 @@ coincides with the reflexive transitive closure of \(\red\) and it is
 much easier to prove \(\dip(\gg)\) than trying to prove \(\dip(\red^*)\)
 directly. The usual proof of the \emph{diamond property} for \(\gg\)
 involves a double induction on the shape of the two parallel
-\(\beta\)-reductions from \(M\) to \(P\) and \(Q\), where we try to show
-that the following diamond always exists, that is, given any reductions
-\(M \gg P\) and \(M \gg Q\), there is some \(M'\) s.t. \(P \gg M'\) and
-\(Q \gg M'\):
+\(\beta Y\)-reductions from \(M\) to \(P\) and \(Q\), where we try to
+show that the following diamond always exists, that is, given any
+reductions \(M \gg P\) and \(M \gg Q\), there is some \(M'\) s.t.
+\(P \gg M'\) and \(Q \gg M'\):
 
 \begin{figure}[h]
 \begin{center}
@@ -1086,8 +1084,8 @@ The Takahashi (\protect\hyperlink{ref-takahashi95}{1995}) proof
 simplifies this proof by eliminating the need to do simultaneous
 induction on the \(M \gg P\) and \(M \gg Q\) reductions. This is done by
 introducing another reduction, referred to as the \emph{maximal
-parallel} \(\beta\)-reduction (\(\ggg\)). The idea of using \(\ggg\) is
-to show that for every term \(M\) there is a reduct term \(M_{max}\)
+parallel} \(\beta Y\)-reduction (\(\ggg\)). The idea of using \(\ggg\)
+is to show that for every term \(M\) there is a reduct term \(M_{max}\)
 s.t. \(M \ggg M_{max}\) and that any \(M'\), s.t. \(M \gg M'\), also
 reduces to \(M_{max}\). We can then separate the ``diamond'' diagram
 above into two instances of the following triangle, where \(M'\) from
@@ -1115,8 +1113,8 @@ Proving this triangle instead of the original diamond simplifies the
 overall proof, as there is no longer a need for the complicated double
 induction form the original proof.
 
-\subsubsection{\texorpdfstring{Parallel
-\(\beta Y\)-reduction}{Parallel \textbackslash{}beta Y-reduction}}\label{parallel-beta-y-reduction}
+\subsubsection{\texorpdfstring{(Parallel)
+\(\beta Y\)-reduction}{(Parallel) \textbackslash{}beta Y-reduction}}\label{parallel-beta-y-reduction}
 
 Having described the high-level overview of the classical proof and the
 reason for following the Takahashi
@@ -1124,9 +1122,44 @@ reason for following the Takahashi
 of the major lemmas in more detail, as they form the core comparison of
 the \(\lamy\) calculus mechanizations, presented in
 \cref{chap:compIsa}.\\
-Firstly, we give the definition of \emph{parallel \(\beta Y\)-reduction}
-\(\gg\) formulated for the terms of the \(\lamy\) calculus, which allows
-simultaneous reduction of multiple parts of a term:\\
+For later comparison to the parallel reductions, defined below, we first
+give the definition of the normal \(\beta Y\)-reduction:
+
+\begin{Definition}[$\beta Y$-reduction]
+
+\begin{center}
+    \AxiomC{$M \red M'$}
+    \LeftLabel{$(red_L)$}
+    \UnaryInfC{$MN \red M'N$}
+    \DisplayProof
+    \hskip 1.5em
+    \AxiomC{$N \red N'$}
+    \LeftLabel{$(red_R)$}
+    \UnaryInfC{$MN \red M'N$}
+    \DisplayProof
+    \vskip 1.5em
+    \AxiomC{$M \red M'$}
+    \LeftLabel{$(abs)$}
+    \UnaryInfC{$\lambda x. M \red \lambda x. M'$}
+    \DisplayProof
+    \hskip 1.5em
+    \AxiomC{}
+    \LeftLabel{$(\beta)$}
+    \UnaryInfC{$(\lambda x.M)N \red M[N/x]$}
+    \DisplayProof
+    \hskip 1.5em
+    \AxiomC{}
+    \LeftLabel{$(Y)$}
+    \UnaryInfC{$Y_\sigma M \red M (Y_\sigma M)$}
+    \DisplayProof
+    \vskip 1.5em
+\end{center}
+
+\end{Definition}
+
+Next, is the definition of \emph{parallel} \(\beta Y\)-reduction \(\gg\)
+formulated for the terms of the \(\lamy\) calculus, which allows
+simultaneous reduction of multiple parts of a term:
 
 \begin{Definition}[$\gg$]
 
@@ -1167,7 +1200,7 @@ simultaneous reduction of multiple parts of a term:\\
 
 \end{Definition}
 
-The first difference between the normal \(\beta\)-reduction and
+The first difference between the normal \(\beta Y\)-reduction and
 \emph{parallel} \(\beta Y\)-reduction is the \((refl)/(refl_Y)\) rule,
 where \(x \gg x\), for example, is a valid reduction, but we have
 \(x \nRightarrow_Y x\) for the normal \(\beta Y\)-reduction
@@ -1180,7 +1213,7 @@ derive the general reflexivity rule \((refl^*): \forall M.\ M \gg M\)
 
 \label{Example:ggVsGgg} Another example where the two reductions differ
 is the simultaneous reduction of multiple sub-terms. \emph{Parallel}
-\(\beta\)-reduction, unlike \(\red\), allows the reduction of the term
+\(\beta Y\)-reduction, unlike \(\red\), allows the reduction of the term
 \(((\lambda xy.x)z)(\lambda x.x)y\) to \((\lambda y.z)y\), by
 simultaneously reducing the two sub-terms \((\lambda xy.x)z\) and
 \((\lambda x.x)y\) to \(\lambda y.z\) and \(y\) respectively:\\
@@ -1209,7 +1242,7 @@ simultaneously reducing the two sub-terms \((\lambda xy.x)z\) and
   \vskip 1.5em
 \end{center}
 
-If we try to construct a similar tree for \(\beta\)-reduction, we
+If we try to construct a similar tree for \(\beta Y\)-reduction, we
 quickly discover that the only two rules we can use are \((red_L)\) or
 \((red_R)\). We can thus only perform the right-side or the left side
 reduction of the two sub-terms, but not both.
@@ -1217,9 +1250,9 @@ reduction of the two sub-terms, but not both.
 \end{Example}
 
 Now that we have described the intuition behind the \emph{parallel}
-\(\beta\)-reduction, following Takahashi
+\(\beta Y\)-reduction, following Takahashi
 (\protect\hyperlink{ref-takahashi95}{1995}), we proceed to define the
-\emph{maximum parallel} \(\beta\)-reduction \(\ggg\), which contracts
+\emph{maximum parallel} \(\beta Y\)-reduction \(\ggg\), which contracts
 all redexes in a given term with a single step:
 
 \begin{Definition}[$\ggg$]
@@ -1346,9 +1379,9 @@ twice, namely for any term \(M\) there is an \(M_{max}\) s.t.
 Rosser}\label{typed-version-of-church-rosser}
 
 The proof of the Church Rosser theorem, as presented above, uses the
-untyped definition of \(\beta\)-reduction. Whilst it is possible to
-define a typed version of \(\beta\)-reduction, it turned out to be much
-easier to first prove the Church Rosser theorem for the so called
+untyped definition of \(\beta Y\)-reduction. Whilst it is possible to
+define a typed version of \(\beta Y\)-reduction, it turned out to be
+much easier to first prove the Church Rosser theorem for the so called
 ``untyped'' \(\lamy\) calculus and then additionally restrict this
 result to only well-typed \(\lamy\) terms.\\
 Thus, the definition of the Church Rosser Theorem, formulated for the
@@ -1363,7 +1396,7 @@ Thus, the definition of the Church Rosser Theorem, formulated for the
 In order to prove this typed version of the Church Rosser Theorem, we
 need to prove an additional result of subject reduction for \(\lamy\)
 calculus, which states that if a simply typed term \(M\) (with a type
-\(\tau\)) \(\beta\)-reduces to \(M'\), \(M'\) can also be typed with
+\(\tau\)) \(\beta Y\)-reduces to \(M'\), \(M'\) can also be typed with
 \(\tau\):
 
 \begin{Theorem}[Subject reduction for $\red^*$]
@@ -1557,7 +1590,7 @@ is finite. Therefore, enumerating and checking whether
 \(\Gamma \Vdash M : \tau\) for any of the types \(\tau\) in this set
 will take finite time.
 
-We present the type refinement relation, presented by Kobayashi
+We define the type refinement relation, presented by Kobayashi
 (\protect\hyperlink{ref-kobayashi09}{2009}) (amongst others):\\
 
 \begin{Definition}[Intersection-type refinement]
@@ -1585,7 +1618,7 @@ We present the type refinement relation, presented by Kobayashi
 
 An interesting property of intersection-type systems is the fact that
 they admit both subject expansion and subject reduction, namely
-\(\Vdash\) is closed under \(\beta\)-equality. This means that given a
+\(\Vdash\) is closed under \(\beta Y\)-equality. This means that given a
 term \(M\) with intersection type \(\tau\) and \(N\) s.t.
 \(M =_\beta N\), \(N\) can be typed at \(\tau\):
 
@@ -2148,7 +2181,7 @@ implicitly underpinned the mechanization.
 \section{Definitions}\label{definitions}
 
 We give a brief overview of the basic definitions of well-typed terms
-and \(\beta\)-reduction, specific to both mechanizations.
+and \(\beta Y\)-reduction, specific to both mechanizations.
 Unsurprisingly, the main differences in these definitions involve
 \(\lambda\)-binders.
 
@@ -2205,7 +2238,7 @@ These auto-generated rules can be inspected in Isabelle, using the
 
 \end{Note}
 
-Other definitions, such as \(\beta\)-reduction and the notion of
+Other definitions, such as \(\beta Y\)-reduction and the notion of
 substitution are also unchanged with regards to the usual definition
 (except for the addition of the \(Y\) case, which is trivial):
 
@@ -2477,17 +2510,17 @@ get a proof tree with a branch which cannot be closed (\(\trm (2)\)):
 
 \end{Example}
 
-\subsubsection{\texorpdfstring{\(\beta\)-reduction for LN
-terms}{\textbackslash{}beta-reduction for LN terms}}\label{beta-reduction-for-ln-terms}
+\subsubsection{\texorpdfstring{\(\beta Y\)-reduction for LN
+terms}{\textbackslash{}beta Y-reduction for LN terms}}\label{beta-y-reduction-for-ln-terms}
 
-Finally, we examine the formulation of \(\beta\)-reduction in the LN
+Finally, we examine the formulation of \(\beta Y\)-reduction in the LN
 presentation of the \(\lamy\) calculus. Since we only want to perform
-\(\beta\)-reduction on valid \(\lamy\) terms, the inductive definition
-of \(\beta\)-reduction in the LN mechanization now includes the
+\(\beta Y\)-reduction on valid \(\lamy\) terms, the inductive definition
+of \(\beta Y\)-reduction in the LN mechanization now includes the
 precondition that the terms appearing in the reduction are well
 formed:\(\\\)
 
-\begin{Definition}[$\beta$-reduction (LN)]
+\begin{Definition}[$\beta Y$-reduction (LN)]
 
 \begin{center}
     \AxiomC{$M \red M'$}
@@ -2610,7 +2643,7 @@ not contain a \(\lambda\) or \(Y\) as its left-most sub-term,
 \cref{Lemma:reflM} does not hold in \(\ggg\) for terms like
 \((\lambda x.x)y\), namely, \((\lambda x.x)y \ggg (\lambda x.x)y\) is
 not a valid reduction (see \cref{Example:ggVsGgg}). It is, however, not
-difficult to see that such terms can simply be \(\beta\)-reduced until
+difficult to see that such terms can simply be \(\beta Y\)-reduced until
 all the redexes have been contracted, so that we have
 \((\lambda x.x)y \ggg y\) for the term above.\\
 Seen as a weaker version of \cref{Lemma:reflM}, the proof of
@@ -3991,8 +4024,8 @@ $\begin{aligned}
 \begin{Remark}
 
 The formulation above uses the original notation. In order to avoid
-confusion, we present the two clauses using the list notation, defined
-in \cref{notation}:
+confusion, we present the two clauses using the list notation,
+introduced in \cref{notation}:
 
 \begin{center}
 $\begin{aligned}
@@ -4250,7 +4283,7 @@ refinement relation \(::\) provides a connection between intersection
 and simple types. We therefore want \(M\) in the triple to be a simply
 typed \(\lamy\) term.\\
 Even though we could use the definition of simple types from the
-previous chapters, this notation would be rather cumbersome.
+previous chapters, this notation would be rather cumbersome.\\
 
 \begin{Example}
 
@@ -4576,7 +4609,7 @@ construct the following proof tree:
 
 The only (non-trivial) open branch in the above tree is
 \(\Gamma \Vdash m : \omega \leadsto [\tau]\). In order prove this, we
-need to use the sub-typing lemma for intersection types:
+need to use the sub-typing lemma for intersection types:\\
 
 \begin{Lemma}[Sub-typing for $\Vdash/\Vdash_\ell$]
 
@@ -4894,12 +4927,15 @@ subset relation:
 \begin{Remark}
 
 Initially, we tried to add \((\tocap_\ell)\) to the type subset relation
-and add the sub-typing rule to \(\Vdash\), instead of having the rule
-\((\tocap)\). However, this made the inversion lemmas, as well as some
-other lemmas too difficult to prove. Finding the right balance in the
-formalization of the \((\tocap)/(\tocap_\ell)\) and the sub-typing rules
-proved to be perhaps the most challenging part of the formalization of
-intersection types.
+and add the sub-typing rule to \(\Vdash\), as this is the usual
+formulation in other non-strict systems such as \(\lambda_\cap^{BCD}\),
+instead of explicitly having the \((\tocap)\) rule (which is derivable
+in a system with \((\tocap_\ell)\) and \((\subseteq)\) rules). However,
+having the sub-typing rule \((\subseteq)\) in \(\Vdash\) made the
+inversion lemmas, as well as some other lemmas too difficult to prove.\\
+Finding the right balance in the formalization of the
+\((\tocap)/(\tocap_\ell)\) and the sub-typing rules proved to be perhaps
+the most challenging part of the formalization of intersection types.
 
 \end{Remark}
 
@@ -5267,7 +5303,7 @@ assess viable approaches and available tools for formalizing a typed
 project was to create the basis for a full formalization of the HOMC
 theory, by implementing the \(\lamy\) calculus with intersection
 types.\\
-Whilst, these two aims were successful, there is space for improvement
+Whilst these two aims were successful, there is space for improvement
 and further work in both stated aims.
 
 \section{Limitations of the current
@@ -5279,7 +5315,7 @@ Due to the limited number of comparisons and theorem provers tested,
 this comparison cannot hope to give a wide overview of the current
 technology and techniques, used for similar mechanizations.\\
 Whilst the comparisons focus on transparency of definitions, there is
-less of a discussion of transparency of proofs. Even though
+less of a discussion about the transparency of proofs. Even though
 \cref{chap:compAgda} describes the different approaches to mechanizing
 proofs in Isabelle and Agda, the question of which of these approaches
 is more transparent has not been explored to a great extent. This
@@ -5287,7 +5323,7 @@ question is perhaps a slightly philosophical one, as it touches on what
 constitutes a proof, as well as what a proof should look like.\\
 Another point of concern is the previously discussed ``porting'' of the
 proofs from the nominal to the locally nameless version of the calculus.
-Whilst we chose to ``port'' the theory over, keeping as much structure
+Whilst we chose to port the theory over, keeping as much structure
 identical as possible, this might have inadvertently created overheads
 in the locally nameless mechanization, which were not necessary (like
 having two versions of lemmas, one defined for substitution and one for

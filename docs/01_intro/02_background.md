@@ -165,11 +165,11 @@ The locally nameless approach is championed by @aydemir08, who claim several ben
 
 > "First, our \[locally nameless\] presentation is transparent: the proofs closely follow their informal equivalents. Second the overheads of the approach are low: we do not need manual proofs of freshness side-conditions nor reasoning about alpha-equivalence ... At the same time, there is no need for external tools, and the style works in any general purpose theorem prover (although we found Coq to be well-suited to the task)."
 
-Another advantage of using a locally nameless definition of $\lambda$-terms is a better readability of such terms, compared to equivalent de Bruijn terms. We therefore chose the locally nameless approach for one of our mechanizations and put these claims to test in \cref{chap:compIsa}.
+Another advantage of using a locally nameless definition of $\lambda$-terms is a better readability of such terms, compared to equivalent de Bruijn terms. We decided to put these claims to test in  \cref{chap:compIsa} of this thesis and therefore chose the locally nameless approach for one of our mechanizations.
 
 ###Higher-Order approaches
 
-Unlike concrete approaches to formalizing the $\lambda$-calculus, where the notion of binding and substitution is defined explicitly in the host language, higher-order formalizations use the function space of the implementation language, which handles binding. HOAS, or higher-order abstract syntax [@pfenning88, @harper93], is a framework for defining logics based on the simply typed $\lambda$-calculus. <!--A form of HOAS, introduced by @harper93, called the Logical Framework (LF) has been implemented as Twelf by @pfenning99, which has been previously used to encode the $\lambda$-calculus.-->   
+Unlike concrete approaches to formalizing the $\lambda$-calculus, where the notion of binding and substitution is defined explicitly in the host language, higher-order formalizations use the function space of the implementation language, which handles binding. HOAS, or higher-order abstract syntax [@pfenning88, @harper93], is a framework for defining logics based on the simply typed $\lambda$-calculus.   
 Using HOAS for encoding the $\lambda$-calculus comes down to encoding binders using the meta-language binders. This way, the definitions of capture avoiding substitution or notion of $\alpha$-equivalence are offloaded onto the meta-language. As an example, take the following definition of terms of the $\lambda$-calculus in Haskell:
 
 ~~~{.haskell}
@@ -189,12 +189,10 @@ Originally, the field of higher order model checking mainly involved studying hi
 
 ###Definition of $\lamy$ terms
 
-The first part of this project focuses on formalizing the simply typed $\lamy$ calculus and the proof of confluence for this calculus (proof of the Church Rosser Theorem is sometimes also referred to as proof of confluence). The usual/informal definition of the $\lamy$ terms and the simple types are given below:    
-$\ $
+The first part of this project focuses on formalizing the simply typed $\lamy$ calculus and the proof of confluence for this calculus (proof of the Church Rosser Theorem is sometimes also referred to as proof of confluence). The usual/informal definition of the $\lamy$ terms and the simple types are given below:   
 <div class="Definition" head="$\lamy$ types and terms">The set of simple types $\sigma$ is built up inductively form the $\mathsf{o}$ constant and the arrow type $\to$.     
 Let $Var$ be a countably infinite set of atoms in the definition of the set of $\lamy$ terms $M$:
 \label{Definition:lamyTrms}
-
 \begin{center}
 $\begin{aligned}
 \sigma ::=&\ \mathsf{o}\ |\ \sigma \to \sigma \\
@@ -203,7 +201,7 @@ M ::=&\ x\ |\ MM\ |\ \lambda x.M\ |\ Y_\sigma \text{ where }x \in Var
 \end{center}
 </div> 
 
-The $\lamy$ calculus differs from the simply typed $\lambda$-calculus only in the addition of the $Y$ constant family, indexed at every simple type $\sigma$, where the (simple) type of a $Y_A$ constant (indexed with the type $A$) is $(A \to A) \to A$. The usual definition of $\beta$-reduction is then augmented with the $(Y)$ rule (this is the typed version of the rule):
+The $\lamy$ calculus differs from the simply typed $\lambda$-calculus only in the addition of the $Y$ constant family, indexed at every simple type $\sigma$, where the (simple) type of a $Y_A$ constant (indexed with the type $A$) is $(A \to A) \to A$. The usual definition of $\beta Y$-reduction is then augmented with the $(Y)$ rule (this is the typed version of the rule):
 
 \begin{center}
   \vskip 1em
@@ -214,8 +212,7 @@ The $\lamy$ calculus differs from the simply typed $\lambda$-calculus only in th
   \vskip 1em
 \end{center}
 
-In essence, the $Y$ rule allows (some) well-typed recursive definitions over simply typed $\lambda$-terms.    
-$\ $
+In essence, the $Y$ rule allows (some) well-typed recursive definitions over simply typed $\lambda$-terms.   
 <div class="Example">
 Take for example the term $\lambda x.x$, commonly referred to as the _identity_. The _identity_ term can be given a type $\sigma \to \sigma$ for any simple type $\sigma$. We can therefore perform the following (well-typed) reduction in the $\lamy$ calculus:
 
@@ -286,7 +283,7 @@ In the simple typing _a la Curry_, simple types and $\lambda$-terms are complete
 ###Church-Rosser Theorem
 \label{cr-def}
 
-The Church-Rosser Theorem states that the $\beta$-reduction of the $\lambda$-calculus is confluent, that is, the reflexive-transitive closure of the $\beta$-reduction has the _diamond property_, i.e. $\dip(\red^*)$, where:
+The Church-Rosser Theorem states that the $\beta Y$-reduction of the $\lambda$-calculus is confluent, that is, the reflexive-transitive closure of the $\beta Y$-reduction has the _diamond property_, i.e. $\dip(\red^*)$, where:
 
 <div class="Definition" head="$\dip(R)$">
 A binary relation $R$ has the _diamond property_, $\dip(R)$, iff
@@ -296,11 +293,11 @@ $\forall a, b, c.\ aRb \land aRc \implies \exists d.\ bRd \land cRd$
 \end{center}
 </div>
 
-The proof of confluence of $\red$, the $\beta Y$-reduction defined as the standard $\beta$-reduction with the addition of the aforementioned $(Y)$ rule, follows a variation of the Tait-Martin-Löf Proof originally described in @takahashi95 (specifically using the notes by @pollack95). To show why following this proof over the traditional proof is beneficial, we first give a high level overview of how the usual proof proceeds.
+The proof of confluence of $\red$, the $\beta Y$-reduction defined as the standard $\beta Y$-reduction with the addition of the aforementioned $(Y)$ rule, follows a variation of the Tait-Martin-Löf Proof originally described in @takahashi95 (specifically using the notes by @pollack95). To show why following this proof over the traditional proof is beneficial, we first give a high level overview of how the usual proof proceeds.
 
 ####Overview
 
-In the traditional proof of the Church Rosser theorem, we define a new reduction relation, called the _parallel_ $\beta$-reduction ($\gg$), which, unlike the "plain" $\beta$-reduction satisfies the _diamond property_ (note that we are talking about the "single step" $\beta$-reduction and not the reflexive transitive closure). Once we prove the _diamond property_ for $\gg$, the proof of $\dip(\gg^*)$ follows easily. The reason why we prove $\dip(\gg)$ in the first place is because the reflexive-transitive closure of $\gg$ coincides with the reflexive transitive closure of $\red$ and it is much easier to prove $\dip(\gg)$ than trying to prove $\dip(\red^*)$ directly. The usual proof of the _diamond property_ for $\gg$ involves a double induction on the shape of the two parallel $\beta$-reductions from $M$ to $P$ and $Q$, where we try to show that the following diamond always exists, that is, given any reductions $M \gg P$ and $M \gg Q$, there is some $M'$ s.t. $P \gg M'$ and $Q \gg M'$:
+In the traditional proof of the Church Rosser theorem, we define a new reduction relation, called the _parallel_ $\beta Y$-reduction ($\gg$), which, unlike the "plain" $\beta Y$-reduction satisfies the _diamond property_ (note that we are talking about the "single step" $\beta Y$-reduction and not the reflexive transitive closure). Once we prove the _diamond property_ for $\gg$, the proof of $\dip(\gg^*)$ follows easily. The reason why we prove $\dip(\gg)$ in the first place is because the reflexive-transitive closure of $\gg$ coincides with the reflexive transitive closure of $\red$ and it is much easier to prove $\dip(\gg)$ than trying to prove $\dip(\red^*)$ directly. The usual proof of the _diamond property_ for $\gg$ involves a double induction on the shape of the two parallel $\beta Y$-reductions from $M$ to $P$ and $Q$, where we try to show that the following diamond always exists, that is, given any reductions $M \gg P$ and $M \gg Q$, there is some $M'$ s.t. $P \gg M'$ and $Q \gg M'$:
 
 \begin{figure}[h]
 \begin{center}
@@ -321,7 +318,7 @@ In the traditional proof of the Church Rosser theorem, we define a new reduction
 \caption{The diamond property of $\gg$, visualized}
 \end{figure}
 
-The @takahashi95 proof simplifies this proof by eliminating the need to do simultaneous induction on the $M \gg P$ and $M \gg Q$ reductions. This is done by introducing another reduction, referred to as the _maximal parallel_ $\beta$-reduction ($\ggg$). The idea of using $\ggg$ is to show that for every term $M$ there is a reduct term $M_{max}$ s.t. $M \ggg M_{max}$ and that any $M'$, s.t. $M \gg M'$, also reduces to $M_{max}$. We can then separate the "diamond" diagram above into two instances of the following triangle, where $M'$ from the previous diagram is $M_{max}$:
+The @takahashi95 proof simplifies this proof by eliminating the need to do simultaneous induction on the $M \gg P$ and $M \gg Q$ reductions. This is done by introducing another reduction, referred to as the _maximal parallel_ $\beta Y$-reduction ($\ggg$). The idea of using $\ggg$ is to show that for every term $M$ there is a reduct term $M_{max}$ s.t. $M \ggg M_{max}$ and that any $M'$, s.t. $M \gg M'$, also reduces to $M_{max}$. We can then separate the "diamond" diagram above into two instances of the following triangle, where $M'$ from the previous diagram is $M_{max}$:
 
 \begin{figure}[h]
 \begin{center}
@@ -343,9 +340,42 @@ The @takahashi95 proof simplifies this proof by eliminating the need to do simul
 
 Proving this triangle instead of the original diamond simplifies the overall proof, as there is no longer a need for the complicated double induction form the original proof.
 
-####Parallel $\beta Y$-reduction
+####(Parallel) $\beta Y$-reduction
 Having described the high-level overview of the classical proof and the reason for following the @takahashi95 proof, we now present some of the major lemmas in more detail, as they form the core comparison of the $\lamy$ calculus mechanizations, presented in \cref{chap:compIsa}.   
-Firstly, we give the definition of _parallel $\beta Y$-reduction_ $\gg$ formulated for the terms of the $\lamy$ calculus, which allows simultaneous reduction of multiple parts of a term:   
+For later comparison to the parallel reductions, defined below, we first give the definition of the normal $\beta Y$-reduction:
+
+<div class="Definition" head="$\beta Y$-reduction">
+\begin{center}
+    \AxiomC{$M \red M'$}
+    \LeftLabel{$(red_L)$}
+    \UnaryInfC{$MN \red M'N$}
+    \DisplayProof
+    \hskip 1.5em
+    \AxiomC{$N \red N'$}
+    \LeftLabel{$(red_R)$}
+    \UnaryInfC{$MN \red M'N$}
+    \DisplayProof
+    \vskip 1.5em
+    \AxiomC{$M \red M'$}
+    \LeftLabel{$(abs)$}
+    \UnaryInfC{$\lambda x. M \red \lambda x. M'$}
+    \DisplayProof
+    \hskip 1.5em
+    \AxiomC{}
+    \LeftLabel{$(\beta)$}
+    \UnaryInfC{$(\lambda x.M)N \red M[N/x]$}
+    \DisplayProof
+    \hskip 1.5em
+    \AxiomC{}
+    \LeftLabel{$(Y)$}
+    \UnaryInfC{$Y_\sigma M \red M (Y_\sigma M)$}
+    \DisplayProof
+    \vskip 1.5em
+\end{center}
+</div>
+
+Next, is the definition of _parallel_ $\beta Y$-reduction $\gg$ formulated for the terms of the $\lamy$ calculus, which allows simultaneous reduction of multiple parts of a term:
+
 <div class="Definition" head="$\gg$">
 \begin{center}
   \AxiomC{}
@@ -383,11 +413,11 @@ Firstly, we give the definition of _parallel $\beta Y$-reduction_ $\gg$ formulat
 \end{center}
 </div>
 
-The first difference between the normal $\beta$-reduction and _parallel_ $\beta Y$-reduction is the $(refl)/(refl_Y)$ rule, where $x \gg x$, for example, is a valid reduction, but we have $x \nRightarrow_Y x$ for the normal $\beta Y$-reduction ($x \red^* x$ is valid, since $\red^*$ is the reflexive transitive closure of $\red$). THe addition of these two rules then allows us to derive the general reflexivity rule $(refl^*): \forall M.\ M \gg M$ (see \cref{Lemma:reflM}).
+The first difference between the normal $\beta Y$-reduction and _parallel_ $\beta Y$-reduction is the $(refl)/(refl_Y)$ rule, where $x \gg x$, for example, is a valid reduction, but we have $x \nRightarrow_Y x$ for the normal $\beta Y$-reduction ($x \red^* x$ is valid, since $\red^*$ is the reflexive transitive closure of $\red$). THe addition of these two rules then allows us to derive the general reflexivity rule $(refl^*): \forall M.\ M \gg M$ (see \cref{Lemma:reflM}).
 
 <div class="Example">
 \label{Example:ggVsGgg}
-Another example where the two reductions differ is the simultaneous reduction of multiple sub-terms. _Parallel_ $\beta$-reduction, unlike $\red$, allows the reduction of the term $((\lambda xy.x)z)(\lambda x.x)y$ to $(\lambda y.z)y$, by simultaneously reducing the two sub-terms $(\lambda xy.x)z$ and $(\lambda x.x)y$ to $\lambda y.z$ and $y$ respectively:   
+Another example where the two reductions differ is the simultaneous reduction of multiple sub-terms. _Parallel_ $\beta Y$-reduction, unlike $\red$, allows the reduction of the term $((\lambda xy.x)z)(\lambda x.x)y$ to $(\lambda y.z)y$, by simultaneously reducing the two sub-terms $(\lambda xy.x)z$ and $(\lambda x.x)y$ to $\lambda y.z$ and $y$ respectively:   
 \begin{center}
   \vskip 1.5em
   \AxiomC{}
@@ -412,10 +442,10 @@ Another example where the two reductions differ is the simultaneous reduction of
   \vskip 1.5em
 \end{center}
 
-If we try to construct a similar tree for $\beta$-reduction, we quickly discover that the only two rules we can use are $(red_L)$ or $(red_R)$. We can thus only perform the right-side or the left side reduction of the two sub-terms, but not both<!--(for the rules of normal $\beta$-reduction see \cref{Definition:betaRedNom})-->.
+If we try to construct a similar tree for $\beta Y$-reduction, we quickly discover that the only two rules we can use are $(red_L)$ or $(red_R)$. We can thus only perform the right-side or the left side reduction of the two sub-terms, but not both<!--(for the rules of normal $\beta Y$-reduction see \cref{Definition:betaRedNom})-->.
 </div>
 
-Now that we have described the intuition behind the _parallel_ $\beta$-reduction, following @takahashi95, we proceed to define the _maximum parallel_ $\beta$-reduction $\ggg$, which contracts all redexes in a given term with a single step:
+Now that we have described the intuition behind the _parallel_ $\beta Y$-reduction, following @takahashi95, we proceed to define the _maximum parallel_ $\beta Y$-reduction $\ggg$, which contracts all redexes in a given term with a single step:
 
 <div class="Definition" head="$\ggg$">
 \begin{center}
@@ -501,14 +531,14 @@ We can now prove $\dip(\gg)$ by simply applying \cref{Lemma:maxClose} twice, nam
 </div></div>
 
 ###Typed version of Church Rosser
-The proof of the Church Rosser theorem, as presented above, uses the untyped definition of $\beta$-reduction. Whilst it is possible to define a typed version of $\beta$-reduction, it turned out to be much easier to first prove the Church Rosser theorem for the so called "untyped" $\lamy$ calculus and then additionally restrict this result to only well-typed $\lamy$ terms.   
+The proof of the Church Rosser theorem, as presented above, uses the untyped definition of $\beta Y$-reduction. Whilst it is possible to define a typed version of $\beta Y$-reduction, it turned out to be much easier to first prove the Church Rosser theorem for the so called "untyped" $\lamy$ calculus and then additionally restrict this result to only well-typed $\lamy$ terms.   
 Thus, the definition of the Church Rosser Theorem, formulated for the $\lamy$ calculus, is the following one:
 
 <div class="Theorem" head="Typed Church Rosser Theorem">
 $\Gamma \vdash M : \sigma \land M \red^* M' \land M \red^* M'' \implies \exists M'''.\ \ M' \red^* M''' \land M'' \red^* M''' \land \Gamma \vdash M''' : \sigma$
 </div>
 
-In order to prove this typed version of the Church Rosser Theorem, we need to prove an additional result of subject reduction for $\lamy$ calculus, which states that if a simply typed term $M$ (with a type $\tau$) $\beta$-reduces to $M'$, $M'$ can also be typed with $\tau$:
+In order to prove this typed version of the Church Rosser Theorem, we need to prove an additional result of subject reduction for $\lamy$ calculus, which states that if a simply typed term $M$ (with a type $\tau$) $\beta Y$-reduces to $M'$, $M'$ can also be typed with $\tau$:
 
 <div class="Theorem" head="Subject reduction for $\red^*$">
 \label{Theorem:subRedSimp}
@@ -623,7 +653,7 @@ Assuming that $\Gamma$ is a finite list, consisting of pairs of atoms $Var$ and 
 
 It is important for the theory underpinning HOMC to be decidable. In order to guarantee this, we introduce a type refinement relation $\tau :: A$ for intersection types, where $\tau$ is an intersection type, refining a simple type $A$. Intuitively, the notion of refinement restricts the intersection types to those which correspond in "shape" to the simple type they refine. By restricting intersection types to only those that refine a given simple type, we can guarantee that the search space for an intersection type, which can type a given $\lamy$ term $M$ with the simple type $A$ is finite (and typing such a term is thus decidable), since the set $\{\tau\ |\ \tau :: A\}$ is finite. Therefore, enumerating and checking whether $\Gamma \Vdash M : \tau$ for any of the types $\tau$ in this set will take finite time.
 
-We present the type refinement relation, presented by @kobayashi09 (amongst others):   
+We define the type refinement relation, presented by @kobayashi09 (amongst others):   
 <div class="Definition" head="Intersection-type refinement">
 \begin{center}
   \AxiomC{}
@@ -644,7 +674,7 @@ We present the type refinement relation, presented by @kobayashi09 (amongst othe
 ###Subject invariance
 \label{initSubjectInv}
 
-An interesting property of intersection-type systems is the fact that they admit both subject expansion and subject reduction, namely $\Vdash$ is closed under $\beta$-equality. This means that given a term $M$ with intersection type $\tau$ and $N$ s.t. $M =_\beta N$, $N$ can be typed at $\tau$:
+An interesting property of intersection-type systems is the fact that they admit both subject expansion and subject reduction, namely $\Vdash$ is closed under $\beta Y$-equality. This means that given a term $M$ with intersection type $\tau$ and $N$ s.t. $M =_\beta N$, $N$ can be typed at $\tau$:
 
 <div class="Theorem" head="Subject invariance for $\Vdash$">
 

@@ -56,7 +56,7 @@ Continuing with the next round of comparison between the two theorem provers, Is
 
 ##Definitions
 
-We give a brief overview of the basic definitions of well-typed terms and $\beta$-reduction, specific to both mechanizations. Unsurprisingly, the main differences in these definitions involve $\lambda$-binders.
+We give a brief overview of the basic definitions of well-typed terms and $\beta Y$-reduction, specific to both mechanizations. Unsurprisingly, the main differences in these definitions involve $\lambda$-binders.
 
 ###Nominal sets representation
 
@@ -88,7 +88,7 @@ The special **`nominal\_datatype`** declaration also generates definitions of fr
 $\ $
 <div class="Note">These auto-generated rules can be inspected in Isabelle, using the **`print\_theorems`** command.</div>
 
-Other definitions, such as $\beta$-reduction and the notion of substitution are also unchanged with regards to the usual definition (except for the addition of the $Y$ case, which is trivial):
+Other definitions, such as $\beta Y$-reduction and the notion of substitution are also unchanged with regards to the usual definition (except for the addition of the $Y$ case, which is trivial):
 
 <div class="Definition" head="Capture-avoiding substitution">
 \begin{center}
@@ -260,10 +260,10 @@ $\ $
 \end{center}
 </div>
 
-####$\beta$-reduction for LN terms
-Finally, we examine the formulation of $\beta$-reduction in the LN presentation of the $\lamy$ calculus. Since we only want to perform $\beta$-reduction on valid $\lamy$ terms, the inductive definition of $\beta$-reduction in the LN mechanization now includes the precondition that the terms appearing in the reduction are well formed:$\\$
+####$\beta Y$-reduction for LN terms
+Finally, we examine the formulation of $\beta Y$-reduction in the LN presentation of the $\lamy$ calculus. Since we only want to perform $\beta Y$-reduction on valid $\lamy$ terms, the inductive definition of $\beta Y$-reduction in the LN mechanization now includes the precondition that the terms appearing in the reduction are well formed:$\\$
 
-<div class="Definition" head="$\beta$-reduction (LN)">
+<div class="Definition" head="$\beta Y$-reduction (LN)">
 \begin{center}
     \AxiomC{$M \red M'$}
     \AxiomC{$\trm (N)$}
@@ -336,7 +336,7 @@ This result is trivial for $\gg$, as we can easily prove the derived rule $(refl
 </div>
 </div>
 
-Since $\ggg$ restricts the use of the $(app)$ rule to terms which do not contain a $\lambda$ or $Y$ as its left-most sub-term, \cref{Lemma:reflM} does not hold in $\ggg$ for terms like $(\lambda x.x)y$, namely, $(\lambda x.x)y \ggg (\lambda x.x)y$ is not a valid reduction (see \cref{Example:ggVsGgg}). It is, however, not difficult to see that such terms can simply be $\beta$-reduced until all the redexes have been contracted, so that we have $(\lambda x.x)y \ggg y$ for the term above.   
+Since $\ggg$ restricts the use of the $(app)$ rule to terms which do not contain a $\lambda$ or $Y$ as its left-most sub-term, \cref{Lemma:reflM} does not hold in $\ggg$ for terms like $(\lambda x.x)y$, namely, $(\lambda x.x)y \ggg (\lambda x.x)y$ is not a valid reduction (see \cref{Example:ggVsGgg}). It is, however, not difficult to see that such terms can simply be $\beta Y$-reduced until all the redexes have been contracted, so that we have $(\lambda x.x)y \ggg y$ for the term above.   
 Seen as a weaker version of \cref{Lemma:reflM}, the proof of \cref{Lemma:maxEx}, at least in theory, should then only differ in the case of an application, where we have do a case analysis on the left sub-term of any given $M$.
 
 This is indeed the case when using the nominal mechanization, where the proof looks like this:

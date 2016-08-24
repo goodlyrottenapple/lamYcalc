@@ -145,7 +145,7 @@ $\begin{aligned}
 $\ $
 
 <div class="Remark">
-The formulation above uses the original notation. In order to avoid confusion, we present the two clauses using the list notation, defined in \cref{notation}:
+The formulation above uses the original notation. In order to avoid confusion, we present the two clauses using the list notation, introduced in \cref{notation}:
 
 \begin{center}
 $\begin{aligned}
@@ -329,8 +329,7 @@ For comparison, the same proof in Agda reads much the same as the "paper" one, g
 After we modified the initial definition of sub-typing and added the notion of type refinement, we will now take a look at the definition of intersection-type assignment and the modifications that were needed to be made for the mechanization.
 
 While before, intersection typing consisted of the triple $\Gamma \Vdash M : \tau$, where $\Gamma$ was the intersection type context, $M$ was an untyped $\lamy$ term and $\tau$ was an intersection type, this information is not actually sufficient when we introduce type refinement. As we've shown with the $(Y)$ rule, the refinement relation $::$ provides a connection between intersection and simple types. We therefore want $M$ in the triple to be a simply typed $\lamy$ term.   
-Even though we could use the definition of simple types from the previous chapters, this notation would be rather cumbersome. 
-
+Even though we could use the definition of simple types from the previous chapters, this notation would be rather cumbersome.    
 <div class="Example">Consider the simply typed term $\{\} \vdash \lambda x.x : A \to A$ being substituted for the untyped $\lambda x.x$ in $\{\} \Vdash \lambda x.x : (\tau \cap \phi) \leadsto \phi$ (where $\tau :: A$ and $\phi :: A$):
 
 \begin{center}
@@ -556,8 +555,7 @@ From \cref{figure:shapemYm}, we have $(1): \Gamma \Vdash_s m : \omega \leadsto \
   \vskip 1em
 \end{center}
 
-The only (non-trivial) open branch in the above tree is $\Gamma \Vdash m : \omega \leadsto [\tau]$. In order prove this, we need to use the sub-typing lemma for intersection types:
-
+The only (non-trivial) open branch in the above tree is $\Gamma \Vdash m : \omega \leadsto [\tau]$. In order prove this, we need to use the sub-typing lemma for intersection types:   
 <div class="Lemma" head="Sub-typing for $\Vdash/\Vdash_\ell$">
 In the definition below, the binary relation $\subseteq_\Gamma$ is defined for any well-formed contexts $\Gamma$ and $\Gamma'$, where for each triple $(x : \tau_i ::_\ell A) \in \Gamma$, there is a corresponding triple $(x : \tau_j ::_\ell A) \in \Gamma'$ s.t. $\tau_i \subseteq^A_\ell \tau_j\ $:
 
@@ -813,7 +811,8 @@ Besides having to derive inversion lemmas for the $(abs)$ and $(Y)$ rules, anoth
 \end{center}
 
 $\ $
-<div class="Remark">Initially, we tried to add $(\tocap_\ell)$ to the type subset relation and add the sub-typing rule to $\Vdash$, instead of having the rule $(\tocap)$. However, this made the inversion lemmas, as well as some other lemmas too difficult to prove. Finding the right balance in the formalization of the $(\tocap)/(\tocap_\ell)$ and the sub-typing rules proved to be perhaps the most challenging part of the formalization of intersection types.</div>
+<div class="Remark">Initially, we tried to add $(\tocap_\ell)$ to the type subset relation and add the sub-typing rule to $\Vdash$, as this is the usual formulation in other non-strict systems such as $\lambda_\cap^{BCD}$, instead of explicitly having the $(\tocap)$ rule (which is derivable in a system with $(\tocap_\ell)$ and $(\subseteq)$ rules). However, having the sub-typing rule $(\subseteq)$ in $\Vdash$ made the inversion lemmas, as well as some other lemmas too difficult to prove.    
+Finding the right balance in the formalization of the $(\tocap)/(\tocap_\ell)$ and the sub-typing rules proved to be perhaps the most challenging part of the formalization of intersection types.</div>
 
 We can now finish or proof for the case where $\tau_i \equiv [\tau_1, \tau_2]$:
 
