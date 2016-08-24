@@ -1,9 +1,9 @@
 #Background
 \label{chap:background}
 
-This chapter introduces some of the main concepts, discussed in greater length throughout the thesis. The first section discusses binders in a $\lambda$-calculus, since the treatment of binders is the most involved/problematic part of a fully formal mechanization of a $\lambda$-calculus.    
-The following section introduces the simply-typed $\lamy$ calculus along with a broad overview of the proof of confluence and important associated lemmas, which are discussed further in the following chapters.    
-Lastly, we introduce the theory underpinning HOMC, namely intersection types for the $\lamy$ calculus and present the proofs of subject invariance for intersection types.
+This chapter introduces some of the main concepts, discussed in greater length throughout the thesis. The first section provides an overview of the different approaches to mechanizing binders in a $\lambda$-calculus, since the treatment of binders is the most involved/problematic part of a fully formal mechanization of a $\lambda$-calculus.    
+The next section then introduces the simply-typed $\lamy$ calculus along with a broad overview of the proof of confluence and important associated lemmas, which are discussed further in the following chapters.    
+Lastly, we introduce the theory underpinning HOMC, namely the intersection type system for the $\lamy$ calculus along with the proofs of subject invariance for intersection types.
 
 ##Binders
 \label{binders}
@@ -499,6 +499,7 @@ To see why this is the case, we observe that the last rule applied in the deriva
   \RightLabel{($\lambda xy.x$ is not a $\lambda$ or $Y$)}
   \BinaryInfC{$(\lambda xy.x)(\lambda x.x)z \ggg (\lambda xy.x)z$}
   \DisplayProof
+  \vskip1em
 \end{center}
 
 However, this clearly could not happen, because $\lambda xy.x$ is in fact a $\lambda$-term.

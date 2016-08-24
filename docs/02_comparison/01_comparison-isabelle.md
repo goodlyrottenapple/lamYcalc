@@ -483,8 +483,8 @@ y & otherwise
 
 <div class="Example">To demonstrate the close operation, take the term $\lambda xy$. Applying the close operation with the free variable $x$, we get $\cls (\lambda xy) = \lambda 0y$. Whilst the original term might have been well formed, the closed term, as is the case here, may not be.</div>
 
-Having defined the _close_ operation, we can "close" the term $M'$, with respect to the $x$ we fixed earlier and show that for some $L'$, we have $\forall y \not\in L'.\ M^y \ggg (\cls M')^y$ (lines 26), by proving certain properties about the interplay between the _open_, _close_ and substitution operations.     
-As a result, the LN proof of this case (lines 22 - 36) is significantly longer and more involved than the nominal counterpart, which was easily proved by the `auto` prover.
+Having defined the _close_ operation, we can "close" the term $M'$, with respect to the $x$ we fixed earlier and show that for some $L'$, we have $\forall y \not\in L'.\ M^y \ggg (\cls M')^y$ (line 26), by proving certain properties about the interplay between the _open_, _close_ and substitution operations.     
+As a result, the LN proof of this case (lines 22 - 36) is significantly longer and more involved than the nominal counterpart, which was easily discharged by the `auto` prover.
 
 ###\cref{Lemma:maxClose}
 

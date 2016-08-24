@@ -507,17 +507,18 @@ possible further work.
 \label{chap:background}
 
 This chapter introduces some of the main concepts, discussed in greater
-length throughout the thesis. The first section discusses binders in a
+length throughout the thesis. The first section provides an overview of
+the different approaches to mechanizing binders in a
 \(\lambda\)-calculus, since the treatment of binders is the most
 involved/problematic part of a fully formal mechanization of a
 \(\lambda\)-calculus.\\
-The following section introduces the simply-typed \(\lamy\) calculus
+The next section then introduces the simply-typed \(\lamy\) calculus
 along with a broad overview of the proof of confluence and important
 associated lemmas, which are discussed further in the following
 chapters.\\
-Lastly, we introduce the theory underpinning HOMC, namely intersection
-types for the \(\lamy\) calculus and present the proofs of subject
-invariance for intersection types.
+Lastly, we introduce the theory underpinning HOMC, namely the
+intersection type system for the \(\lamy\) calculus along with the
+proofs of subject invariance for intersection types.
 
 \section{Binders}\label{binders}
 
@@ -1318,6 +1319,7 @@ a reduction on the sub-term \((\lambda x.x)z \ggg z\) occurs:
   \RightLabel{($\lambda xy.x$ is not a $\lambda$ or $Y$)}
   \BinaryInfC{$(\lambda xy.x)(\lambda x.x)z \ggg (\lambda xy.x)z$}
   \DisplayProof
+  \vskip1em
 \end{center}
 
 However, this clearly could not happen, because \(\lambda xy.x\) is in
@@ -2846,11 +2848,11 @@ been well formed, the closed term, as is the case here, may not be.
 Having defined the \emph{close} operation, we can ``close'' the term
 \(M'\), with respect to the \(x\) we fixed earlier and show that for
 some \(L'\), we have \(\forall y \not\in L'.\ M^y \ggg (\cls M')^y\)
-(lines 26), by proving certain properties about the interplay between
-the \emph{open}, \emph{close} and substitution operations.\\
+(line 26), by proving certain properties about the interplay between the
+\emph{open}, \emph{close} and substitution operations.\\
 As a result, the LN proof of this case (lines 22 - 36) is significantly
 longer and more involved than the nominal counterpart, which was easily
-proved by the \texttt{auto} prover.
+discharged by the \texttt{auto} prover.
 
 \subsection{\texorpdfstring{\cref{Lemma:maxClose}}{}}\label{section-1}
 
