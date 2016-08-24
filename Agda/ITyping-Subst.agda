@@ -217,7 +217,7 @@ subst-⊩-2-aux {A} {B} l-fv var trm-n x∉Γ Γ⊩m[x::=n] | no _ =
         (⊆-refl (⊩-∷' Γ⊩m[x::=n]))
         (⊆Γ-⊆ (cons x∉Γ nil (⊩-wf-Γ Γ⊩m[x::=n])) (λ {x₁} → there))) ,
   (nil (⊩-wf-Γ Γ⊩m[x::=n])))
-subst-⊩-2-aux {A ⟶ B} {C} {Γ} {τ ~> τ'} {x} {_} {n} (un m~Tt) (lam L {m} cf) trm-n x∉Γ (abs L' cf') =
+subst-⊩-2-aux {A ⟶ B} {C} {Γ} {τ ~> τ'} {x} {lam .A m} {n} (un m~Tt) (lam L {.m} cf) trm-n x∉Γ (abs L' cf') =
   τᵢ ,
   (abs
     (x' ∷ x ∷ dom Γ ++ ΛFV m)
