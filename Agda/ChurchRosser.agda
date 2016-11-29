@@ -11,7 +11,7 @@ open import Core-Lemmas
 open import Reduction
 open import Typing
 
-data _* (R : PTerm ↝ PTerm) : PTerm ↝ PTerm where
+data _* {K : Set}(R : K ↝ K) : K ↝ K where
   base : ∀ {a b} -> R a b -> (R *) a b
   refl : ∀ {a} -> (R *) a a
   trans : ∀ {a b c} -> (R *) a b -> (R *) b c -> (R *) a c
