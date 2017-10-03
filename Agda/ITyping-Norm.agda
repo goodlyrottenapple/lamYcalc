@@ -179,7 +179,21 @@ NF->⊩ (lamN L {A} {B} {m} cf) (lam L' cf') = body x∉FVm Γ⊩m^x∶τ
   body : ∀ {Γ A B τ x} {m : Λ B} -> x ∉ ΛFV m -> Γ ⊩ (Λ[ 0 >> fv {A} x ] m) ∶ τ -> ∃ (λ Γ -> ∃ (λ τ -> Γ ⊩ (lam A m) ∶ τ))
   body {Γ} {A} {B} {τ} {x = x} x∉FVm Γ⊩m^x∶τ with x ∈Γ? Γ
   body {Γ} {τ = τ} {x} {m} x∉FVm Γ⊩m^x∶τ | yes x∈Γ with ∈Γ-∃ x∈Γ (⊩-wf-Γ Γ⊩m^x∶τ)
-  body {Γ} {τ = τ} {x} {m} x∉FVm Γ⊩m^x∶τ | yes x∈Γ | Γ' , τ' , A' , Γ⊆x∷Γ' , _ , wf-x∷Γ' = {!!}
+  body {Γ} {τ = τ} {x} {m} x∉FVm Γ⊩m^x∶τ | yes x∈Γ | Γ' , τ' , A' , Γ⊆x∷Γ' , _ , wf-x∷Γ' =
+    Γ' ,
+    (τ' ~> [ τ ]) ,
+    abs
+      {!!}
+      (λ {y} y∉L → cons
+      (aux {x = x}
+        m
+        (proj₂ (∃~T m))
+        {!!}
+        {!!}
+        {!!}
+        {!!}
+        {!x∷Γ'⊩m^x∶τ!})
+        (nil (cons {!!} {!!} {!!})))
     where
     Γ⊆Γx∷Γ' = ⊆Γ-⊆ wf-x∷Γ' Γ⊆x∷Γ'
 
